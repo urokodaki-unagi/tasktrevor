@@ -208,7 +208,7 @@
               <span class="queue-pos">${i + 1}</span>
               <div>
                 <p class="admin-task-title"></p>
-                <p class="admin-task-meta">${data.submittedBy || "Anonymous"} &middot; ${data.code || ""}${data.createdAt ? ` &middot; ${formatTime(data.createdAt.toDate())}` : ""}</p>
+                <p class="admin-task-meta">${data.submittedBy || "Anonymous"} &middot; ${data.code || ""}${data.email ? ` &middot; ${data.email}` : ""}${data.phone ? ` &middot; ${data.phone}` : ""}${data.createdAt ? ` &middot; ${formatTime(data.createdAt.toDate())}` : ""}</p>
               </div>
             </div>
             <div class="task-actions">
@@ -217,7 +217,7 @@
             </div>`;
           li.querySelector(".admin-task-title").textContent = data.title;
           li.querySelector(".start-btn").addEventListener("click", () =>
-            startTask(d.id, data.title, data.submittedBy || "", data.code || ""));
+            startTask(d.id, data.title, data.submittedBy || "", data.code || "", data.email || "", data.phone || "", data.createdAt || null));
           li.querySelector(".delete-btn").addEventListener("click", () =>
             deleteTask(d.id));
           list.appendChild(li);
@@ -252,10 +252,14 @@
           li.innerHTML = `
             <div class="done-item-info">
               <span class="done-title"></span>
-              <span class="done-meta">${data.code || ""} ${data.completedAt ? "&middot; " + formatTime(data.completedAt.toDate()) : ""}</span>
+              <span class="done-meta">${data.submittedBy ? data.submittedBy + " &middot; " : ""}${data.code || ""}${data.completedAt ? " &middot; " + formatTime(data.completedAt.toDate()) : ""}${data.email ? " &middot; " + data.email : ""}${data.phone ? " &middot; " + data.phone : ""}</span>
             </div>
-            <button class="btn-ghost-sm remove-btn">Remove</button>`;
+            <div style="display:flex;gap:6px;">
+              <button class="btn-ghost-sm restart-btn">Restart</button>
+              <button class="btn-ghost-sm remove-btn">Remove</button>
+            </div>`;
           li.querySelector(".done-title").textContent = data.title;
+          li.querySelector(".restart-btn").addEventListener("click", () => restartTask(d.id, data));
           li.querySelector(".remove-btn").addEventListener("click", () => deleteTask(d.id, "done"));
           list.appendChild(li);
         });
@@ -274,7 +278,7 @@
     }
 
     // --- Actions ---
-    window.startTask = async (id, title, submittedBy, code) => {
+    window.startTask = async (id, title, submittedBy, code, email, phone, submittedAt) => {
       // If something is already in progress, send it back to the queue first
       const currentSnap = await getDoc(doc(db, "meta", "current"));
       const current = currentSnap.exists() ? currentSnap.data() : null;
@@ -283,6 +287,8 @@
           title: current.title,
           submittedBy: current.submittedBy || "",
           code: current.code || "",
+          email: current.email || "",
+          phone: current.phone || "",
           createdAt: serverTimestamp(),
           order: Date.now()
         });
@@ -291,6 +297,9 @@
         title,
         submittedBy,
         code,
+        email: email || "",
+        phone: phone || "",
+        submittedAt: submittedAt || null,
         sourceId: id,
         stage: 2,
         startedAt: serverTimestamp()
@@ -306,6 +315,8 @@
           title: current.title,
           submittedBy: current.submittedBy || "",
           code: current.code || "",
+          email: current.email || "",
+          phone: current.phone || "",
           createdAt: serverTimestamp(),
           order: Date.now()
         });
@@ -326,6 +337,9 @@
         title,
         submittedBy: current.submittedBy || "",
         code: current.code || "",
+        email: current.email || "",
+        phone: current.phone || "",
+        submittedAt: current.submittedAt || null,
         completedAt: serverTimestamp()
       });
       await setDoc(doc(db, "meta", "lastCompleted"), {
@@ -338,6 +352,19 @@
 
     window.clearCurrent = async () => {
       await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+    };
+
+    window.restartTask = async (id, data) => {
+      await addDoc(collection(db, "queue"), {
+        title: data.title,
+        submittedBy: data.submittedBy || "",
+        code: data.code || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        createdAt: serverTimestamp(),
+        order: Date.now()
+      });
+      await deleteDoc(doc(db, "done", id));
     };
 
     window.deleteTask = async (id, col = "queue") => {
