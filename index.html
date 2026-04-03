@@ -20,6 +20,7 @@
 
     <!-- Progress Tracker -->
     <section class="tracker-section">
+      <p class="time-on-task-label" id="time-on-task-label" style="display:none;">Time on Task</p>
       <p class="public-timer-wrap"><span class="public-elapsed-timer" id="public-elapsed-timer" style="display:none;"></span></p>
       <p class="tracker-label" id="tracker-task-name">Current Task</p>
       <p class="last-completed" id="last-completed-wrap" style="display:none;"><span id="last-completed-text"></span></p>
@@ -34,12 +35,7 @@
           <span class="tracker-stage-label" id="stage-label-4">All Done!</span>
         </div>
       </div>
-    </section>
-
-    <!-- Queue -->
-    <section class="queue-section">
-      <h2 class="section-title">Up Next</h2>
-      <p id="queue-count" class="queue-count-display">Loading...</p>
+      <p id="queue-count" style="font-size:1rem;font-weight:600;color:#1a1a1a;margin-top:16px;border-top:1px solid #f0f0f0;padding-top:14px;"></p>
       <p id="queue-avgwait" class="queue-avgwait-display"></p>
     </section>
 
@@ -151,8 +147,9 @@
 
       const label = document.getElementById("tracker-task-name");
       if (title) {
-        label.innerHTML = `Currently working on a task`;
+        label.innerHTML = `Current Status: Currently working on a task`;
         document.getElementById("last-completed-wrap").style.display = "none";
+        document.getElementById("time-on-task-label").style.display = "block";
 
         // Start elapsed timer
         if (publicTimerInterval) clearInterval(publicTimerInterval);
@@ -170,6 +167,7 @@
       } else {
         if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
         document.getElementById("public-elapsed-timer").style.display = "none";
+        document.getElementById("time-on-task-label").style.display = "none";
         label.innerHTML = "No task in progress";
         // Show last completed if available
         onSnapshot(doc(db, "meta", "lastCompleted"), (lSnap) => {
@@ -276,6 +274,26 @@
       document.getElementById("phone-input").value = "";
       document.getElementById("confirm-wrap").style.display = "none";
       document.getElementById("form-wrap").style.display = "block";
+    });
+
+    // --- Phone formatter ---
+    document.getElementById("phone-input").addEventListener("input", (e) => {
+      let val = e.target.value.replace(/\D/g, "").slice(0, 10);
+      if (val.length >= 7) {
+        val = `(${val.slice(0,3)}) ${val.slice(3,6)}-${val.slice(6)}`;
+      } else if (val.length >= 4) {
+        val = `(${val.slice(0,3)}) ${val.slice(3)}`;
+      } else if (val.length > 0) {
+        val = `(${val}`;
+      }
+      e.target.value = val;
+    });
+
+    // --- No spaces in name fields ---
+    ["firstname-input", "lastname-input"].forEach(id => {
+      document.getElementById(id).addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/\s/g, "");
+      });
     });
 
     // --- Ticket lookup ---
