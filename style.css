@@ -97,6 +97,7 @@ section {
   letter-spacing: 0.1em;
   color: #888;
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .empty-msg {
