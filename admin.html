@@ -173,16 +173,21 @@
 
           // Start elapsed timer
           if (timerInterval) clearInterval(timerInterval);
+          timerInterval = null;
           if (data.startedAt) {
             const startedAt = data.startedAt.toDate();
-            timerInterval = setInterval(() => {
+            const tick = () => {
               const timerEl = document.getElementById("elapsed-timer");
               if (!timerEl) { clearInterval(timerInterval); return; }
               const secs = Math.floor((new Date() - startedAt) / 1000);
               const m = Math.floor(secs / 60);
               const s = secs % 60;
               timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
-            }, 1000);
+            };
+            tick();
+            if (stage < 4) {
+              timerInterval = setInterval(tick, 1000);
+            }
           }
         } else {
           if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
