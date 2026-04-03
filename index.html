@@ -219,8 +219,15 @@
     });
 
     // --- Submit form ---
-    function generateCode() {
-      return "TT-" + Math.floor(1000 + Math.random() * 9000);
+    async function generateUniqueCode() {
+      while (true) {
+        const code = "TT-" + Math.floor(1000 + Math.random() * 9000);
+        const [qSnap, dSnap] = await Promise.all([
+          getDocs(query(collection(db, "queue"), where("code", "==", code))),
+          getDocs(query(collection(db, "done"), where("code", "==", code)))
+        ]);
+        if (qSnap.empty && dSnap.empty) return code;
+      }
     }
 
     document.getElementById("submit-form").addEventListener("submit", async (e) => {
@@ -231,7 +238,7 @@
       const name = `${firstName} ${lastName}`;
       const email = document.getElementById("email-input").value.trim();
       const phone = document.getElementById("phone-input").value.trim();
-      const code = generateCode();
+      const code = await generateUniqueCode();
 
       try {
         await addDoc(collection(db, "queue"), {
