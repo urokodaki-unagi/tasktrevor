@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Trevor</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="wordmark"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></h1>
+      <a href="admin.html" class="admin-btn">Admin</a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Progress Tracker -->
+    <section class="tracker-section">
+      <p class="public-timer-wrap"><span class="public-elapsed-timer" id="public-elapsed-timer" style="display:none;"></span></p>
+      <p class="tracker-label" id="tracker-task-name">Current Task</p>
+      <p class="last-completed" id="last-completed-wrap" style="display:none;"><span id="last-completed-text"></span></p>
+      <div class="tracker">
+        <div class="tracker-bar-bg">
+          <div class="tracker-bar-fill" id="tracker-bar-fill"></div>
+        </div>
+        <div class="tracker-labels">
+          <span class="tracker-stage-label" id="stage-label-1">In Queue</span>
+          <span class="tracker-stage-label" id="stage-label-2">Being Worked On</span>
+          <span class="tracker-stage-label" id="stage-label-3">Finishing Up</span>
+          <span class="tracker-stage-label" id="stage-label-4">All Done!</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Queue -->
+    <section class="queue-section">
+      <h2 class="section-title">Up Next</h2>
+      <ul id="queue-list">
+        <li class="empty-msg">The queue is empty — submit something!</li>
+      </ul>
+    </section>
+
+    <!-- Ticket Lookup -->
+    <section class="lookup-section">
+      <details>
+        <summary class="lookup-summary">Have a ticket code? Look it up</summary>
+        <div class="lookup-inner">
+          <form id="lookup-form">
+            <div style="display:flex;gap:10px;margin-top:12px;align-items:center;">
+              <span class="lookup-prefix">TT-</span>
+              <input type="text" id="lookup-input" placeholder="4823" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" />
+              <button type="submit" style="white-space:nowrap;">Look Up</button>
+            </div>
+          </form>
+          <div id="lookup-result" style="display:none;"></div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Submit Form -->
+    <section class="submit-section">
+      <h2 class="section-title">Submit a Task</h2>
+      <div id="form-wrap">
+        <form id="submit-form">
+          <div style="display:flex;gap:12px;">
+            <input
+              type="text"
+              id="firstname-input"
+              placeholder="First name"
+              maxlength="50"
+              required
+              style="flex:1;"
+            />
+            <input
+              type="text"
+              id="lastname-input"
+              placeholder="Last name"
+              maxlength="50"
+              required
+              style="flex:1;"
+            />
+          </div>
+          <textarea
+            id="task-input"
+            placeholder="Describe your task..."
+            maxlength="300"
+            rows="3"
+            required
+          ></textarea>
+          <button type="submit">Add to Queue</button>
+        </form>
+      </div>
+      <!-- Confirmation shown after submit -->
+      <div id="confirm-wrap" style="display:none;">
+        <div class="confirm-card">
+          <p class="confirm-title">You're in the queue!</p>
+          <p class="confirm-code-label">Your confirmation code</p>
+          <p class="confirm-code" id="confirm-code"></p>
+          <button id="copy-code-btn" class="copy-btn">Copy Number</button>
+          <p id="copy-msg" style="font-size:0.78rem;color:#22c55e;min-height:1.2em;margin-top:4px;"></p>
+          <p class="confirm-note">Use this number to look up your task status.</p>
+          <button id="submit-another-btn">Submit Another</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      onSnapshot,
+      query,
+      orderBy,
+      where,
+      getDocs,
+      getDoc,
+      serverTimestamp,
+      doc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
+  authDomain: "work-que-16801.firebaseapp.com",
+  projectId: "work-que-16801",
+  storageBucket: "work-que-16801.firebasestorage.app",
+  messagingSenderId: "283312462855",
+  appId: "1:283312462855:web:ee0b71d588338902e1dea2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let publicTimerInterval = null;
+
+    // --- Progress tracker ---
+    const STAGES = ["In Queue", "Being Worked On", "Finishing Up", "All Done!"];
+
+    onSnapshot(doc(db, "meta", "current"), (snap) => {
+      const data = snap.exists() ? snap.data() : null;
+      const stage = (data && data.stage) ? data.stage : 0;
+      const title = (data && data.title) ? data.title : null;
+
+      const label = document.getElementById("tracker-task-name");
+      if (title) {
+        label.innerHTML = `Currently working on a task`;
+        document.getElementById("last-completed-wrap").style.display = "none";
+
+        // Start elapsed timer
+        if (publicTimerInterval) clearInterval(publicTimerInterval);
+        const timerEl = document.getElementById("public-elapsed-timer");
+        if (data.startedAt) {
+          const startedAt = data.startedAt.toDate();
+          timerEl.style.display = "inline";
+          publicTimerInterval = setInterval(() => {
+            const secs = Math.floor((new Date() - startedAt) / 1000);
+            const m = Math.floor(secs / 60);
+            const s = secs % 60;
+            timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+          }, 1000);
+        }
+      } else {
+        if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
+        document.getElementById("public-elapsed-timer").style.display = "none";
+        label.innerHTML = "No task in progress";
+        // Show last completed if available
+        onSnapshot(doc(db, "meta", "lastCompleted"), (lSnap) => {
+          const lw = document.getElementById("last-completed-wrap");
+          if (lSnap.exists() && lSnap.data().submittedBy) {
+            const l = lSnap.data();
+            document.getElementById("last-completed-text").innerHTML =
+              `Last completed: <strong>${l.submittedBy}</strong>${l.code ? ` &middot; ${l.code}` : ""}`;
+            lw.style.display = "block";
+          } else {
+            lw.style.display = "none";
+          }
+        });
+      }
+
+      // Bar fills: 0%=idle, stage1=10%, stage2=40%, stage3=75%, stage4=100%
+      const fillMap = { 0: "0%", 1: "10%", 2: "40%", 3: "75%", 4: "100%" };
+      document.getElementById("tracker-bar-fill").style.width = fillMap[stage] || "0%";
+
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById(`stage-label-${i}`);
+        el.classList.remove("stage-active", "stage-complete");
+        if (stage === 0) {
+          // nothing
+        } else if (i < stage) {
+          el.classList.add("stage-complete");
+        } else if (i === stage) {
+          el.classList.add("stage-active");
+        }
+      }
+    });
+
+    // --- Queue list (names + position only, no task details) ---
+    const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
+    onSnapshot(queueQuery, (snap) => {
+      const list = document.getElementById("queue-list");
+      if (snap.empty) {
+        list.innerHTML = `<li class="empty-msg">The queue is empty — submit something!</li>`;
+        return;
+      }
+      list.innerHTML = snap.docs.map((d, i) => {
+        const data = d.data();
+        const ts = data.createdAt ? formatTime(data.createdAt.toDate()) : "";
+        return `<li class="queue-item">
+          <span class="queue-pos">${i + 1}</span>
+          <div class="queue-item-body">
+            <span class="queue-name">${data.submittedBy || "Anonymous"}</span>
+            ${ts ? `<span class="queue-timestamp">${ts}</span>` : ""}
+          </div>
+          <span class="queue-code">${data.code || ""}</span>
+        </li>`;
+
+      }).join("");
+    });
+
+    // --- Submit form ---
+    function generateCode() {
+      return "TT-" + Math.floor(1000 + Math.random() * 9000);
+    }
+
+    document.getElementById("submit-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = document.getElementById("task-input").value.trim();
+      const firstName = document.getElementById("firstname-input").value.trim();
+      const lastName = document.getElementById("lastname-input").value.trim();
+      const name = `${firstName} ${lastName}`;
+      const code = generateCode();
+
+      try {
+        await addDoc(collection(db, "queue"), {
+          title,
+          submittedBy: name,
+          code,
+          createdAt: serverTimestamp(),
+          order: Date.now()
+        });
+
+        // Show confirmation
+        document.getElementById("form-wrap").style.display = "none";
+        document.getElementById("confirm-code").textContent = code;
+        document.getElementById("confirm-wrap").style.display = "block";
+        document.getElementById("copy-code-btn").onclick = () => {
+          const digits = code.replace("TT-", "");
+          navigator.clipboard.writeText(digits).then(() => {
+            const msg = document.getElementById("copy-msg");
+            msg.textContent = "Copied!";
+            setTimeout(() => msg.textContent = "", 2000);
+          });
+        };
+      } catch (err) {
+        alert("Something went wrong. Please try again.");
+      }
+    });
+
+    document.getElementById("submit-another-btn").addEventListener("click", () => {
+      document.getElementById("task-input").value = "";
+      document.getElementById("firstname-input").value = "";
+      document.getElementById("lastname-input").value = "";
+      document.getElementById("confirm-wrap").style.display = "none";
+      document.getElementById("form-wrap").style.display = "block";
+    });
+
+    // --- Ticket lookup ---
+    document.getElementById("lookup-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const code = "TT-" + document.getElementById("lookup-input").value.trim();
+      const result = document.getElementById("lookup-result");
+      result.style.display = "block";
+      result.innerHTML = `<p class="lookup-searching">Searching...</p>`;
+
+      // Check in-progress
+      const currentDoc = await getDoc(doc(db, "meta", "current"));
+      const current = currentDoc.exists() ? currentDoc.data() : null;
+      if (current && current.code === code) {
+        const stage = current.stage || 2;
+        const STAGE_LABELS = ["", "In Queue", "Being Worked On", "Finishing Up", "All Done!"];
+        result.innerHTML = `<div class="lookup-card lookup-inprogress">
+          <p class="lookup-code">${code}</p>
+          <p class="lookup-status">🟢 Currently in progress</p>
+          <p class="lookup-stage">${STAGE_LABELS[stage]}</p>
+          ${current.submittedBy ? `<p class="lookup-name">Submitted by ${current.submittedBy}</p>` : ""}
+        </div>`;
+        return;
+      }
+
+      // Check queue
+      const queueSnap = await getDocs(query(collection(db, "queue"), where("code", "==", code)));
+      if (!queueSnap.empty) {
+        const data = queueSnap.docs[0].data();
+        // Get position
+        const allSnap = await getDocs(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")));
+        const pos = allSnap.docs.findIndex(d => d.data().code === code) + 1;
+        result.innerHTML = `<div class="lookup-card lookup-queued">
+          <p class="lookup-code">${code}</p>
+          <p class="lookup-status">⏳ In queue</p>
+          <p class="lookup-stage">Position #${pos}</p>
+        </div>`;
+        return;
+      }
+
+      // Check done
+      const doneSnap = await getDocs(query(collection(db, "done"), where("code", "==", code)));
+      if (!doneSnap.empty) {
+        const data = doneSnap.docs[0].data();
+        result.innerHTML = `<div class="lookup-card lookup-done">
+          <p class="lookup-code">${code}</p>
+          <p class="lookup-status">✅ Completed</p>
+          ${data.submittedBy ? `<p class="lookup-name">Submitted by ${data.submittedBy}</p>` : ""}
+        </div>`;
+        return;
+      }
+
+      result.innerHTML = `<div class="lookup-card lookup-notfound">No ticket found for <strong>${code}</strong>.</div>`;
+    });
+
+    function formatTime(date) {
+      return date.toLocaleString("en-US", {
+        month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit", hour12: true
+      });
+    }
+  </script>
+</body>
+</html>

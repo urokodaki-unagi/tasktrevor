@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Portal — Task Trevor</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f0f0;">
+    <div class="login-box">
+      <h1 class="wordmark" style="margin-bottom:24px;"><span class="wordmark-task" style="color:#1a1a1a;">Task</span><span class="wordmark-trevor" style="color:#1a1a1a;">Trevor</span></h1>
+      <form id="login-form">
+        <input type="email" id="email-input" placeholder="Email" required />
+        <input type="password" id="password-input" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="login-error"></p>
+      <a href="index.html" class="login-home-btn">← Return Home</a>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="admin-panel" style="display:none;">
+
+    <header class="site-header">
+      <div class="header-inner">
+        <h1 class="wordmark">
+          <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin Portal</span>
+        </h1>
+        <button id="logout-btn" class="btn-ghost">Logout</button>
+      </div>
+    </header>
+
+    <main class="container">
+
+      <!-- Current Task + Stage Control -->
+      <section>
+        <h2 class="section-title">In Progress</h2>
+        <div id="current-admin-card">
+          <p class="empty-msg">Nothing in progress. Start a task from the queue below.</p>
+        </div>
+      </section>
+
+      <!-- Queue -->
+      <section>
+        <h2 class="section-title">Queue</h2>
+        <ul id="admin-queue-list">
+          <li class="empty-msg">Queue is empty.</li>
+        </ul>
+      </section>
+
+      <!-- Done -->
+      <section>
+        <div class="done-header">
+          <h2 class="section-title" style="margin-bottom:0;">Done</h2>
+          <button id="toggle-done-btn" class="btn-ghost-sm" style="display:none;">Show All</button>
+        </div>
+        <ul id="done-list">
+          <li class="empty-msg">Nothing done yet.</li>
+        </ul>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      onSnapshot,
+      query,
+      orderBy,
+      updateDoc,
+      deleteDoc,
+      setDoc,
+      addDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
+  authDomain: "work-que-16801.firebaseapp.com",
+  projectId: "work-que-16801",
+  storageBucket: "work-que-16801.firebasestorage.app",
+  messagingSenderId: "283312462855",
+  appId: "1:283312462855:web:ee0b71d588338902e1dea2"
+    };
+
+    const STAGE_LABELS = ["", "In Queue", "Being Worked On", "Finishing Up", "All Done!"];
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // --- Auth state ---
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        startListeners();
+      } else {
+        document.getElementById("admin-panel").style.display = "none";
+        document.getElementById("login-screen").style.display = "flex";
+      }
+    });
+
+    // --- Login ---
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email-input").value;
+      const password = document.getElementById("password-input").value;
+      const errEl = document.getElementById("login-error");
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        errEl.textContent = "Invalid email or password.";
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => {
+      signOut(auth);
+    });
+
+    let timerInterval = null;
+
+    function startListeners() {
+
+      // Current task
+      onSnapshot(doc(db, "meta", "current"), (snap) => {
+        const el = document.getElementById("current-admin-card");
+        const data = snap.exists() ? snap.data() : null;
+
+        if (data && data.title) {
+          const stage = data.stage || 2;
+          el.innerHTML = `
+            <div class="current-card">
+              <div class="current-card-info">
+                <p class="current-task-title"></p>
+                <p class="current-task-meta">
+                  ${data.submittedBy ? `From: ${data.submittedBy}` : ""}
+                  ${data.code ? ` &middot; ${data.code}` : ""}
+                </p>
+                <div class="current-card-footer">
+                  <span class="stage-badge">${STAGE_LABELS[stage]}</span>
+                  <span class="elapsed-timer" id="elapsed-timer">0:00</span>
+                </div>
+              </div>
+              <div class="stage-buttons">
+                ${stage < 4 ? `<button class="btn-advance advance-btn">&rarr; ${STAGE_LABELS[stage + 1]}</button>` : ""}
+                <button class="btn-done done-btn">Mark Done</button>
+                <button class="btn-ghost-sm return-btn">Back to Queue</button>
+                <button class="btn-ghost-sm clear-btn">Clear</button>
+              </div>
+            </div>`;
+          el.querySelector(".current-task-title").textContent = data.title;
+          if (stage < 4) el.querySelector(".advance-btn").addEventListener("click", () => advanceStage(stage));
+          el.querySelector(".done-btn").addEventListener("click", () => markDone(data.sourceId, data.title));
+          el.querySelector(".return-btn").addEventListener("click", () => returnToQueue());
+          el.querySelector(".clear-btn").addEventListener("click", () => clearCurrent());
+
+          // Start elapsed timer
+          if (timerInterval) clearInterval(timerInterval);
+          if (data.startedAt) {
+            const startedAt = data.startedAt.toDate();
+            timerInterval = setInterval(() => {
+              const timerEl = document.getElementById("elapsed-timer");
+              if (!timerEl) { clearInterval(timerInterval); return; }
+              const secs = Math.floor((new Date() - startedAt) / 1000);
+              const m = Math.floor(secs / 60);
+              const s = secs % 60;
+              timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+            }, 1000);
+          }
+        } else {
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          el.innerHTML = `<p class="empty-msg">Nothing in progress. Start a task from the queue below.</p>`;
+        }
+      });
+
+      // Queue
+      const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
+      onSnapshot(queueQuery, (snap) => {
+        const list = document.getElementById("admin-queue-list");
+        if (snap.empty) {
+          list.innerHTML = `<li class="empty-msg">Queue is empty.</li>`;
+          return;
+        }
+        list.innerHTML = "";
+        snap.docs.forEach((d, i) => {
+          const data = d.data();
+          const li = document.createElement("li");
+          li.className = "admin-queue-item";
+          li.innerHTML = `
+            <div class="queue-item-info">
+              <span class="queue-pos">${i + 1}</span>
+              <div>
+                <p class="admin-task-title"></p>
+                <p class="admin-task-meta">${data.submittedBy || "Anonymous"} &middot; ${data.code || ""}${data.createdAt ? ` &middot; ${formatTime(data.createdAt.toDate())}` : ""}</p>
+              </div>
+            </div>
+            <div class="task-actions">
+              <button class="start-btn">Start</button>
+              <button class="delete-btn btn-ghost-sm">Delete</button>
+            </div>`;
+          li.querySelector(".admin-task-title").textContent = data.title;
+          li.querySelector(".start-btn").addEventListener("click", () =>
+            startTask(d.id, data.title, data.submittedBy || "", data.code || ""));
+          li.querySelector(".delete-btn").addEventListener("click", () =>
+            deleteTask(d.id));
+          list.appendChild(li);
+        });
+      });
+
+      // Done
+      const DONE_PREVIEW = 5;
+      let allDoneDocs = [];
+      let showingAll = false;
+
+      const doneQuery = query(collection(db, "done"), orderBy("completedAt", "desc"));
+      onSnapshot(doneQuery, (snap) => {
+        allDoneDocs = snap.docs;
+        renderDone();
+      });
+
+      function renderDone() {
+        const list = document.getElementById("done-list");
+        const toggleBtn = document.getElementById("toggle-done-btn");
+        if (allDoneDocs.length === 0) {
+          list.innerHTML = `<li class="empty-msg">Nothing done yet.</li>`;
+          toggleBtn.style.display = "none";
+          return;
+        }
+        const docs = showingAll ? allDoneDocs : allDoneDocs.slice(0, DONE_PREVIEW);
+        list.innerHTML = "";
+        docs.forEach((d) => {
+          const data = d.data();
+          const li = document.createElement("li");
+          li.className = "done-item";
+          li.innerHTML = `
+            <div class="done-item-info">
+              <span class="done-title"></span>
+              <span class="done-meta">${data.code || ""} ${data.completedAt ? "&middot; " + formatTime(data.completedAt.toDate()) : ""}</span>
+            </div>
+            <button class="btn-ghost-sm remove-btn">Remove</button>`;
+          li.querySelector(".done-title").textContent = data.title;
+          li.querySelector(".remove-btn").addEventListener("click", () => deleteTask(d.id, "done"));
+          list.appendChild(li);
+        });
+        if (allDoneDocs.length > DONE_PREVIEW) {
+          toggleBtn.style.display = "inline-block";
+          toggleBtn.textContent = showingAll ? "Show Less" : `Show All (${allDoneDocs.length})`;
+        } else {
+          toggleBtn.style.display = "none";
+        }
+      }
+
+      document.getElementById("toggle-done-btn").addEventListener("click", () => {
+        showingAll = !showingAll;
+        renderDone();
+      });
+    }
+
+    // --- Actions ---
+    window.startTask = async (id, title, submittedBy, code) => {
+      // If something is already in progress, send it back to the queue first
+      const currentSnap = await getDoc(doc(db, "meta", "current"));
+      const current = currentSnap.exists() ? currentSnap.data() : null;
+      if (current && current.title) {
+        await addDoc(collection(db, "queue"), {
+          title: current.title,
+          submittedBy: current.submittedBy || "",
+          code: current.code || "",
+          createdAt: serverTimestamp(),
+          order: Date.now()
+        });
+      }
+      await setDoc(doc(db, "meta", "current"), {
+        title,
+        submittedBy,
+        code,
+        sourceId: id,
+        stage: 2,
+        startedAt: serverTimestamp()
+      });
+      await deleteDoc(doc(db, "queue", id));
+    };
+
+    window.returnToQueue = async () => {
+      const currentSnap = await getDoc(doc(db, "meta", "current"));
+      const current = currentSnap.exists() ? currentSnap.data() : null;
+      if (current && current.title) {
+        await addDoc(collection(db, "queue"), {
+          title: current.title,
+          submittedBy: current.submittedBy || "",
+          code: current.code || "",
+          createdAt: serverTimestamp(),
+          order: Date.now()
+        });
+        await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+      }
+    };
+
+    window.advanceStage = async (currentStage) => {
+      await updateDoc(doc(db, "meta", "current"), {
+        stage: currentStage + 1
+      });
+    };
+
+    window.markDone = async (sourceId, title) => {
+      const currentSnap = await getDoc(doc(db, "meta", "current"));
+      const current = currentSnap.exists() ? currentSnap.data() : {};
+      await addDoc(collection(db, "done"), {
+        title,
+        submittedBy: current.submittedBy || "",
+        code: current.code || "",
+        completedAt: serverTimestamp()
+      });
+      await setDoc(doc(db, "meta", "lastCompleted"), {
+        submittedBy: current.submittedBy || "",
+        code: current.code || "",
+        completedAt: serverTimestamp()
+      });
+      await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+    };
+
+    window.clearCurrent = async () => {
+      await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+    };
+
+    window.deleteTask = async (id, col = "queue") => {
+      if (confirm("Delete this task?")) {
+        await deleteDoc(doc(db, col, id));
+      }
+    };
+
+    function formatTime(date) {
+      return date.toLocaleString("en-US", {
+        month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit", hour12: true
+      });
+    }
+  </script>
+</body>
+</html>
