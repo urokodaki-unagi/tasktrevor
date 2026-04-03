@@ -696,6 +696,13 @@ details[open] .lookup-summary::before {
   padding-top: 4px;
 }
 
+/* ─── Tracker Status Heading ─── */
+#tracker-task-name {
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
 /* ─── Stats Row (Time on Current Task + Tasks in Queue) ─── */
 .stats-row {
   display: flex;
