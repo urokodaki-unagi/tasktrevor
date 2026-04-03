@@ -31,7 +31,6 @@
           <p class="stat-value"><span id="queue-count-number">0</span></p>
         </div>
       </div>
-      <p class="last-completed" id="last-completed-wrap" style="display:none;"><span id="last-completed-text"></span></p>
       <div class="tracker">
         <div class="tracker-bar-bg">
           <div class="tracker-bar-fill" id="tracker-bar-fill"></div>
@@ -177,19 +176,7 @@
       } else {
         if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
         document.getElementById("public-elapsed-timer").textContent = "--";
-        label.innerHTML = "Trevor is currently available";
-        // Show last completed if available
-        onSnapshot(doc(db, "meta", "lastCompleted"), (lSnap) => {
-          const lw = document.getElementById("last-completed-wrap");
-          if (lSnap.exists() && lSnap.data().submittedBy) {
-            const l = lSnap.data();
-            document.getElementById("last-completed-text").innerHTML =
-              `Last completed: <strong>${l.submittedBy}</strong>${l.code ? ` &middot; ${l.code}` : ""}`;
-            lw.style.display = "block";
-          } else {
-            lw.style.display = "none";
-          }
-        });
+        label.innerHTML = "Trevor hasn't started his next task yet";
       }
 
       // Bar fills: 0%=idle, stage1=10%, stage2=40%, stage3=75%, stage4=100%
