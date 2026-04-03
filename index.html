@@ -21,8 +21,16 @@
     <!-- Progress Tracker -->
     <section class="tracker-section">
       <p class="section-title" id="tracker-task-name">Current Status</p>
-      <p class="time-on-task-label" id="time-on-task-label" style="display:none;">Time on Task</p>
-      <p class="public-timer-wrap" id="public-timer-wrap" style="display:none;"><span class="public-elapsed-timer" id="public-elapsed-timer"></span></p>
+      <div class="stats-row">
+        <div class="stat-block">
+          <p class="stat-label">Time on Current Task</p>
+          <p class="stat-value"><span id="public-elapsed-timer">--</span></p>
+        </div>
+        <div class="stat-block">
+          <p class="stat-label">Tasks in Queue</p>
+          <p class="stat-value"><span id="queue-count-number">0</span></p>
+        </div>
+      </div>
       <p class="last-completed" id="last-completed-wrap" style="display:none;"><span id="last-completed-text"></span></p>
       <div class="tracker">
         <div class="tracker-bar-bg">
@@ -35,8 +43,7 @@
           <span class="tracker-stage-label" id="stage-label-4">Complete</span>
         </div>
       </div>
-      <p id="queue-count" style="font-size:1rem;font-weight:600;color:#1a1a1a;margin-top:16px;"></p>
-      <p id="queue-avgwait" class="queue-avgwait-display"></p>
+      <p id="queue-avgwait" class="queue-avgwait-display" style="margin-top:12px;"></p>
     </section>
 
     <!-- Ticket Lookup -->
@@ -149,7 +156,6 @@
       if (title) {
         label.innerHTML = `Trevor is working on something`;
         document.getElementById("last-completed-wrap").style.display = "none";
-        document.getElementById("time-on-task-label").style.display = "block";
 
         // Start elapsed timer
         if (publicTimerInterval) clearInterval(publicTimerInterval);
@@ -157,7 +163,6 @@
         const timerEl = document.getElementById("public-elapsed-timer");
         if (data.startedAt) {
           const startedAt = data.startedAt.toDate();
-          document.getElementById("public-timer-wrap").style.display = "block";
           const tick = () => {
             const secs = Math.floor((new Date() - startedAt) / 1000);
             const m = Math.floor(secs / 60);
@@ -171,8 +176,7 @@
         }
       } else {
         if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
-        document.getElementById("public-timer-wrap").style.display = "none";
-        document.getElementById("time-on-task-label").style.display = "none";
+        document.getElementById("public-elapsed-timer").textContent = "--";
         label.innerHTML = "Trevor is available";
         // Show last completed if available
         onSnapshot(doc(db, "meta", "lastCompleted"), (lSnap) => {
@@ -208,9 +212,7 @@
     // --- Queue count ---
     const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
     onSnapshot(queueQuery, (snap) => {
-      const count = snap.docs.length;
-      const countEl = document.getElementById("queue-count");
-      countEl.textContent = count === 0 ? "No tasks in queue" : `${count} task${count === 1 ? "" : "s"} in queue`;
+      document.getElementById("queue-count-number").textContent = snap.docs.length;
     });
 
     // --- Avg completion time (from done collection) ---
