@@ -29,10 +29,10 @@
           <div class="tracker-bar-fill" id="tracker-bar-fill"></div>
         </div>
         <div class="tracker-labels">
-          <span class="tracker-stage-label" id="stage-label-1">In Queue</span>
-          <span class="tracker-stage-label" id="stage-label-2">Being Worked On</span>
-          <span class="tracker-stage-label" id="stage-label-3">Finishing Up</span>
-          <span class="tracker-stage-label" id="stage-label-4">All Done!</span>
+          <span class="tracker-stage-label" id="stage-label-1">Getting Started</span>
+          <span class="tracker-stage-label" id="stage-label-2">In Progress</span>
+          <span class="tracker-stage-label" id="stage-label-3">Wrapping Up</span>
+          <span class="tracker-stage-label" id="stage-label-4">Complete</span>
         </div>
       </div>
       <p id="queue-count" style="font-size:1rem;font-weight:600;color:#1a1a1a;margin-top:16px;border-top:1px solid #f0f0f0;padding-top:14px;"></p>
@@ -147,28 +147,33 @@
 
       const label = document.getElementById("tracker-task-name");
       if (title) {
-        label.innerHTML = `Current Status`;
+        label.innerHTML = `Trevor is working on something`;
         document.getElementById("last-completed-wrap").style.display = "none";
         document.getElementById("time-on-task-label").style.display = "block";
 
         // Start elapsed timer
         if (publicTimerInterval) clearInterval(publicTimerInterval);
+        publicTimerInterval = null;
         const timerEl = document.getElementById("public-elapsed-timer");
         if (data.startedAt) {
           const startedAt = data.startedAt.toDate();
           timerEl.style.display = "inline";
-          publicTimerInterval = setInterval(() => {
+          const tick = () => {
             const secs = Math.floor((new Date() - startedAt) / 1000);
             const m = Math.floor(secs / 60);
             const s = secs % 60;
             timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
-          }, 1000);
+          };
+          tick();
+          if (stage < 4) {
+            publicTimerInterval = setInterval(tick, 1000);
+          }
         }
       } else {
         if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
         document.getElementById("public-elapsed-timer").style.display = "none";
         document.getElementById("time-on-task-label").style.display = "none";
-        label.innerHTML = "Current Status";
+        label.innerHTML = "Trevor is available";
         // Show last completed if available
         onSnapshot(doc(db, "meta", "lastCompleted"), (lSnap) => {
           const lw = document.getElementById("last-completed-wrap");
