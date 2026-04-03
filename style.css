@@ -694,6 +694,19 @@ details[open] .lookup-summary::before {
   padding-top: 4px;
 }
 
+/* ─── Queue Count ─── */
+.queue-count-display {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.queue-avgwait-display {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 6px;
+}
+
 /* ─── Mobile ─── */
 @media (max-width: 480px) {
   .tracker-stage-label {
