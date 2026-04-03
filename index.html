@@ -22,7 +22,7 @@
     <section class="tracker-section">
       <p class="section-title" id="tracker-task-name">Current Status</p>
       <p class="time-on-task-label" id="time-on-task-label" style="display:none;">Time on Task</p>
-      <p class="public-timer-wrap"><span class="public-elapsed-timer" id="public-elapsed-timer" style="display:none;"></span></p>
+      <p class="public-timer-wrap" id="public-timer-wrap" style="display:none;"><span class="public-elapsed-timer" id="public-elapsed-timer"></span></p>
       <p class="last-completed" id="last-completed-wrap" style="display:none;"><span id="last-completed-text"></span></p>
       <div class="tracker">
         <div class="tracker-bar-bg">
@@ -35,7 +35,7 @@
           <span class="tracker-stage-label" id="stage-label-4">Complete</span>
         </div>
       </div>
-      <p id="queue-count" style="font-size:1rem;font-weight:600;color:#1a1a1a;margin-top:16px;border-top:1px solid #f0f0f0;padding-top:14px;"></p>
+      <p id="queue-count" style="font-size:1rem;font-weight:600;color:#1a1a1a;margin-top:16px;"></p>
       <p id="queue-avgwait" class="queue-avgwait-display"></p>
     </section>
 
@@ -157,7 +157,7 @@
         const timerEl = document.getElementById("public-elapsed-timer");
         if (data.startedAt) {
           const startedAt = data.startedAt.toDate();
-          timerEl.style.display = "inline";
+          document.getElementById("public-timer-wrap").style.display = "block";
           const tick = () => {
             const secs = Math.floor((new Date() - startedAt) / 1000);
             const m = Math.floor(secs / 60);
@@ -171,7 +171,7 @@
         }
       } else {
         if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
-        document.getElementById("public-elapsed-timer").style.display = "none";
+        document.getElementById("public-timer-wrap").style.display = "none";
         document.getElementById("time-on-task-label").style.display = "none";
         label.innerHTML = "Trevor is available";
         // Show last completed if available
