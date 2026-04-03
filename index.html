@@ -39,9 +39,8 @@
     <!-- Queue -->
     <section class="queue-section">
       <h2 class="section-title">Up Next</h2>
-      <ul id="queue-list">
-        <li class="empty-msg">The queue is empty — submit something!</li>
-      </ul>
+      <p id="queue-count" class="queue-count-display">Loading...</p>
+      <p id="queue-avgwait" class="queue-avgwait-display"></p>
     </section>
 
     <!-- Ticket Lookup -->
@@ -84,6 +83,8 @@
               style="flex:1;"
             />
           </div>
+          <input type="email" id="email-input" placeholder="Email address" required />
+          <input type="tel" id="phone-input" placeholder="Phone number (optional)" />
           <textarea
             id="task-input"
             placeholder="Describe your task..."
@@ -201,27 +202,27 @@
       }
     });
 
-    // --- Queue list (names + position only, no task details) ---
+    // --- Queue count ---
     const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
     onSnapshot(queueQuery, (snap) => {
-      const list = document.getElementById("queue-list");
-      if (snap.empty) {
-        list.innerHTML = `<li class="empty-msg">The queue is empty — submit something!</li>`;
-        return;
-      }
-      list.innerHTML = snap.docs.map((d, i) => {
-        const data = d.data();
-        const ts = data.createdAt ? formatTime(data.createdAt.toDate()) : "";
-        return `<li class="queue-item">
-          <span class="queue-pos">${i + 1}</span>
-          <div class="queue-item-body">
-            <span class="queue-name">${data.submittedBy || "Anonymous"}</span>
-            ${ts ? `<span class="queue-timestamp">${ts}</span>` : ""}
-          </div>
-          <span class="queue-code">${data.code || ""}</span>
-        </li>`;
+      const count = snap.docs.length;
+      const countEl = document.getElementById("queue-count");
+      countEl.textContent = count === 0 ? "No tasks waiting" : `${count} task${count === 1 ? "" : "s"} waiting`;
+    });
 
-      }).join("");
+    // --- Avg completion time (from done collection) ---
+    getDocs(collection(db, "done")).then((doneSnap) => {
+      const withTimes = doneSnap.docs
+        .map(d => d.data())
+        .filter(d => d.submittedAt && d.completedAt);
+      const avgEl = document.getElementById("queue-avgwait");
+      if (withTimes.length >= 3) {
+        const avg = withTimes.reduce((sum, d) => sum + (d.completedAt.toDate() - d.submittedAt.toDate()), 0) / withTimes.length;
+        const mins = Math.round(avg / 60000);
+        avgEl.textContent = mins < 60
+          ? `~${mins} min avg completion time`
+          : `~${Math.round(mins / 60)} hr avg completion time`;
+      }
     });
 
     // --- Submit form ---
@@ -235,12 +236,16 @@
       const firstName = document.getElementById("firstname-input").value.trim();
       const lastName = document.getElementById("lastname-input").value.trim();
       const name = `${firstName} ${lastName}`;
+      const email = document.getElementById("email-input").value.trim();
+      const phone = document.getElementById("phone-input").value.trim();
       const code = generateCode();
 
       try {
         await addDoc(collection(db, "queue"), {
           title,
           submittedBy: name,
+          email,
+          phone,
           code,
           createdAt: serverTimestamp(),
           order: Date.now()
@@ -267,6 +272,8 @@
       document.getElementById("task-input").value = "";
       document.getElementById("firstname-input").value = "";
       document.getElementById("lastname-input").value = "";
+      document.getElementById("email-input").value = "";
+      document.getElementById("phone-input").value = "";
       document.getElementById("confirm-wrap").style.display = "none";
       document.getElementById("form-wrap").style.display = "block";
     });
