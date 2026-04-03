@@ -20,9 +20,9 @@
 
     <!-- Progress Tracker -->
     <section class="tracker-section">
+      <p class="section-title" id="tracker-task-name">Current Status</p>
       <p class="time-on-task-label" id="time-on-task-label" style="display:none;">Time on Task</p>
       <p class="public-timer-wrap"><span class="public-elapsed-timer" id="public-elapsed-timer" style="display:none;"></span></p>
-      <p class="tracker-label" id="tracker-task-name">Current Task</p>
       <p class="last-completed" id="last-completed-wrap" style="display:none;"><span id="last-completed-text"></span></p>
       <div class="tracker">
         <div class="tracker-bar-bg">
@@ -80,7 +80,7 @@
             />
           </div>
           <input type="email" id="email-input" placeholder="Email address" required />
-          <input type="tel" id="phone-input" placeholder="Phone number (optional)" />
+          <input type="text" id="phone-input" placeholder="Phone number (optional)" inputmode="tel" autocomplete="tel" />
           <textarea
             id="task-input"
             placeholder="Describe your task..."
@@ -147,7 +147,7 @@
 
       const label = document.getElementById("tracker-task-name");
       if (title) {
-        label.innerHTML = `Current Status: Currently working on a task`;
+        label.innerHTML = `Current Status`;
         document.getElementById("last-completed-wrap").style.display = "none";
         document.getElementById("time-on-task-label").style.display = "block";
 
@@ -168,7 +168,7 @@
         if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
         document.getElementById("public-elapsed-timer").style.display = "none";
         document.getElementById("time-on-task-label").style.display = "none";
-        label.innerHTML = "No task in progress";
+        label.innerHTML = "Current Status";
         // Show last completed if available
         onSnapshot(doc(db, "meta", "lastCompleted"), (lSnap) => {
           const lw = document.getElementById("last-completed-wrap");
@@ -205,7 +205,7 @@
     onSnapshot(queueQuery, (snap) => {
       const count = snap.docs.length;
       const countEl = document.getElementById("queue-count");
-      countEl.textContent = count === 0 ? "No tasks waiting" : `${count} task${count === 1 ? "" : "s"} waiting`;
+      countEl.textContent = count === 0 ? "No tasks in queue" : `${count} task${count === 1 ? "" : "s"} in queue`;
     });
 
     // --- Avg completion time (from done collection) ---
