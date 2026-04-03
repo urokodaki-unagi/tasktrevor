@@ -6,6 +6,7 @@
   <title>Task Trevor</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -113,6 +114,7 @@
 
   </main>
 
+  <script>emailjs.init("opF4Aq6Pe2eIhhkGx");</script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
@@ -241,6 +243,13 @@
           createdAt: serverTimestamp(),
           order: Date.now()
         });
+
+        // Send confirmation email
+        emailjs.send("service_6cr8wdn", "template_lhp8nqo", {
+          name: firstName,
+          email: email,
+          code: code.replace("TT-", "")
+        }).catch(() => {}); // silently fail if email doesn't send
 
         // Show confirmation
         document.getElementById("form-wrap").style.display = "none";
