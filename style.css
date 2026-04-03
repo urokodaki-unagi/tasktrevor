@@ -701,6 +701,7 @@ details[open] .lookup-summary::before {
   font-size: 1.1rem;
   letter-spacing: 0.01em;
   text-transform: none;
+  margin-bottom: 20px;
 }
 
 /* ─── Stats Row (Time on Current Task + Tasks in Queue) ─── */
