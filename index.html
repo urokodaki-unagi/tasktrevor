@@ -251,12 +251,21 @@
           order: Date.now()
         });
 
-        // Send confirmation email
+        // Send confirmation email to submitter
         emailjs.send("service_6cr8wdn", "template_lhp8nqo", {
           name: firstName,
           email: email,
           code: code.replace("TT-", "")
-        }).catch(() => {}); // silently fail if email doesn't send
+        }).catch(() => {});
+
+        // Notify Trevor
+        emailjs.send("service_6cr8wdn", "template_xnmpjnt", {
+          submitter_name: name,
+          submitter_email: email,
+          submitter_phone: phone || "not provided",
+          task: title,
+          code: code.replace("TT-", "")
+        }).catch(() => {});
 
         // Show confirmation
         document.getElementById("form-wrap").style.display = "none";
