@@ -3,9 +3,232 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Portal — Task Trevor</title>
+  <title>Admin Portal (Preview) — Task Trevor</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    input[type="number"] {
+      padding: 12px 16px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      width: 100%;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    input[type="number"]:focus { outline: none; border-color: #1a1a1a; }
+
+    /* ── Tab Nav ── */
+    .admin-tab-nav {
+      background: white;
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      display: flex;
+      gap: 4px;
+    }
+    .admin-tab-btn {
+      flex: 1;
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #bbb;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .admin-tab-btn.active { background: #1a1a1a; color: white; }
+    .admin-tab-btn:hover:not(.active) { color: #555; background: #f5f5f5; }
+
+    /* ── Finance Shared ── */
+    .fin-section-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+      margin-bottom: 14px;
+    }
+    .fin-subsection {
+      margin-bottom: 32px;
+    }
+    .fin-subsection-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .fin-col-labels {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #f0f0f0;
+      margin-bottom: 4px;
+    }
+    .fin-col-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #ccc;
+    }
+    .fin-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #f8f8f8;
+    }
+    .fin-row:last-child { border-bottom: none; }
+    .fin-row input { font-size: 0.88rem; padding: 8px 12px; }
+    .fin-delete-btn {
+      padding: 7px 10px;
+      background: transparent;
+      color: #ddd;
+      border: 1.5px solid #eee;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: inherit;
+      flex-shrink: 0;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .fin-delete-btn:hover { color: #ef4444; border-color: #fca5a5; }
+    .fin-empty-note {
+      font-size: 0.82rem;
+      color: #ccc;
+      font-style: italic;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    /* ── Spending ── */
+    .fin-row-spending { display: grid; grid-template-columns: 1fr 110px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
+    .fin-row-spending:last-child { border-bottom: none; }
+    .fin-row-spending input { font-size: 0.88rem; padding: 8px 12px; }
+    .fin-col-labels-spending { display: grid; grid-template-columns: 1fr 110px 36px; gap: 8px; }
+
+    /* ── Paychecks ── */
+    .fin-row-paycheck { display: grid; grid-template-columns: 1fr 90px 110px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
+    .fin-row-paycheck:last-child { border-bottom: none; }
+    .fin-row-paycheck input { font-size: 0.88rem; padding: 8px 12px; }
+    .fin-col-labels-paycheck { display: grid; grid-template-columns: 1fr 90px 110px 36px; gap: 8px; }
+    .fin-whose-select {
+      padding: 8px 10px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+      color: #1a1a1a;
+    }
+    .fin-whose-select:focus { outline: none; border-color: #1a1a1a; }
+
+    /* ── Bills ── */
+    .fin-row-bill { display: grid; grid-template-columns: 1fr 110px 80px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
+    .fin-row-bill:last-child { border-bottom: none; }
+    .fin-row-bill input { font-size: 0.88rem; padding: 8px 12px; }
+    .fin-col-labels-bill { display: grid; grid-template-columns: 1fr 110px 80px 36px; gap: 8px; }
+    .fin-paid-btn {
+      padding: 7px 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .fin-paid-btn.paid { background: #dcfce7; color: #16a34a; }
+    .fin-paid-btn.unpaid { background: #f5f5f5; color: #aaa; }
+
+    /* ── Funds ── */
+    .fin-fund-card {
+      background: #fafafa;
+      border: 1.5px solid #f0f0f0;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+    .fin-fund-card:last-child { margin-bottom: 0; }
+    .fin-fund-card.drag-over { border-color: #1a1a1a; }
+    .fin-fund-card.dragging  { opacity: 0.4; }
+    .fin-fund-card-top {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .fin-fund-card-top input { font-size: 0.9rem; padding: 8px 12px; }
+    .fin-drag-handle {
+      color: #ccc;
+      cursor: grab;
+      font-size: 1rem;
+      padding: 0 2px;
+      flex-shrink: 0;
+      user-select: none;
+      line-height: 1;
+    }
+    .fin-drag-handle:active { cursor: grabbing; }
+    .fin-fund-type-select {
+      padding: 8px 10px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      background: white;
+      cursor: pointer;
+      color: #1a1a1a;
+      flex-shrink: 0;
+    }
+    .fin-fund-type-select:focus { outline: none; border-color: #1a1a1a; }
+    .fin-fund-card-fields {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .fin-fund-field label {
+      display: block;
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #bbb;
+      margin-bottom: 4px;
+    }
+    .fin-fund-field input { font-size: 0.88rem; padding: 8px 12px; }
+    @media (max-width: 500px) {
+      .fin-fund-card-fields { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ── Save ── */
+    .fin-save-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 8px;
+      padding-top: 24px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .fin-save-status { font-size: 0.82rem; color: #22c55e; font-weight: 500; }
+
+    @media (max-width: 600px) {
+      .fin-row-paycheck { grid-template-columns: 1fr 80px 36px; }
+      .fin-col-labels-paycheck { grid-template-columns: 1fr 80px 36px; }
+      .fin-row-paycheck .fin-whose-select { display: none; }
+      .fin-row-bill { grid-template-columns: 1fr 90px 36px; }
+      .fin-col-labels-bill { grid-template-columns: 1fr 90px 36px; }
+      .fin-row-fund { grid-template-columns: 1fr 80px 80px 36px; }
+      .fin-col-labels-fund { grid-template-columns: 1fr 80px 80px 36px; }
+    }
+  </style>
 </head>
 <body>
 
@@ -37,32 +260,115 @@
 
     <main class="container">
 
-      <!-- Current Task + Stage Control -->
-      <section>
-        <h2 class="section-title">In Progress</h2>
-        <div id="current-admin-card">
-          <p class="empty-msg">Nothing in progress. Start a task from the queue below.</p>
-        </div>
-      </section>
+      <!-- Tab Nav -->
+      <div class="admin-tab-nav">
+        <button class="admin-tab-btn active" data-tab="tasks">Tasks</button>
+        <button class="admin-tab-btn" data-tab="finances">Finances</button>
+      </div>
 
-      <!-- Queue -->
-      <section>
-        <h2 class="section-title">Queue</h2>
-        <ul id="admin-queue-list">
-          <li class="empty-msg">Queue is empty.</li>
-        </ul>
-      </section>
+      <!-- ── Tasks Tab ── -->
+      <div id="tab-tasks">
+        <section>
+          <h2 class="section-title">In Progress</h2>
+          <div id="current-admin-card">
+            <p class="empty-msg">Nothing in progress. Start a task from the queue below.</p>
+          </div>
+        </section>
+        <section>
+          <h2 class="section-title">Queue</h2>
+          <ul id="admin-queue-list"><li class="empty-msg">Queue is empty.</li></ul>
+        </section>
+        <section>
+          <div class="done-header">
+            <h2 class="section-title" style="margin-bottom:0;">Done</h2>
+            <button id="toggle-done-btn" class="btn-ghost-sm" style="display:none;">Show All</button>
+          </div>
+          <ul id="done-list"><li class="empty-msg">Nothing done yet.</li></ul>
+        </section>
+      </div>
 
-      <!-- Done -->
-      <section>
-        <div class="done-header">
-          <h2 class="section-title" style="margin-bottom:0;">Done</h2>
-          <button id="toggle-done-btn" class="btn-ghost-sm" style="display:none;">Show All</button>
-        </div>
-        <ul id="done-list">
-          <li class="empty-msg">Nothing done yet.</li>
-        </ul>
-      </section>
+      <!-- ── Finances Tab ── -->
+      <div id="tab-finances" style="display:none;">
+        <section>
+          <h2 class="section-title">Her Dashboard</h2>
+
+          <!-- Greeting -->
+          <div style="margin-bottom:28px;">
+            <label class="fin-section-title" for="fin-greeting" style="display:block;">Greeting</label>
+            <input type="text" id="fin-greeting" placeholder="e.g. Hi babe! Here's where we stand this month." />
+          </div>
+
+          <!-- Paychecks -->
+          <div class="fin-subsection">
+            <div class="fin-subsection-header">
+              <span class="fin-section-title" style="margin-bottom:0;">Paychecks This Month</span>
+              <button type="button" id="add-paycheck-btn" class="btn-ghost-sm">+ Add</button>
+            </div>
+            <div class="fin-col-labels fin-col-labels-paycheck">
+              <span class="fin-col-label">Label (e.g. Apr 1st)</span>
+              <span class="fin-col-label">Whose</span>
+              <span class="fin-col-label">Amount</span>
+              <span></span>
+            </div>
+            <div id="paychecks-list"></div>
+            <p class="fin-empty-note" id="paychecks-empty">No paychecks added yet.</p>
+          </div>
+
+          <!-- Spending Money -->
+          <div class="fin-subsection">
+            <div class="fin-subsection-header">
+              <span class="fin-section-title" style="margin-bottom:0;">Her Spending Money</span>
+              <button type="button" id="add-spending-btn" class="btn-ghost-sm">+ Add</button>
+            </div>
+            <div class="fin-col-labels fin-col-labels-spending">
+              <span class="fin-col-label">Week / Date</span>
+              <span class="fin-col-label">Amount</span>
+              <span></span>
+            </div>
+            <div id="spending-list"></div>
+            <p class="fin-empty-note" id="spending-empty">No entries yet.</p>
+          </div>
+
+          <!-- Bills -->
+          <div class="fin-subsection">
+            <div class="fin-subsection-header">
+              <span class="fin-section-title" style="margin-bottom:0;">Bills This Month</span>
+              <button type="button" id="add-bill-btn" class="btn-ghost-sm">+ Add</button>
+            </div>
+            <div class="fin-col-labels fin-col-labels-bill">
+              <span class="fin-col-label">Bill Name</span>
+              <span class="fin-col-label">Amount</span>
+              <span class="fin-col-label">Status</span>
+              <span></span>
+            </div>
+            <div id="bills-list"></div>
+            <p class="fin-empty-note" id="bills-empty">No bills added yet.</p>
+          </div>
+
+          <!-- Funds -->
+          <div class="fin-subsection">
+            <div class="fin-subsection-header">
+              <span class="fin-section-title" style="margin-bottom:0;">Savings &amp; Funds</span>
+              <button type="button" id="add-fund-btn" class="btn-ghost-sm">+ Add</button>
+            </div>
+            <div id="funds-list"></div>
+            <p class="fin-empty-note" id="funds-empty">No funds added yet.</p>
+          </div>
+
+          <!-- Note -->
+          <div style="margin-bottom:24px;">
+            <label class="fin-section-title" for="fin-note" style="display:block;">Note for Her</label>
+            <textarea id="fin-note" rows="3" placeholder="Leave her a note that shows on her dashboard..."></textarea>
+          </div>
+
+          <!-- Save -->
+          <div class="fin-save-row">
+            <button type="button" id="fin-save-btn" class="btn-primary" style="flex:1;">Save Dashboard</button>
+            <span id="fin-save-status" class="fin-save-status"></span>
+          </div>
+
+        </section>
+      </div>
 
     </main>
   </div>
@@ -70,42 +376,28 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      doc,
-      onSnapshot,
-      query,
-      orderBy,
-      updateDoc,
-      deleteDoc,
-      setDoc,
-      addDoc,
-      getDoc,
-      serverTimestamp
+      getFirestore, collection, doc, onSnapshot, query, orderBy,
+      updateDoc, deleteDoc, setDoc, addDoc, getDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
-      getAuth,
-      signInWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
-  authDomain: "work-que-16801.firebaseapp.com",
-  projectId: "work-que-16801",
-  storageBucket: "work-que-16801.firebasestorage.app",
-  messagingSenderId: "283312462855",
-  appId: "1:283312462855:web:ee0b71d588338902e1dea2"
+      apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
+      authDomain: "work-que-16801.firebaseapp.com",
+      projectId: "work-que-16801",
+      storageBucket: "work-que-16801.firebasestorage.app",
+      messagingSenderId: "283312462855",
+      appId: "1:283312462855:web:ee0b71d588338902e1dea2"
     };
 
     const STAGE_LABELS = ["", "In Queue", "Being Worked On", "Finishing Up", "All Done!"];
-
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db  = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- Auth state ---
+    // ── Auth ──
     onAuthStateChanged(auth, (user) => {
       if (user) {
         document.getElementById("login-screen").style.display = "none";
@@ -117,32 +409,308 @@
       }
     });
 
-    // --- Login ---
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email-input").value;
-      const password = document.getElementById("password-input").value;
-      const errEl = document.getElementById("login-error");
       try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (err) {
-        errEl.textContent = "Invalid email or password.";
+        await signInWithEmailAndPassword(auth,
+          document.getElementById("email-input").value,
+          document.getElementById("password-input").value);
+      } catch {
+        document.getElementById("login-error").textContent = "Invalid email or password.";
       }
     });
 
-    document.getElementById("logout-btn").addEventListener("click", () => {
-      signOut(auth);
+    document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+
+    // ── Tabs ──
+    document.querySelectorAll(".admin-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const tab = btn.dataset.tab;
+        document.getElementById("tab-tasks").style.display    = tab === "tasks"    ? "contents" : "none";
+        document.getElementById("tab-finances").style.display = tab === "finances" ? "contents" : "none";
+        if (tab === "finances") loadFinances();
+      });
     });
 
+    // ── Finance: Helpers ──
+    function escHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+    function syncEmpty(listId, emptyId) {
+      const hasRows = document.getElementById(listId).querySelectorAll("[data-fin-row]").length > 0;
+      const emptyEl = document.getElementById(emptyId);
+      if (emptyEl) emptyEl.style.display = hasRows ? "none" : "block";
+    }
+
+    // ── Paycheck Rows ──
+    function createPaycheckRow(p = {}) {
+      const row = document.createElement("div");
+      row.className = "fin-row-paycheck";
+      row.dataset.finRow = "paycheck";
+      row.innerHTML = `
+        <input type="text" class="pc-label" placeholder="e.g. Apr 1st" value="${escHtml(p.label || '')}" />
+        <select class="fin-whose-select pc-whose">
+          <option value="his" ${p.whose === 'his' ? 'selected' : ''}>Mine</option>
+          <option value="hers" ${p.whose === 'hers' ? 'selected' : ''}>Hers</option>
+        </select>
+        <input type="number" class="pc-amount" placeholder="0" min="0" step="1" value="${p.amount || ''}" />
+        <button type="button" class="fin-delete-btn">✕</button>
+      `;
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => {
+        row.remove(); syncEmpty("paychecks-list", "paychecks-empty");
+      });
+      return row;
+    }
+
+    document.getElementById("add-paycheck-btn").addEventListener("click", () => {
+      document.getElementById("paychecks-list").appendChild(createPaycheckRow());
+      syncEmpty("paychecks-list", "paychecks-empty");
+    });
+
+    // ── Spending Rows ──
+    function createSpendingRow(s = {}) {
+      const row = document.createElement("div");
+      row.className = "fin-row-spending";
+      row.dataset.finRow = "spending";
+      row.innerHTML = `
+        <input type="text" class="spending-label" placeholder="e.g. Week of Apr 7" value="${escHtml(s.label || '')}" />
+        <input type="number" class="spending-amount" placeholder="0" min="0" step="1" value="${s.amount || ''}" />
+        <button type="button" class="fin-delete-btn">✕</button>
+      `;
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => {
+        row.remove(); syncEmpty("spending-list", "spending-empty");
+      });
+      return row;
+    }
+
+    document.getElementById("add-spending-btn").addEventListener("click", () => {
+      document.getElementById("spending-list").appendChild(createSpendingRow());
+      syncEmpty("spending-list", "spending-empty");
+    });
+
+    // ── Bill Rows ──
+    function createBillRow(b = {}) {
+      let paid = b.paid || false;
+      const row = document.createElement("div");
+      row.className = "fin-row-bill";
+      row.dataset.finRow = "bill";
+      row.innerHTML = `
+        <input type="text" class="bill-name" placeholder="e.g. Rent" value="${escHtml(b.name || '')}" />
+        <input type="number" class="bill-amount" placeholder="0" min="0" step="1" value="${b.amount || ''}" />
+        <button type="button" class="fin-paid-btn ${paid ? 'paid' : 'unpaid'}">${paid ? 'Paid' : 'Unpaid'}</button>
+        <button type="button" class="fin-delete-btn">✕</button>
+      `;
+      const toggle = row.querySelector(".fin-paid-btn");
+      toggle.addEventListener("click", () => {
+        paid = !paid;
+        toggle.textContent = paid ? "Paid" : "Unpaid";
+        toggle.className = `fin-paid-btn ${paid ? 'paid' : 'unpaid'}`;
+      });
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => {
+        row.remove(); syncEmpty("bills-list", "bills-empty");
+      });
+      row.getPaid = () => paid;
+      return row;
+    }
+
+    document.getElementById("add-bill-btn").addEventListener("click", () => {
+      document.getElementById("bills-list").appendChild(createBillRow());
+      syncEmpty("bills-list", "bills-empty");
+    });
+
+    // ── Fund Rows ──
+    const FUND_TYPE_OPTIONS = [
+      { value: "fund",     label: "Fund" },
+      { value: "savings",  label: "Savings Account" },
+      { value: "checking", label: "Checking Account" },
+      { value: "cd",       label: "CD / Investment" },
+      { value: "other",    label: "Other" },
+    ];
+
+    function createFundRow(f = {}) {
+      const card = document.createElement("div");
+      card.className = "fin-fund-card";
+      card.dataset.finRow = "fund";
+      const typeOpts = FUND_TYPE_OPTIONS.map(o =>
+        `<option value="${o.value}" ${(f.type||'fund') === o.value ? 'selected' : ''}>${o.label}</option>`
+      ).join("");
+      card.innerHTML = `
+        <div class="fin-fund-card-top">
+          <span class="fin-drag-handle" title="Drag to reorder">⠿</span>
+          <input type="text" class="fund-name" placeholder="e.g. Emergency Fund" value="${escHtml(f.name || '')}" style="flex:1;" />
+          <select class="fin-fund-type-select fund-type">${typeOpts}</select>
+          <button type="button" class="fin-delete-btn">✕</button>
+        </div>
+        <div class="fin-fund-card-fields">
+          <div class="fin-fund-field">
+            <label>Overall Goal</label>
+            <input type="number" class="fund-goal" placeholder="0" min="0" step="1" value="${f.goal || ''}" />
+          </div>
+          <div class="fin-fund-field">
+            <label>Monthly</label>
+            <input type="number" class="fund-monthly" placeholder="0" min="0" step="1" value="${f.monthly || ''}" />
+          </div>
+          <div class="fin-fund-field">
+            <label>This Month</label>
+            <input type="number" class="fund-contributed" placeholder="0" min="0" step="1" value="${f.contributed || ''}" />
+          </div>
+          <div class="fin-fund-field">
+            <label>Balance</label>
+            <input type="number" class="fund-balance" placeholder="0" min="0" step="1" value="${f.balance || ''}" />
+          </div>
+        </div>
+      `;
+      card.querySelector(".fin-delete-btn").addEventListener("click", () => {
+        card.remove(); syncEmpty("funds-list", "funds-empty");
+      });
+      addFundDrag(card);
+      return card;
+    }
+
+    // ── Drag-to-reorder for funds ──
+    let dragSrc = null;
+
+    function addFundDrag(card) {
+      card.setAttribute("draggable", "true");
+
+      card.addEventListener("dragstart", (e) => {
+        dragSrc = card;
+        card.classList.add("dragging");
+        e.dataTransfer.effectAllowed = "move";
+      });
+      card.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
+        document.querySelectorAll(".fin-fund-card").forEach(c => c.classList.remove("drag-over"));
+        dragSrc = null;
+      });
+      card.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+      });
+      card.addEventListener("dragenter", () => {
+        if (dragSrc !== card) card.classList.add("drag-over");
+      });
+      card.addEventListener("dragleave", () => {
+        card.classList.remove("drag-over");
+      });
+      card.addEventListener("drop", (e) => {
+        e.preventDefault();
+        card.classList.remove("drag-over");
+        if (!dragSrc || dragSrc === card) return;
+        const list = document.getElementById("funds-list");
+        const cards = [...list.querySelectorAll("[data-fin-row='fund']")];
+        const srcIdx = cards.indexOf(dragSrc);
+        const dstIdx = cards.indexOf(card);
+        if (srcIdx < dstIdx) {
+          list.insertBefore(dragSrc, card.nextSibling);
+        } else {
+          list.insertBefore(dragSrc, card);
+        }
+      });
+    }
+
+    document.getElementById("add-fund-btn").addEventListener("click", () => {
+      document.getElementById("funds-list").appendChild(createFundRow());
+      syncEmpty("funds-list", "funds-empty");
+    });
+
+    // ── Finance: Load ──
+    async function loadFinances() {
+      const snap = await getDoc(doc(db, "finances", "overview"));
+      if (!snap.exists()) return;
+      const data = snap.data();
+
+      document.getElementById("fin-greeting").value = data.greeting || "";
+      document.getElementById("fin-note").value = data.note || "";
+
+      const pcList = document.getElementById("paychecks-list");
+      pcList.innerHTML = "";
+      (data.paychecks || []).forEach(p => pcList.appendChild(createPaycheckRow(p)));
+      syncEmpty("paychecks-list", "paychecks-empty");
+
+      const spList = document.getElementById("spending-list");
+      spList.innerHTML = "";
+      (data.personalSpending || []).forEach(s => spList.appendChild(createSpendingRow(s)));
+      syncEmpty("spending-list", "spending-empty");
+
+      const bList = document.getElementById("bills-list");
+      bList.innerHTML = "";
+      (data.bills || []).forEach(b => bList.appendChild(createBillRow(b)));
+      syncEmpty("bills-list", "bills-empty");
+
+      const fList = document.getElementById("funds-list");
+      fList.innerHTML = "";
+      (data.funds || []).forEach(f => fList.appendChild(createFundRow(f)));
+      syncEmpty("funds-list", "funds-empty");
+    }
+
+    // ── Finance: Save ──
+    document.getElementById("fin-save-btn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("fin-save-status");
+      statusEl.style.color = "#22c55e";
+      statusEl.textContent = "Saving…";
+
+      const paychecks = [];
+      document.querySelectorAll("#paychecks-list [data-fin-row]").forEach(row => {
+        const label  = row.querySelector(".pc-label").value.trim();
+        const whose  = row.querySelector(".pc-whose").value;
+        const amount = parseFloat(row.querySelector(".pc-amount").value) || 0;
+        if (label || amount) paychecks.push({ label, whose, amount });
+      });
+
+      const personalSpending = [];
+      document.querySelectorAll("#spending-list [data-fin-row]").forEach(row => {
+        const label  = row.querySelector(".spending-label").value.trim();
+        const amount = parseFloat(row.querySelector(".spending-amount").value) || 0;
+        if (label || amount) personalSpending.push({ label, amount });
+      });
+
+      const bills = [];
+      document.querySelectorAll("#bills-list [data-fin-row]").forEach(row => {
+        const name   = row.querySelector(".bill-name").value.trim();
+        const amount = parseFloat(row.querySelector(".bill-amount").value) || 0;
+        const paid   = row.getPaid();
+        if (name || amount) bills.push({ name, amount, paid });
+      });
+
+      const funds = [];
+      document.querySelectorAll("#funds-list [data-fin-row]").forEach(card => {
+        const name        = card.querySelector(".fund-name").value.trim();
+        const type        = card.querySelector(".fund-type").value;
+        const goal        = parseFloat(card.querySelector(".fund-goal").value) || 0;
+        const monthly     = parseFloat(card.querySelector(".fund-monthly").value) || 0;
+        const contributed = parseFloat(card.querySelector(".fund-contributed").value) || 0;
+        const balance     = parseFloat(card.querySelector(".fund-balance").value) || 0;
+        if (name || goal) funds.push({ name, type, goal, monthly, contributed, balance });
+      });
+
+      try {
+        await setDoc(doc(db, "finances", "overview"), {
+          greeting: document.getElementById("fin-greeting").value.trim(),
+          note:     document.getElementById("fin-note").value.trim(),
+          paychecks,
+          personalSpending,
+          bills,
+          funds,
+          updatedAt: serverTimestamp()
+        });
+        statusEl.textContent = "Saved!";
+        setTimeout(() => { statusEl.textContent = ""; }, 3000);
+      } catch (err) {
+        statusEl.style.color = "#ef4444";
+        statusEl.textContent = "Error — try again.";
+      }
+    });
+
+    // ── Task Listeners ──
     let timerInterval = null;
 
     function startListeners() {
-
-      // Current task
       onSnapshot(doc(db, "meta", "current"), (snap) => {
-        const el = document.getElementById("current-admin-card");
+        const el   = document.getElementById("current-admin-card");
         const data = snap.exists() ? snap.data() : null;
-
         if (data && data.title) {
           const stage = data.stage || 2;
           el.innerHTML = `
@@ -171,7 +739,6 @@
           el.querySelector(".return-btn").addEventListener("click", () => returnToQueue());
           el.querySelector(".clear-btn").addEventListener("click", () => clearCurrent());
 
-          // Start elapsed timer
           if (timerInterval) clearInterval(timerInterval);
           timerInterval = null;
           if (data.startedAt) {
@@ -180,14 +747,10 @@
               const timerEl = document.getElementById("elapsed-timer");
               if (!timerEl) { clearInterval(timerInterval); return; }
               const secs = Math.floor((new Date() - startedAt) / 1000);
-              const m = Math.floor(secs / 60);
-              const s = secs % 60;
-              timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+              timerEl.textContent = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")}`;
             };
             tick();
-            if (stage < 4) {
-              timerInterval = setInterval(tick, 1000);
-            }
+            if (stage < 4) timerInterval = setInterval(tick, 1000);
           }
         } else {
           if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
@@ -195,14 +758,10 @@
         }
       });
 
-      // Queue
       const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
       onSnapshot(queueQuery, (snap) => {
         const list = document.getElementById("admin-queue-list");
-        if (snap.empty) {
-          list.innerHTML = `<li class="empty-msg">Queue is empty.</li>`;
-          return;
-        }
+        if (snap.empty) { list.innerHTML = `<li class="empty-msg">Queue is empty.</li>`; return; }
         list.innerHTML = "";
         snap.docs.forEach((d, i) => {
           const data = d.data();
@@ -222,31 +781,23 @@
             </div>`;
           li.querySelector(".admin-task-title").textContent = data.title;
           li.querySelector(".start-btn").addEventListener("click", () =>
-            startTask(d.id, data.title, data.submittedBy || "", data.code || "", data.email || "", data.phone || "", data.createdAt || null));
-          li.querySelector(".delete-btn").addEventListener("click", () =>
-            deleteTask(d.id));
+            startTask(d.id, data.title, data.submittedBy||"", data.code||"", data.email||"", data.phone||"", data.createdAt||null));
+          li.querySelector(".delete-btn").addEventListener("click", () => deleteTask(d.id));
           list.appendChild(li);
         });
       });
 
-      // Done
       const DONE_PREVIEW = 5;
-      let allDoneDocs = [];
-      let showingAll = false;
-
+      let allDoneDocs = [], showingAll = false;
       const doneQuery = query(collection(db, "done"), orderBy("completedAt", "desc"));
-      onSnapshot(doneQuery, (snap) => {
-        allDoneDocs = snap.docs;
-        renderDone();
-      });
+      onSnapshot(doneQuery, (snap) => { allDoneDocs = snap.docs; renderDone(); });
 
       function renderDone() {
         const list = document.getElementById("done-list");
         const toggleBtn = document.getElementById("toggle-done-btn");
         if (allDoneDocs.length === 0) {
           list.innerHTML = `<li class="empty-msg">Nothing done yet.</li>`;
-          toggleBtn.style.display = "none";
-          return;
+          toggleBtn.style.display = "none"; return;
         }
         const docs = showingAll ? allDoneDocs : allDoneDocs.slice(0, DONE_PREVIEW);
         list.innerHTML = "";
@@ -257,7 +808,7 @@
           li.innerHTML = `
             <div class="done-item-info">
               <span class="done-title"></span>
-              <span class="done-meta">${data.submittedBy ? data.submittedBy + " &middot; " : ""}${data.code || ""}${data.completedAt ? " &middot; " + formatTime(data.completedAt.toDate()) : ""}${data.email ? " &middot; " + data.email : ""}${data.phone ? " &middot; " + data.phone : ""}</span>
+              <span class="done-meta">${data.submittedBy ? data.submittedBy+" &middot; ":""}${data.code||""}${data.completedAt?" &middot; "+formatTime(data.completedAt.toDate()):""}${data.email?" &middot; "+data.email:""}${data.phone?" &middot; "+data.phone:""}</span>
             </div>
             <div style="display:flex;gap:6px;">
               <button class="btn-ghost-sm restart-btn">Restart</button>
@@ -271,118 +822,47 @@
         if (allDoneDocs.length > DONE_PREVIEW) {
           toggleBtn.style.display = "inline-block";
           toggleBtn.textContent = showingAll ? "Show Less" : `Show All (${allDoneDocs.length})`;
-        } else {
-          toggleBtn.style.display = "none";
-        }
+        } else { toggleBtn.style.display = "none"; }
       }
 
-      document.getElementById("toggle-done-btn").addEventListener("click", () => {
-        showingAll = !showingAll;
-        renderDone();
-      });
+      document.getElementById("toggle-done-btn").addEventListener("click", () => { showingAll = !showingAll; renderDone(); });
     }
 
-    // --- Actions ---
     window.startTask = async (id, title, submittedBy, code, email, phone, submittedAt) => {
-      // If something is already in progress, send it back to the queue first
       const currentSnap = await getDoc(doc(db, "meta", "current"));
       const current = currentSnap.exists() ? currentSnap.data() : null;
       if (current && current.title) {
-        await addDoc(collection(db, "queue"), {
-          title: current.title,
-          submittedBy: current.submittedBy || "",
-          code: current.code || "",
-          email: current.email || "",
-          phone: current.phone || "",
-          createdAt: serverTimestamp(),
-          order: Date.now()
-        });
+        await addDoc(collection(db, "queue"), { title: current.title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", createdAt: serverTimestamp(), order: Date.now() });
       }
-      await setDoc(doc(db, "meta", "current"), {
-        title,
-        submittedBy,
-        code,
-        email: email || "",
-        phone: phone || "",
-        submittedAt: submittedAt || null,
-        sourceId: id,
-        stage: 2,
-        startedAt: serverTimestamp()
-      });
+      await setDoc(doc(db, "meta", "current"), { title, submittedBy, code, email:email||"", phone:phone||"", submittedAt:submittedAt||null, sourceId:id, stage:2, startedAt:serverTimestamp() });
       await deleteDoc(doc(db, "queue", id));
     };
-
     window.returnToQueue = async () => {
       const currentSnap = await getDoc(doc(db, "meta", "current"));
       const current = currentSnap.exists() ? currentSnap.data() : null;
       if (current && current.title) {
-        await addDoc(collection(db, "queue"), {
-          title: current.title,
-          submittedBy: current.submittedBy || "",
-          code: current.code || "",
-          email: current.email || "",
-          phone: current.phone || "",
-          createdAt: serverTimestamp(),
-          order: Date.now()
-        });
+        await addDoc(collection(db, "queue"), { title: current.title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", createdAt: serverTimestamp(), order: Date.now() });
         await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
       }
     };
-
-    window.advanceStage = async (currentStage) => {
-      await updateDoc(doc(db, "meta", "current"), {
-        stage: currentStage + 1
-      });
-    };
-
+    window.advanceStage = async (s) => { await updateDoc(doc(db, "meta", "current"), { stage: s+1 }); };
     window.markDone = async (sourceId, title) => {
       const currentSnap = await getDoc(doc(db, "meta", "current"));
       const current = currentSnap.exists() ? currentSnap.data() : {};
-      await addDoc(collection(db, "done"), {
-        title,
-        submittedBy: current.submittedBy || "",
-        code: current.code || "",
-        email: current.email || "",
-        phone: current.phone || "",
-        submittedAt: current.submittedAt || null,
-        completedAt: serverTimestamp()
-      });
-      await setDoc(doc(db, "meta", "lastCompleted"), {
-        submittedBy: current.submittedBy || "",
-        code: current.code || "",
-        completedAt: serverTimestamp()
-      });
+      await addDoc(collection(db, "done"), { title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", submittedAt: current.submittedAt||null, completedAt: serverTimestamp() });
+      await setDoc(doc(db, "meta", "lastCompleted"), { submittedBy: current.submittedBy||"", code: current.code||"", completedAt: serverTimestamp() });
       await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
     };
-
-    window.clearCurrent = async () => {
-      await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
-    };
-
+    window.clearCurrent = async () => { await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 }); };
     window.restartTask = async (id, data) => {
-      await addDoc(collection(db, "queue"), {
-        title: data.title,
-        submittedBy: data.submittedBy || "",
-        code: data.code || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        createdAt: serverTimestamp(),
-        order: Date.now()
-      });
+      await addDoc(collection(db, "queue"), { title: data.title, submittedBy: data.submittedBy||"", code: data.code||"", email: data.email||"", phone: data.phone||"", createdAt: serverTimestamp(), order: Date.now() });
       await deleteDoc(doc(db, "done", id));
     };
-
-    window.deleteTask = async (id, col = "queue") => {
-      if (confirm("Delete this task?")) {
-        await deleteDoc(doc(db, col, id));
-      }
+    window.deleteTask = async (id, col="queue") => {
+      if (confirm("Delete this task?")) await deleteDoc(doc(db, col, id));
     };
-
     function formatTime(date) {
-      return date.toLocaleString("en-US", {
-        month: "short", day: "numeric",
-        hour: "numeric", minute: "2-digit", hour12: true
-      });
+      return date.toLocaleString("en-US", { month:"short", day:"numeric", hour:"numeric", minute:"2-digit", hour12:true });
     }
   </script>
 </body>
