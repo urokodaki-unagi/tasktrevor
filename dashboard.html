@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    input[type="number"] {
+      padding: 12px 16px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    /* ── Header ── */
+    .dash-header {
+      background: #1a1a1a;
+      color: white;
+      padding: 20px 20px;
+    }
+    .dash-header-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .dash-header-left { display: flex; flex-direction: column; gap: 3px; }
+    .dash-wordmark {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .dash-updated-header {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.35);
+      font-weight: 400;
+    }
+
+    /* ── Cards ── */
+    .dash-card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .dash-card-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #888;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    /* ── Greeting ── */
+    .dash-greeting {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: #1a1a1a;
+      line-height: 1.5;
+    }
+
+    /* ── Income Stat Row ── */
+    .dash-stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .dash-stat-cell {
+      background: white;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .dash-stat-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #bbb;
+      margin-bottom: 6px;
+    }
+    .dash-stat-value {
+      font-size: 1.25rem;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .dash-stat-value.green { color: #22c55e; }
+    .dash-stat-value.red   { color: #ef4444; }
+
+    /* ── Paycheck List ── */
+    .dash-paycheck-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f5f5f5;
+      gap: 12px;
+    }
+    .dash-paycheck-row:last-child { border-bottom: none; }
+    .dash-paycheck-label { font-size: 0.9rem; color: #555; }
+    .dash-paycheck-whose {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 20px;
+      margin-left: 8px;
+    }
+    .dash-paycheck-whose.his  { background: #eff6ff; color: #3b82f6; }
+    .dash-paycheck-whose.hers { background: #fdf2f8; color: #ec4899; }
+    .dash-paycheck-amount { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
+
+    /* ── Bills ── */
+    .dash-bill-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+      gap: 12px;
+    }
+    .dash-bill-row:last-child { border-bottom: none; }
+    .dash-bill-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .dash-paid-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dash-paid-dot.paid   { background: #22c55e; }
+    .dash-paid-dot.unpaid { background: #e5e5e5; }
+    .dash-bill-name { font-size: 0.92rem; font-weight: 500; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-bill-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .dash-bill-status { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    .dash-bill-status.paid   { color: #22c55e; }
+    .dash-bill-status.unpaid { color: #ccc; }
+    .dash-bill-amount { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; }
+    .dash-bill-pct { font-size: 0.72rem; color: #bbb; min-width: 34px; text-align: right; }
+
+    /* ── Bills Footer ── */
+    .dash-bills-total-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 14px;
+      margin-top: 4px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .dash-bills-total-label { font-size: 0.78rem; color: #aaa; font-weight: 500; }
+    .dash-bills-total-value { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+    .dash-still-due {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #d97706;
+    }
+    .dash-all-paid {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0fdf4;
+      border-radius: 10px;
+      padding: 9px;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #16a34a;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Funds ── */
+    .dash-fund-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #f5f5f5;
+      border-left: 3px solid #e5e5e5;
+      padding-left: 14px;
+      margin-left: -14px;
+    }
+    .dash-fund-item:last-child { border-bottom: none; }
+    .dash-fund-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      gap: 12px;
+    }
+    .dash-fund-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .dash-fund-name { font-size: 0.95rem; font-weight: 600; color: #1a1a1a; }
+    .dash-fund-type-badge {
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+    .dash-fund-progress-label { font-size: 0.92rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
+    .dash-fund-meta { display: flex; gap: 20px; margin: 10px 0; flex-wrap: wrap; }
+    .dash-fund-meta-label {
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #bbb;
+      margin-bottom: 2px;
+    }
+    .dash-fund-meta-value { font-size: 0.88rem; font-weight: 600; color: #555; }
+    .dash-fund-bar-bg { width: 100%; height: 6px; background: #f0f0f0; border-radius: 999px; overflow: hidden; margin-bottom: 4px; }
+    .dash-fund-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+    .dash-fund-bar-label { font-size: 0.72rem; color: #bbb; text-align: right; }
+
+    /* ── Charts ── */
+    .dash-charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .dash-chart-card { /* already defined above */ }
+    .dash-chart-wrap { max-width: 180px; margin: 0 auto; }
+    .dash-chart-legend { display: flex; flex-direction: column; gap: 7px; margin-top: 18px; }
+    .dash-legend-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .dash-legend-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .dash-legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .dash-legend-label { font-size: 0.78rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-legend-value { font-size: 0.78rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
+    .dash-legend-pct { font-size: 0.7rem; color: #bbb; margin-left: 2px; }
+    @media (max-width: 480px) {
+      .dash-charts-row { grid-template-columns: 1fr; }
+      .dash-chart-wrap { max-width: 200px; }
+    }
+
+    /* ── Note ── */
+    .dash-note-card {
+      background: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      border-radius: 14px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .dash-note-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #d97706;
+      margin-bottom: 10px;
+    }
+    .dash-note-text { font-size: 0.95rem; color: #1a1a1a; line-height: 1.6; white-space: pre-wrap; }
+
+    /* ── No Data ── */
+    .dash-no-data {
+      background: white;
+      border-radius: 14px;
+      padding: 48px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      text-align: center;
+      color: #bbb;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 400px) {
+      .dash-stat-value { font-size: 1.05rem; }
+      .dash-fund-meta  { gap: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f0f0;">
+    <div class="login-box">
+      <h1 class="wordmark" style="margin-bottom:24px;"><span class="wordmark-task" style="color:#1a1a1a;">Task</span><span class="wordmark-trevor" style="color:#1a1a1a;">Trevor</span></h1>
+      <form id="login-form">
+        <input type="email" id="email-input" placeholder="Email" required />
+        <input type="password" id="password-input" placeholder="Password" required />
+        <button type="submit">Sign In</button>
+      </form>
+      <p id="login-error"></p>
+      <a href="index.html" class="login-home-btn">← Return Home</a>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" style="display:none;">
+    <header class="dash-header">
+      <div class="dash-header-inner">
+        <div class="dash-header-left">
+          <span class="dash-wordmark">Dashboard</span>
+          <span class="dash-updated-header" id="dash-updated-header"></span>
+        </div>
+        <button id="logout-btn" class="btn-ghost">Sign Out</button>
+      </div>
+    </header>
+    <main class="container" id="dash-content">
+      <div class="dash-no-data">Loading…</div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
+      authDomain: "work-que-16801.firebaseapp.com",
+      projectId: "work-que-16801",
+      storageBucket: "work-que-16801.firebasestorage.app",
+      messagingSenderId: "283312462855",
+      appId: "1:283312462855:web:ee0b71d588338902e1dea2"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
+    const auth = getAuth(app);
+
+    let unsub = null;
+
+    // ── Auth ──
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("dashboard").style.display    = "block";
+        startListener();
+      } else {
+        document.getElementById("dashboard").style.display    = "none";
+        document.getElementById("login-screen").style.display = "flex";
+        if (unsub) { unsub(); unsub = null; }
+      }
+    });
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errEl = document.getElementById("login-error");
+      errEl.textContent = "";
+      try {
+        await signInWithEmailAndPassword(auth,
+          document.getElementById("email-input").value,
+          document.getElementById("password-input").value);
+      } catch {
+        errEl.textContent = "Incorrect email or password.";
+      }
+    });
+
+    document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+
+    // ── Listener ──
+    function startListener() {
+      unsub = onSnapshot(doc(db, "finances", "overview"), (snap) => {
+        if (!snap.exists()) {
+          document.getElementById("dash-content").innerHTML =
+            `<div class="dash-no-data">No financial data yet — Trevor will update this soon.</div>`;
+          return;
+        }
+        renderDashboard(snap.data());
+      });
+    }
+
+    // ── Render ──
+    function renderDashboard(data) {
+      const paychecks       = data.paychecks        || [];
+      const bills           = data.bills            || [];
+      const funds           = data.funds            || [];
+      const personalSpending = data.personalSpending || [];
+
+      const hisTotal        = paychecks.filter(p => p.whose === "his").reduce((s,p)  => s + (p.amount||0), 0);
+      const hersTotal       = paychecks.filter(p => p.whose === "hers").reduce((s,p) => s + (p.amount||0), 0);
+      const combined        = hisTotal + hersTotal;
+      const totalBills      = bills.reduce((s,b) => s + (b.amount||0), 0);
+      const paidBills       = bills.filter(b => b.paid).reduce((s,b) => s + (b.amount||0), 0);
+      const unpaid          = totalBills - paidBills;
+      const totalSaved      = funds.reduce((s,f) => s + (f.contributed||0), 0);
+      const totalSpending   = personalSpending.reduce((s,p) => s + (p.amount||0), 0);
+      const totalOut        = totalBills + totalSaved + totalSpending;
+      const remaining       = combined - totalOut;
+
+      // Last updated in header
+      const updatedEl = document.getElementById("dash-updated-header");
+      if (data.updatedAt) {
+        updatedEl.textContent = "Updated " + data.updatedAt.toDate().toLocaleString("en-US", {
+          month: "short", day: "numeric", year: "numeric",
+          hour: "numeric", minute: "2-digit", hour12: true
+        });
+      } else {
+        updatedEl.textContent = "";
+      }
+
+      const content = document.getElementById("dash-content");
+      content.innerHTML = "";
+
+      // ── Greeting ──
+      if (data.greeting) {
+        const el = document.createElement("div");
+        el.className = "dash-card";
+        el.innerHTML = `<div class="dash-greeting">${escHtml(data.greeting)}</div>`;
+        content.appendChild(el);
+      }
+
+      // ── Income ──
+      const incomeCard = document.createElement("div");
+      incomeCard.className = "dash-card";
+      incomeCard.innerHTML = `<div class="dash-card-title">Income This Month</div>`;
+
+      incomeCard.innerHTML += `
+        <div class="dash-stat-row">
+          <div class="dash-stat-cell">
+            <div class="dash-stat-label">His Checks</div>
+            <div class="dash-stat-value">${fmt(hisTotal)}</div>
+          </div>
+          <div class="dash-stat-cell">
+            <div class="dash-stat-label">Your Checks</div>
+            <div class="dash-stat-value">${fmt(hersTotal)}</div>
+          </div>
+          <div class="dash-stat-cell">
+            <div class="dash-stat-label">Combined</div>
+            <div class="dash-stat-value green">${fmt(combined)}</div>
+          </div>
+        </div>
+      `;
+
+      if (paychecks.length > 0) {
+        paychecks.forEach(p => {
+          const row = document.createElement("div");
+          row.className = "dash-paycheck-row";
+          row.innerHTML = `
+            <span class="dash-paycheck-label">
+              ${escHtml(p.label || "Paycheck")}
+              <span class="dash-paycheck-whose ${p.whose}">${p.whose === 'his' ? 'His' : 'Hers'}</span>
+            </span>
+            <span class="dash-paycheck-amount">${fmt(p.amount||0)}</span>
+          `;
+          incomeCard.appendChild(row);
+        });
+      }
+      content.appendChild(incomeCard);
+
+      // ── Spending Money ──
+      if (personalSpending.length > 0) {
+        const spCard = document.createElement("div");
+        spCard.className = "dash-card";
+        spCard.innerHTML = `<div class="dash-card-title">Spending Money</div>`;
+
+        personalSpending.forEach(s => {
+          const row = document.createElement("div");
+          row.className = "dash-paycheck-row";
+          row.innerHTML = `
+            <span class="dash-paycheck-label">${escHtml(s.label || "")}</span>
+            <span class="dash-paycheck-amount" style="color:#ef4444;">− ${fmt(s.amount||0)}</span>
+          `;
+          spCard.appendChild(row);
+        });
+
+        if (personalSpending.length > 1) {
+          const totalRow = document.createElement("div");
+          totalRow.style.cssText = "display:flex;justify-content:space-between;padding:12px 0 0;border-top:1px solid #f0f0f0;margin-top:4px;";
+          totalRow.innerHTML = `
+            <span style="font-size:0.78rem;color:#aaa;font-weight:500;">Total This Month</span>
+            <span style="font-size:1rem;font-weight:700;color:#ef4444;">− ${fmt(totalSpending)}</span>
+          `;
+          spCard.appendChild(totalRow);
+        }
+        content.appendChild(spCard);
+      }
+
+      // ── Bills ──
+      if (bills.length > 0) {
+        const billsCard = document.createElement("div");
+        billsCard.className = "dash-card";
+        billsCard.innerHTML = `<div class="dash-card-title">Bills This Month</div>`;
+
+        bills.forEach(b => {
+          const pct = totalOut > 0 ? Math.round((b.amount / totalOut) * 100) : 0;
+          const row = document.createElement("div");
+          row.className = "dash-bill-row";
+          row.innerHTML = `
+            <div class="dash-bill-left">
+              <div class="dash-paid-dot ${b.paid ? 'paid' : 'unpaid'}"></div>
+              <span class="dash-bill-name">${escHtml(b.name)}</span>
+            </div>
+            <div class="dash-bill-right">
+              <span class="dash-bill-status ${b.paid ? 'paid' : 'unpaid'}">${b.paid ? 'Paid' : 'Unpaid'}</span>
+              <span class="dash-bill-amount">${fmt(b.amount||0)}</span>
+              <span class="dash-bill-pct">${pct}%</span>
+            </div>
+          `;
+          billsCard.appendChild(row);
+        });
+
+        // Total paid row
+        const totalRow = document.createElement("div");
+        totalRow.className = "dash-bills-total-row";
+        totalRow.innerHTML = `
+          <span class="dash-bills-total-label">Total Bills Paid This Month</span>
+          <span class="dash-bills-total-value">${fmt(paidBills)}</span>
+        `;
+        billsCard.appendChild(totalRow);
+
+        // Still due OR all paid
+        if (unpaid > 0) {
+          const dueEl = document.createElement("div");
+          dueEl.className = "dash-still-due";
+          dueEl.innerHTML = `<span>Still Due This Month</span><span>${fmt(unpaid)}</span>`;
+          billsCard.appendChild(dueEl);
+        } else if (bills.length > 0) {
+          const paidEl = document.createElement("div");
+          paidEl.className = "dash-all-paid";
+          paidEl.textContent = "All bills paid!";
+          billsCard.appendChild(paidEl);
+        }
+
+        content.appendChild(billsCard);
+      }
+
+      // ── Funds ──
+      const FUND_COLORS = {
+        fund:     { border: "#3b82f6", bg: "#eff6ff", text: "#1d4ed8", label: "Fund" },
+        savings:  { border: "#22c55e", bg: "#f0fdf4", text: "#15803d", label: "Savings Account" },
+        checking: { border: "#8b5cf6", bg: "#f5f3ff", text: "#7c3aed", label: "Checking" },
+        cd:       { border: "#f59e0b", bg: "#fffbeb", text: "#b45309", label: "CD / Investment" },
+        other:    { border: "#6b7280", bg: "#f9fafb", text: "#4b5563", label: "Other" },
+      };
+
+      if (funds.length > 0) {
+        const fundsCard = document.createElement("div");
+        fundsCard.className = "dash-card";
+        fundsCard.innerHTML = `<div class="dash-card-title">Savings &amp; Funds</div>`;
+
+        funds.forEach(f => {
+          const goal        = f.goal        || 0;
+          const monthly     = f.monthly     || 0;
+          const contributed = f.contributed || 0;
+          const balance     = f.balance     || 0;
+          const colors      = FUND_COLORS[f.type] || FUND_COLORS.other;
+          const barPct      = goal > 0 ? Math.min((balance / goal) * 100, 100) : 0;
+          const metMonthly  = monthly > 0 && contributed >= monthly;
+
+          const el = document.createElement("div");
+          el.className = "dash-fund-item";
+          el.style.borderLeftColor = colors.border;
+          el.innerHTML = `
+            <div class="dash-fund-header">
+              <div class="dash-fund-header-left">
+                <span class="dash-fund-name">${escHtml(f.name)}</span>
+                <span class="dash-fund-type-badge" style="background:${colors.bg};color:${colors.text};">${colors.label}</span>
+              </div>
+              ${goal > 0 ? `<span class="dash-fund-progress-label">${fmt(balance)} / ${fmt(goal)}</span>` : `<span class="dash-fund-progress-label">${fmt(balance)}</span>`}
+            </div>
+            <div class="dash-fund-meta">
+              <div>
+                <div class="dash-fund-meta-label">Contributed Per Month</div>
+                <div class="dash-fund-meta-value">${fmt(monthly)}/mo</div>
+              </div>
+              <div>
+                <div class="dash-fund-meta-label">This Month</div>
+                <div class="dash-fund-meta-value" style="color:${metMonthly ? '#22c55e' : '#f59e0b'}">${fmt(contributed)}</div>
+              </div>
+            </div>
+            ${goal > 0 ? `
+              <div class="dash-fund-bar-bg">
+                <div class="dash-fund-bar-fill" style="width:${barPct}%;background:${colors.border};"></div>
+              </div>
+            ` : ''}
+          `;
+          fundsCard.appendChild(el);
+        });
+        content.appendChild(fundsCard);
+      }
+
+      // ── Two Charts Side by Side ──
+      if (bills.length > 0 || totalSaved > 0 || combined > 0) {
+        const chartsRow = document.createElement("div");
+        chartsRow.className = "dash-charts-row";
+
+        // Chart 1: Bill breakdown
+        const billsChartCard = document.createElement("div");
+        billsChartCard.className = "dash-card";
+        billsChartCard.innerHTML = `
+          <div class="dash-card-title">Bill Breakdown</div>
+          <div class="dash-chart-wrap"><canvas id="bills-chart"></canvas></div>
+          <div class="dash-chart-legend" id="bills-legend"></div>
+        `;
+
+        // Chart 2: In vs Out
+        const flowChartCard = document.createElement("div");
+        flowChartCard.className = "dash-card";
+        flowChartCard.innerHTML = `
+          <div class="dash-card-title">In vs. Out</div>
+          <div class="dash-chart-wrap"><canvas id="flow-chart"></canvas></div>
+          <div class="dash-chart-legend" id="flow-legend"></div>
+        `;
+
+        chartsRow.appendChild(billsChartCard);
+        chartsRow.appendChild(flowChartCard);
+        content.appendChild(chartsRow);
+        const billsLeftover = combined - totalBills - totalSpending;
+        setTimeout(() => {
+          renderBillsChart(bills, totalSpending, totalSaved, remaining, combined);
+          renderFlowChart(combined, totalBills, totalSpending, billsLeftover > 0 ? billsLeftover : 0);
+        }, 50);
+      }
+
+      // ── Note ──
+      if (data.note) {
+        const noteCard = document.createElement("div");
+        noteCard.className = "dash-note-card";
+        noteCard.innerHTML = `<div class="dash-note-label">Note from Trevor</div><div class="dash-note-text"></div>`;
+        noteCard.querySelector(".dash-note-text").textContent = data.note;
+        content.appendChild(noteCard);
+      }
+    }
+
+    // ── Charts ──
+    const BILL_COLORS = [
+      "#f59e0b","#f97316","#ef4444","#ec4899","#a855f7",
+      "#6366f1","#3b82f6","#06b6d4","#14b8a6","#84cc16",
+      "#fbbf24","#fb923c","#f43f5e","#8b5cf6","#60a5fa"
+    ];
+
+    let billsChart = null;
+    let flowChart  = null;
+
+    function makeDoughnut(canvasId, segments, colors, legendId, income) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx || segments.length === 0) return null;
+      const c = new Chart(ctx, {
+        type: "doughnut",
+        data: { datasets: [{ data: segments.map(s=>s.val), backgroundColor: colors, borderWidth: 0, hoverOffset: 5 }] },
+        options: {
+          cutout: "62%",
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (c) => ` ${fmt(c.parsed)}` } }
+          }
+        }
+      });
+      const legendEl = document.getElementById(legendId);
+      if (legendEl) {
+        segments.forEach(({ label, val }, i) => {
+          const pct = income > 0 ? Math.round((val / income) * 100) : 0;
+          const row = document.createElement("div");
+          row.className = "dash-legend-row";
+          row.innerHTML = `
+            <div class="dash-legend-left">
+              <div class="dash-legend-dot" style="background:${colors[i]}"></div>
+              <span class="dash-legend-label">${escHtml(label)}</span>
+            </div>
+            <div>
+              <span class="dash-legend-value">${fmt(val)}</span>
+              <span class="dash-legend-pct">${pct}%</span>
+            </div>
+          `;
+          legendEl.appendChild(row);
+        });
+      }
+      return c;
+    }
+
+    function renderBillsChart(bills, totalSpending, totalSaved, remaining, income) {
+      if (billsChart) { billsChart.destroy(); billsChart = null; }
+      const segments = [];
+      const colors   = [];
+      bills.forEach((b, i) => {
+        if ((b.amount||0) > 0) {
+          segments.push({ label: b.name, val: b.amount });
+          colors.push(BILL_COLORS[i % BILL_COLORS.length]);
+        }
+      });
+      if (totalSpending > 0) { segments.push({ label: "Spending Money", val: totalSpending }); colors.push("#ec4899"); }
+      if (totalSaved > 0)    { segments.push({ label: "Savings",        val: totalSaved });    colors.push("#22c55e"); }
+      if (remaining > 0)     { segments.push({ label: "Remaining",      val: remaining });     colors.push("#e5e5e5"); }
+      billsChart = makeDoughnut("bills-chart", segments, colors, "bills-legend", income);
+    }
+
+    function renderFlowChart(income, totalBills, totalSpending, leftover) {
+      if (flowChart) { flowChart.destroy(); flowChart = null; }
+      const segments = [];
+      const colors   = [];
+      if (income > 0)        { segments.push({ label: "Brought In",     val: income });        colors.push("#22c55e"); }
+      if (totalBills > 0)    { segments.push({ label: "Bills",          val: totalBills });    colors.push("#ef4444"); }
+      if (totalSpending > 0) { segments.push({ label: "Spending Money", val: totalSpending }); colors.push("#ec4899"); }
+      if (leftover > 0)      { segments.push({ label: "Left Over",      val: leftover });      colors.push("#e5e5e5"); }
+      flowChart = makeDoughnut("flow-chart", segments, colors, "flow-legend", income);
+    }
+
+    function fmt(n) {
+      return "$" + Math.round(n||0).toLocaleString("en-US");
+    }
+    function escHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+  </script>
+</body>
+</html>
