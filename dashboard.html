@@ -232,6 +232,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
+      align-items: start;
     }
     .dash-chart-card { /* already defined above */ }
     .dash-chart-wrap { max-width: 180px; margin: 0 auto; }
@@ -460,7 +461,7 @@
       if (personalSpending.length > 0) {
         const spCard = document.createElement("div");
         spCard.className = "dash-card";
-        spCard.innerHTML = `<div class="dash-card-title">Spending Money</div>`;
+        spCard.innerHTML = `<div class="dash-card-title">Her Spending Money</div>`;
 
         personalSpending.forEach(s => {
           const row = document.createElement("div");
@@ -593,13 +594,12 @@
         const chartsRow = document.createElement("div");
         chartsRow.className = "dash-charts-row";
 
-        // Chart 1: Bill breakdown
+        // Chart 1: Bill breakdown (bar)
         const billsChartCard = document.createElement("div");
         billsChartCard.className = "dash-card";
         billsChartCard.innerHTML = `
           <div class="dash-card-title">Bill Breakdown</div>
-          <div class="dash-chart-wrap"><canvas id="bills-chart"></canvas></div>
-          <div class="dash-chart-legend" id="bills-legend"></div>
+          <div id="bills-chart-wrap" style="position:relative;min-height:60px;"><canvas id="bills-chart"></canvas></div>
         `;
 
         // Chart 2: In vs Out
@@ -641,12 +641,13 @@
     let billsChart = null;
     let flowChart  = null;
 
+    // ── Doughnut (In vs. Out) ──
     function makeDoughnut(canvasId, segments, colors, legendId, income) {
       const ctx = document.getElementById(canvasId);
       if (!ctx || segments.length === 0) return null;
       const c = new Chart(ctx, {
         type: "doughnut",
-        data: { datasets: [{ data: segments.map(s=>s.val), backgroundColor: colors, borderWidth: 0, hoverOffset: 5 }] },
+        data: { datasets: [{ data: segments.map(s => Math.max(0, s.val)), backgroundColor: colors, borderWidth: 0, hoverOffset: 5 }] },
         options: {
           cutout: "62%",
           plugins: {
@@ -658,7 +659,8 @@
       const legendEl = document.getElementById(legendId);
       if (legendEl) {
         segments.forEach(({ label, val }, i) => {
-          const pct = income > 0 ? Math.round((val / income) * 100) : 0;
+          const pct = income > 0 ? Math.round((Math.abs(val) / income) * 100) : 0;
+          const isNeg = val < 0;
           const row = document.createElement("div");
           row.className = "dash-legend-row";
           row.innerHTML = `
@@ -667,7 +669,7 @@
               <span class="dash-legend-label">${escHtml(label)}</span>
             </div>
             <div>
-              <span class="dash-legend-value">${fmt(val)}</span>
+              <span class="dash-legend-value" style="${isNeg ? 'color:#ef4444;' : ''}">${isNeg ? '−' : ''}${fmt(Math.abs(val))}</span>
               <span class="dash-legend-pct">${pct}%</span>
             </div>
           `;
@@ -677,30 +679,68 @@
       return c;
     }
 
+    // ── Horizontal Bar (Bill Breakdown) ──
+    function makeBarChart(canvasId, items, colors) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx || items.length === 0) return null;
+      const wrap = document.getElementById("bills-chart-wrap");
+      if (wrap) wrap.style.height = `${items.length * 36 + 20}px`;
+      return new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: items.map(i => i.label),
+          datasets: [{
+            data: items.map(i => i.val),
+            backgroundColor: colors,
+            borderRadius: 5,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (c) => ` ${fmt(c.parsed.x)}` } }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { callback: (v) => "$" + Math.round(v).toLocaleString() },
+              grid: { color: "#f5f5f5" }
+            },
+            y: { grid: { display: false } }
+          }
+        }
+      });
+    }
+
     function renderBillsChart(bills, totalSpending, totalSaved, remaining, income) {
       if (billsChart) { billsChart.destroy(); billsChart = null; }
-      const segments = [];
-      const colors   = [];
+      const items  = [];
+      const colors = [];
       bills.forEach((b, i) => {
         if ((b.amount||0) > 0) {
-          segments.push({ label: b.name, val: b.amount });
+          items.push({ label: b.name, val: b.amount });
           colors.push(BILL_COLORS[i % BILL_COLORS.length]);
         }
       });
-      if (totalSpending > 0) { segments.push({ label: "Spending Money", val: totalSpending }); colors.push("#ec4899"); }
-      if (totalSaved > 0)    { segments.push({ label: "Savings",        val: totalSaved });    colors.push("#22c55e"); }
-      if (remaining > 0)     { segments.push({ label: "Remaining",      val: remaining });     colors.push("#e5e5e5"); }
-      billsChart = makeDoughnut("bills-chart", segments, colors, "bills-legend", income);
+      if (totalSpending > 0) { items.push({ label: "Her Spending Money", val: totalSpending }); colors.push("#ec4899"); }
+      if (totalSaved > 0)    { items.push({ label: "Savings",            val: totalSaved });    colors.push("#22c55e"); }
+      if (remaining > 0)     { items.push({ label: "Remaining",          val: remaining });     colors.push("#e5e5e5"); }
+      billsChart = makeBarChart("bills-chart", items, colors);
     }
 
     function renderFlowChart(income, totalBills, totalSpending, leftover) {
       if (flowChart) { flowChart.destroy(); flowChart = null; }
       const segments = [];
       const colors   = [];
-      if (income > 0)        { segments.push({ label: "Brought In",     val: income });        colors.push("#22c55e"); }
-      if (totalBills > 0)    { segments.push({ label: "Bills",          val: totalBills });    colors.push("#ef4444"); }
-      if (totalSpending > 0) { segments.push({ label: "Spending Money", val: totalSpending }); colors.push("#ec4899"); }
-      if (leftover > 0)      { segments.push({ label: "Left Over",      val: leftover });      colors.push("#e5e5e5"); }
+      if (income > 0)        { segments.push({ label: "Brought In",        val: income });        colors.push("#22c55e"); }
+      if (totalBills > 0)    { segments.push({ label: "Bills",             val: totalBills });    colors.push("#ef4444"); }
+      if (totalSpending > 0) { segments.push({ label: "Her Spending Money",val: totalSpending }); colors.push("#ec4899"); }
+      segments.push({ label: "Left Over", val: leftover });
+      colors.push(leftover < 0 ? "#ef4444" : "#e5e5e5");
       flowChart = makeDoughnut("flow-chart", segments, colors, "flow-legend", income);
     }
 
