@@ -141,7 +141,7 @@
     .dash-paid-dot.unpaid { background: #e5e5e5; }
     .dash-bill-name { font-size: 0.92rem; font-weight: 500; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .dash-bill-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .dash-bill-status { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+    .dash-bill-status { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; min-width: 48px; text-align: right; }
     .dash-bill-status.paid   { color: #22c55e; }
     .dash-bill-status.unpaid { color: #ccc; }
     .dash-bill-amount { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; }
@@ -726,9 +726,6 @@
           colors.push(BILL_COLORS[i % BILL_COLORS.length]);
         }
       });
-      if (totalSpending > 0) { items.push({ label: "Her Spending Money", val: totalSpending }); colors.push("#ec4899"); }
-      if (totalSaved > 0)    { items.push({ label: "Savings",            val: totalSaved });    colors.push("#22c55e"); }
-      if (remaining > 0)     { items.push({ label: "Remaining",          val: remaining });     colors.push("#e5e5e5"); }
       billsChart = makeBarChart("bills-chart", items, colors);
     }
 
