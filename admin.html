@@ -236,7 +236,7 @@
   <div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f0f0;">
     <div class="login-box">
       <h1 class="wordmark" style="margin-bottom:8px;"><span class="wordmark-task" style="color:#1a1a1a;">Task</span><span class="wordmark-trevor" style="color:#1a1a1a;">Trevor</span></h1>
-      <p style="display:inline-block;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;margin-bottom:24px;align-self:center;">Admin Portal</p>
+      <p style="display:block;width:fit-content;margin:0 auto 24px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;">Admin Portal</p>
       <form id="login-form">
         <input type="email" id="email-input" placeholder="Email" required />
         <input type="password" id="password-input" placeholder="Password" required />
@@ -393,7 +393,7 @@
       appId: "1:283312462855:web:ee0b71d588338902e1dea2"
     };
 
-    const STAGE_LABELS = ["", "In Queue", "Being Worked On", "Finishing Up", "All Done!"];
+    const STAGE_LABELS = ["", "Getting Started", "In Progress", "Wrapping Up", "Complete"];
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
     const auth = getAuth(app);
@@ -713,7 +713,7 @@
         const el   = document.getElementById("current-admin-card");
         const data = snap.exists() ? snap.data() : null;
         if (data && data.title) {
-          const stage = data.stage || 2;
+          const stage = data.stage || 1;
           el.innerHTML = `
             <div class="current-card">
               <div class="current-card-info">
@@ -748,7 +748,9 @@
               const timerEl = document.getElementById("elapsed-timer");
               if (!timerEl) { clearInterval(timerInterval); return; }
               const secs = Math.floor((new Date() - startedAt) / 1000);
-              timerEl.textContent = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")}`;
+              const m = Math.floor(secs / 60);
+              const h = Math.floor(m / 60);
+              timerEl.textContent = h > 0 ? `${h} hr ${m % 60} min` : (m < 1 ? "< 1 min" : `${m} min`);
             };
             tick();
             if (stage < 4) timerInterval = setInterval(tick, 1000);
@@ -777,7 +779,7 @@
               </div>
             </div>
             <div class="task-actions">
-              <button class="start-btn">Start</button>
+              <button class="start-btn">Pick Up</button>
               <button class="delete-btn btn-ghost-sm">Delete</button>
             </div>`;
           li.querySelector(".admin-task-title").textContent = data.title;
@@ -835,7 +837,7 @@
       if (current && current.title) {
         await addDoc(collection(db, "queue"), { title: current.title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", createdAt: serverTimestamp(), order: Date.now() });
       }
-      await setDoc(doc(db, "meta", "current"), { title, submittedBy, code, email:email||"", phone:phone||"", submittedAt:submittedAt||null, sourceId:id, stage:2, startedAt:serverTimestamp() });
+      await setDoc(doc(db, "meta", "current"), { title, submittedBy, code, email:email||"", phone:phone||"", submittedAt:submittedAt||null, sourceId:id, stage:1, startedAt:serverTimestamp() });
       await deleteDoc(doc(db, "queue", id));
     };
     window.returnToQueue = async () => {
