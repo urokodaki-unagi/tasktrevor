@@ -213,8 +213,12 @@
           const tick = () => {
             const secs = Math.floor((new Date() - startedAt) / 1000);
             const m = Math.floor(secs / 60);
-            const s = secs % 60;
-            timerEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
+            const h = Math.floor(m / 60);
+            if (h > 0) {
+              timerEl.textContent = `${h} hr ${m % 60} min`;
+            } else {
+              timerEl.textContent = m < 1 ? "< 1 min" : `${m} min`;
+            }
           };
           tick();
           if (stage < 4) {
