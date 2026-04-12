@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Portal (Preview) — Task Trevor</title>
+  <title>Admin Portal — Task Trevor</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
@@ -18,7 +18,293 @@
     }
     input[type="number"]:focus { outline: none; border-color: #1a1a1a; }
 
-    /* ── Tab Nav ── */
+    /* ── TYPE BADGES ── */
+    .type-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+    .type-task     { background: #eef2ff; color: #4f46e5; }
+    .type-purchase { background: #fffbeb; color: #b45309; }
+    .type-fix      { background: #fef2f2; color: #dc2626; }
+    .type-question { background: #eff6ff; color: #2563eb; }
+    .type-other    { background: #f9fafb; color: #4b5563; border: 1px solid #e5e5e5; }
+
+    /* ── STATS ROW ── */
+    .queue-stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: white;
+      border-radius: 99px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.07);
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #888;
+    }
+    .stat-pill-num { font-size: 0.92rem; font-weight: 800; color: #1a1a1a; }
+
+    /* ── FILTER PILLS ── */
+    .queue-filter {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .filter-btn {
+      padding: 5px 14px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 99px;
+      background: white;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #999;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: #ccc; color: #555; }
+    .filter-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: white; }
+
+    /* ── QUEUE ITEM CARDS ── */
+    #admin-queue-list { list-style: none; padding: 0; margin: 0; }
+    .admin-queue-item {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+      transition: box-shadow 0.15s;
+    }
+    .admin-queue-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .qi-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .queue-pos-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: #aaa;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .qi-header { flex: 1; min-width: 0; }
+    .qi-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .qi-code { font-size: 0.72rem; font-weight: 700; color: #aaa; letter-spacing: 0.05em; }
+    .qi-time { font-size: 0.72rem; color: #bbb; }
+    .qi-name { font-size: 0.92rem; font-weight: 600; color: #1a1a1a; }
+    .qi-request {
+      font-size: 0.88rem;
+      color: #444;
+      line-height: 1.5;
+      margin: 10px 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .qi-contact {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 10px;
+      border-top: 1px solid #f5f5f5;
+    }
+    .qi-contact-item { font-size: 0.75rem; color: #888; }
+    .qi-contact-item strong { color: #1a1a1a; font-weight: 600; }
+    .qi-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-pickup {
+      padding: 8px 20px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-pickup:hover { background: #333; }
+
+    /* ── IN PROGRESS CARD ── */
+    .current-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border-left: 4px solid #22c55e;
+    }
+    .current-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .current-code { font-size: 0.78rem; font-weight: 700; color: #aaa; letter-spacing: 0.05em; }
+    .current-section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
+    .current-request-text {
+      font-size: 0.95rem;
+      color: #1a1a1a;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 14px;
+    }
+    .current-submitter { font-size: 0.92rem; font-weight: 600; color: #1a1a1a; }
+    .current-contact-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #777;
+    }
+    .current-contact-row strong { color: #1a1a1a; }
+    .current-card-footer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .stage-badge {
+      padding: 4px 12px;
+      background: #dcfce7;
+      color: #15803d;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .elapsed-timer { font-size: 0.78rem; color: #aaa; }
+    .admin-note-wrap { margin-top: 14px; }
+    .admin-note-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #aaa;
+      margin-bottom: 6px;
+    }
+    #admin-note-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-family: inherit;
+      color: #1a1a1a;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+    #admin-note-input:focus { outline: none; border-color: #1a1a1a; }
+    .stage-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .btn-advance {
+      padding: 9px 18px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-advance:hover { background: #333; }
+    .btn-done {
+      padding: 9px 18px;
+      background: #22c55e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-done:hover { background: #16a34a; }
+
+    /* ── DONE ITEMS ── */
+    #done-list { list-style: none; padding: 0; margin: 0; }
+    .done-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      background: white;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      opacity: 0.75;
+      transition: opacity 0.15s;
+    }
+    .done-item:hover { opacity: 1; }
+    .done-item-info { min-width: 0; flex: 1; }
+    .done-item-top {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 3px;
+    }
+    .done-title { font-size: 0.88rem; font-weight: 500; color: #1a1a1a; word-break: break-word; }
+    .done-meta { font-size: 0.72rem; color: #bbb; margin-top: 2px; }
+    .done-note { font-size: 0.78rem; color: #888; font-style: italic; margin-top: 4px; }
+    .done-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    /* ── TABS ── */
     .admin-tab-nav {
       background: white;
       border-radius: 14px;
@@ -45,227 +331,66 @@
     .admin-tab-btn.active { background: #1a1a1a; color: white; }
     .admin-tab-btn:hover:not(.active) { color: #555; background: #f5f5f5; }
 
-    /* ── Finance Shared ── */
-    .fin-section-title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #888;
-      margin-bottom: 14px;
-    }
-    .fin-subsection {
-      margin-bottom: 32px;
-    }
-    .fin-subsection-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .fin-col-labels {
-      display: flex;
-      gap: 8px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid #f0f0f0;
-      margin-bottom: 4px;
-    }
-    .fin-col-label {
-      font-size: 0.68rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #ccc;
-    }
-    .fin-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid #f8f8f8;
-    }
+    /* ── FINANCES ── */
+    .fin-section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 14px; }
+    .fin-subsection { margin-bottom: 32px; }
+    .fin-subsection-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .fin-col-labels { display: flex; gap: 8px; padding-bottom: 6px; border-bottom: 1px solid #f0f0f0; margin-bottom: 4px; }
+    .fin-col-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #ccc; }
+    .fin-row { display: flex; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
     .fin-row:last-child { border-bottom: none; }
     .fin-row input { font-size: 0.88rem; padding: 8px 12px; }
-    .fin-delete-btn {
-      padding: 7px 10px;
-      background: transparent;
-      color: #ddd;
-      border: 1.5px solid #eee;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      cursor: pointer;
-      font-family: inherit;
-      flex-shrink: 0;
-      transition: color 0.15s, border-color 0.15s;
-    }
+    .fin-delete-btn { padding: 7px 10px; background: transparent; color: #ddd; border: 1.5px solid #eee; border-radius: 8px; font-size: 0.75rem; cursor: pointer; font-family: inherit; flex-shrink: 0; transition: color 0.15s, border-color 0.15s; }
     .fin-delete-btn:hover { color: #ef4444; border-color: #fca5a5; }
-    .fin-empty-note {
-      font-size: 0.82rem;
-      color: #ccc;
-      font-style: italic;
-      padding: 10px 0;
-      text-align: center;
-    }
-
-    /* ── Spending ── */
+    .fin-empty-note { font-size: 0.82rem; color: #ccc; font-style: italic; padding: 10px 0; text-align: center; }
     .fin-row-spending { display: grid; grid-template-columns: 1fr 110px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
     .fin-row-spending:last-child { border-bottom: none; }
     .fin-row-spending input { font-size: 0.88rem; padding: 8px 12px; }
     .fin-col-labels-spending { display: grid; grid-template-columns: 1fr 110px 36px; gap: 8px; }
-
-    /* ── Paychecks ── */
     .fin-row-paycheck { display: grid; grid-template-columns: 1fr 90px 110px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
     .fin-row-paycheck:last-child { border-bottom: none; }
     .fin-row-paycheck input { font-size: 0.88rem; padding: 8px 12px; }
     .fin-col-labels-paycheck { display: grid; grid-template-columns: 1fr 90px 110px 36px; gap: 8px; }
-    .fin-whose-select {
-      padding: 8px 10px;
-      border: 1.5px solid #e5e5e5;
-      border-radius: 10px;
-      font-size: 0.85rem;
-      font-family: inherit;
-      background: white;
-      cursor: pointer;
-      color: #1a1a1a;
-    }
+    .fin-whose-select { padding: 8px 10px; border: 1.5px solid #e5e5e5; border-radius: 10px; font-size: 0.85rem; font-family: inherit; background: white; cursor: pointer; color: #1a1a1a; }
     .fin-whose-select:focus { outline: none; border-color: #1a1a1a; }
-
-    /* ── Bills ── */
     .fin-row-bill { display: grid; grid-template-columns: 1fr 110px 80px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
     .fin-row-bill:last-child { border-bottom: none; }
     .fin-row-bill input { font-size: 0.88rem; padding: 8px 12px; }
     .fin-col-labels-bill { display: grid; grid-template-columns: 1fr 110px 80px 36px; gap: 8px; }
-    .fin-paid-btn {
-      padding: 7px 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s;
-    }
+    .fin-paid-btn { padding: 7px 10px; border: none; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
     .fin-paid-btn.paid { background: #dcfce7; color: #16a34a; }
     .fin-paid-btn.unpaid { background: #f5f5f5; color: #aaa; }
-
-    /* ── Funds ── */
-    .fin-fund-card {
-      background: #fafafa;
-      border: 1.5px solid #f0f0f0;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
-      transition: opacity 0.15s, border-color 0.15s;
-    }
+    .fin-fund-card { background: #fafafa; border: 1.5px solid #f0f0f0; border-radius: 12px; padding: 14px; margin-bottom: 10px; transition: opacity 0.15s, border-color 0.15s; }
     .fin-fund-card:last-child { margin-bottom: 0; }
     .fin-fund-card.drag-over { border-color: #1a1a1a; }
     .fin-fund-card.dragging  { opacity: 0.4; }
-    .fin-fund-card-top {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+    .fin-fund-card-top { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
     .fin-fund-card-top input { font-size: 0.9rem; padding: 8px 12px; }
-    .fin-drag-handle {
-      color: #ccc;
-      cursor: grab;
-      font-size: 1rem;
-      padding: 0 2px;
-      flex-shrink: 0;
-      user-select: none;
-      line-height: 1;
-    }
+    .fin-drag-handle { color: #ccc; cursor: grab; font-size: 1rem; padding: 0 2px; flex-shrink: 0; user-select: none; line-height: 1; }
     .fin-drag-handle:active { cursor: grabbing; }
-    .fin-fund-type-select {
-      padding: 8px 10px;
-      border: 1.5px solid #e5e5e5;
-      border-radius: 10px;
-      font-size: 0.82rem;
-      font-family: inherit;
-      background: white;
-      cursor: pointer;
-      color: #1a1a1a;
-      flex-shrink: 0;
-    }
+    .fin-fund-type-select { padding: 8px 10px; border: 1.5px solid #e5e5e5; border-radius: 10px; font-size: 0.82rem; font-family: inherit; background: white; cursor: pointer; color: #1a1a1a; flex-shrink: 0; }
     .fin-fund-type-select:focus { outline: none; border-color: #1a1a1a; }
-    .fin-fund-card-fields {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-    }
-    .fin-fund-field label {
-      display: block;
-      font-size: 0.67rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: #bbb;
-      margin-bottom: 4px;
-    }
+    .fin-fund-card-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .fin-fund-field label { display: block; font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #bbb; margin-bottom: 4px; }
     .fin-fund-field input { font-size: 0.88rem; padding: 8px 12px; }
-    @media (max-width: 500px) {
-      .fin-fund-card-fields { grid-template-columns: repeat(2, 1fr); }
-    }
-
-    /* ── Save ── */
-    .fin-save-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-top: 8px;
-      padding-top: 24px;
-      border-top: 1px solid #f0f0f0;
-    }
+    @media (max-width: 500px) { .fin-fund-card-fields { grid-template-columns: repeat(2, 1fr); } }
+    .fin-save-row { display: flex; align-items: center; gap: 14px; margin-top: 8px; padding-top: 24px; border-top: 1px solid #f0f0f0; }
     .fin-save-status { font-size: 0.82rem; color: #22c55e; font-weight: 500; }
-
     @media (max-width: 600px) {
       .fin-row-paycheck { grid-template-columns: 1fr 80px 36px; }
       .fin-col-labels-paycheck { grid-template-columns: 1fr 80px 36px; }
       .fin-row-paycheck .fin-whose-select { display: none; }
       .fin-row-bill { grid-template-columns: 1fr 90px 36px; }
       .fin-col-labels-bill { grid-template-columns: 1fr 90px 36px; }
-      .fin-row-fund { grid-template-columns: 1fr 80px 80px 36px; }
-      .fin-col-labels-fund { grid-template-columns: 1fr 80px 80px 36px; }
     }
 
+    /* ── NAV ── */
     .nav-menu { position: relative; }
-    .nav-menu-btn {
-      padding: 8px 16px;
-      background: white;
-      color: #1a1a1a;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
+    .nav-menu-btn { padding: 8px 16px; background: white; color: #1a1a1a; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
     .nav-menu-btn:hover { opacity: 0.85; }
-    .nav-dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 160px;
-      overflow: hidden;
-      z-index: 100;
-    }
+    .nav-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 160px; overflow: hidden; z-index: 100; }
     .nav-dropdown.open { display: block; }
-    .nav-dropdown-item {
-      display: block;
-      padding: 12px 18px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: #1a1a1a;
-      text-decoration: none;
-      transition: background 0.15s;
-    }
+    .nav-dropdown-item { display: block; padding: 12px 18px; font-size: 0.88rem; font-weight: 500; color: #1a1a1a; text-decoration: none; transition: background 0.15s; }
     .nav-dropdown-item:hover { background: #f5f5f5; }
     .nav-dropdown-item + .nav-dropdown-item { border-top: 1px solid #f0f0f0; }
   </style>
@@ -276,7 +401,8 @@
   <header class="site-header">
     <div class="header-inner">
       <h1 class="wordmark">
-        <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span><span id="admin-portal-label" style="display:none;"><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin Portal</span></span>
+        <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span>
+        <span id="admin-portal-label" style="display:none;"><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin Portal</span></span>
       </h1>
       <div class="nav-menu" id="login-nav">
         <button class="nav-menu-btn" id="nav-toggle-login" aria-expanded="false">☰</button>
@@ -304,10 +430,8 @@
 
   <!-- Admin Panel -->
   <div id="admin-panel" style="display:none;">
-
     <main class="container">
 
-      <!-- Tab Nav -->
       <div class="admin-tab-nav">
         <button class="admin-tab-btn active" data-tab="tasks">Tasks</button>
         <button class="admin-tab-btn" data-tab="finances">Finances</button>
@@ -315,16 +439,29 @@
 
       <!-- ── Tasks Tab ── -->
       <div id="tab-tasks">
+
+        <div class="queue-stats" id="queue-stats"></div>
+
         <section>
           <h2 class="section-title">In Progress</h2>
           <div id="current-admin-card">
-            <p class="empty-msg">Nothing in progress. Start a task from the queue below.</p>
+            <p class="empty-msg">Nothing in progress. Pick up a task from the queue below.</p>
           </div>
         </section>
+
         <section>
           <h2 class="section-title">Queue</h2>
+          <div class="queue-filter" id="queue-filter">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="task">Task</button>
+            <button class="filter-btn" data-filter="purchase">Purchase</button>
+            <button class="filter-btn" data-filter="fix">Fix / Repair</button>
+            <button class="filter-btn" data-filter="question">Question</button>
+            <button class="filter-btn" data-filter="other">Other</button>
+          </div>
           <ul id="admin-queue-list"><li class="empty-msg">Queue is empty.</li></ul>
         </section>
+
         <section>
           <div class="done-header">
             <h2 class="section-title" style="margin-bottom:0;">Done</h2>
@@ -332,6 +469,7 @@
           </div>
           <ul id="done-list"><li class="empty-msg">Nothing done yet.</li></ul>
         </section>
+
       </div>
 
       <!-- ── Finances Tab ── -->
@@ -339,13 +477,11 @@
         <section>
           <h2 class="section-title">Her Dashboard</h2>
 
-          <!-- Greeting -->
           <div style="margin-bottom:28px;">
             <label class="fin-section-title" for="fin-greeting" style="display:block;">Greeting</label>
             <input type="text" id="fin-greeting" placeholder="e.g. Hi babe! Here's where we stand this month." />
           </div>
 
-          <!-- Paychecks -->
           <div class="fin-subsection">
             <div class="fin-subsection-header">
               <span class="fin-section-title" style="margin-bottom:0;">Paychecks This Month</span>
@@ -361,7 +497,6 @@
             <p class="fin-empty-note" id="paychecks-empty">No paychecks added yet.</p>
           </div>
 
-          <!-- Spending Money -->
           <div class="fin-subsection">
             <div class="fin-subsection-header">
               <span class="fin-section-title" style="margin-bottom:0;">Her Spending Money</span>
@@ -376,7 +511,6 @@
             <p class="fin-empty-note" id="spending-empty">No entries yet.</p>
           </div>
 
-          <!-- Bills -->
           <div class="fin-subsection">
             <div class="fin-subsection-header">
               <span class="fin-section-title" style="margin-bottom:0;">Bills This Month</span>
@@ -392,7 +526,6 @@
             <p class="fin-empty-note" id="bills-empty">No bills added yet.</p>
           </div>
 
-          <!-- Funds -->
           <div class="fin-subsection">
             <div class="fin-subsection-header">
               <span class="fin-section-title" style="margin-bottom:0;">Savings &amp; Funds</span>
@@ -402,18 +535,15 @@
             <p class="fin-empty-note" id="funds-empty">No funds added yet.</p>
           </div>
 
-          <!-- Note -->
           <div style="margin-bottom:24px;">
             <label class="fin-section-title" for="fin-note" style="display:block;">Note for Her</label>
             <textarea id="fin-note" rows="3" placeholder="Leave her a note that shows on her dashboard..."></textarea>
           </div>
 
-          <!-- Save -->
           <div class="fin-save-row">
             <button type="button" id="fin-save-btn" class="btn-primary" style="flex:1;">Save Dashboard</button>
             <span id="fin-save-status" class="fin-save-status"></span>
           </div>
-
         </section>
       </div>
 
@@ -440,25 +570,47 @@
     };
 
     const STAGE_LABELS = ["", "Getting Started", "In Progress", "Wrapping Up", "Complete"];
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+
+    const TYPE_META = {
+      task:     { label: "Task",         cls: "type-task" },
+      purchase: { label: "Purchase",     cls: "type-purchase" },
+      fix:      { label: "Fix / Repair", cls: "type-fix" },
+      question: { label: "Question",     cls: "type-question" },
+      other:    { label: "Other",        cls: "type-other" },
+    };
+
+    function typeBadge(type) {
+      const m = TYPE_META[type] || TYPE_META.task;
+      return `<span class="type-badge ${m.cls}">${m.label}</span>`;
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    function formatTime(date) {
+      return date.toLocaleString("en-US", { month:"short", day:"numeric", hour:"numeric", minute:"2-digit", hour12:true });
+    }
+
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
     const auth = getAuth(app);
 
     // ── Auth ──
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        document.getElementById("login-screen").style.display = "none";
-        document.getElementById("admin-panel").style.display = "block";
-        document.getElementById("login-nav").style.display = "none";
-        document.getElementById("logout-btn").style.display = "";
-        document.getElementById("admin-portal-label").style.display = "";
+        document.getElementById("login-screen").style.display         = "none";
+        document.getElementById("admin-panel").style.display          = "block";
+        document.getElementById("login-nav").style.display            = "none";
+        document.getElementById("logout-btn").style.display           = "";
+        document.getElementById("admin-portal-label").style.display   = "";
         startListeners();
       } else {
-        document.getElementById("admin-panel").style.display = "none";
-        document.getElementById("login-screen").style.display = "flex";
-        document.getElementById("login-nav").style.display = "";
-        document.getElementById("logout-btn").style.display = "none";
-        document.getElementById("admin-portal-label").style.display = "none";
+        document.getElementById("admin-panel").style.display          = "none";
+        document.getElementById("login-screen").style.display         = "flex";
+        document.getElementById("login-nav").style.display            = "";
+        document.getElementById("logout-btn").style.display           = "none";
+        document.getElementById("admin-portal-label").style.display   = "none";
       }
     });
 
@@ -487,99 +639,369 @@
       });
     });
 
-    // ── Finance: Helpers ──
-    function escHtml(str) {
-      return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    // ── Queue Filter ──
+    let activeFilter = "all";
+    let allQueueDocs = [];
+
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeFilter = btn.dataset.filter;
+        renderQueue();
+      });
+    });
+
+    function renderStats(docs) {
+      const counts = { task: 0, purchase: 0, fix: 0, question: 0, other: 0 };
+      docs.forEach(d => {
+        const t = d.data().type || "task";
+        if (counts[t] !== undefined) counts[t]++; else counts.other++;
+      });
+      const total = docs.length;
+      const el = document.getElementById("queue-stats");
+      if (total === 0) { el.innerHTML = ""; return; }
+      let html = `<div class="stat-pill"><span class="stat-pill-num">${total}</span>&nbsp;in queue</div>`;
+      ["task","purchase","fix","question","other"].forEach(t => {
+        if (counts[t] > 0) html += `<div class="stat-pill">${typeBadge(t)}&nbsp;<span class="stat-pill-num">${counts[t]}</span></div>`;
+      });
+      el.innerHTML = html;
     }
+
+    function renderQueue() {
+      const list = document.getElementById("admin-queue-list");
+      const filtered = activeFilter === "all"
+        ? allQueueDocs
+        : allQueueDocs.filter(d => (d.data().type || "task") === activeFilter);
+
+      if (filtered.length === 0) {
+        const label = activeFilter === "all" ? "Queue is empty." : `No ${TYPE_META[activeFilter]?.label || activeFilter} requests in queue.`;
+        list.innerHTML = `<li class="empty-msg">${label}</li>`;
+        return;
+      }
+
+      list.innerHTML = "";
+      filtered.forEach((d) => {
+        const data   = d.data();
+        const posAll = allQueueDocs.indexOf(d) + 1;
+        const li     = document.createElement("li");
+        li.className = "admin-queue-item";
+        li.innerHTML = `
+          <div class="qi-top">
+            <div class="queue-pos-badge">${posAll}</div>
+            <div class="qi-header">
+              <div class="qi-meta-row">
+                ${typeBadge(data.type || "task")}
+                <span class="qi-code">${escHtml(data.code || "")}</span>
+                ${data.createdAt ? `<span class="qi-time">${formatTime(data.createdAt.toDate())}</span>` : ""}
+              </div>
+              <div class="qi-name">${escHtml(data.submittedBy || "Anonymous")}</div>
+            </div>
+          </div>
+          <div class="qi-request">${escHtml(data.title || "")}</div>
+          ${(data.email || data.phone) ? `
+          <div class="qi-contact">
+            ${data.email ? `<div class="qi-contact-item">Email: <strong>${escHtml(data.email)}</strong></div>` : ""}
+            ${data.phone ? `<div class="qi-contact-item">Phone: <strong>${escHtml(data.phone)}</strong></div>` : ""}
+          </div>` : ""}
+          <div class="qi-actions">
+            <button class="btn-pickup">Pick Up</button>
+            <button class="btn-ghost-sm delete-btn">Delete</button>
+          </div>`;
+
+        li.querySelector(".btn-pickup").addEventListener("click", () =>
+          startTask(d.id, data.title, data.submittedBy||"", data.code||"",
+                    data.email||"", data.phone||"", data.createdAt||null, data.type||"task"));
+        li.querySelector(".delete-btn").addEventListener("click", () => deleteTask(d.id));
+        list.appendChild(li);
+      });
+    }
+
+    // ── Task Listeners ──
+    let timerInterval = null;
+
+    function startListeners() {
+      // Current task
+      onSnapshot(doc(db, "meta", "current"), (snap) => {
+        const el   = document.getElementById("current-admin-card");
+        const data = snap.exists() ? snap.data() : null;
+
+        if (data && data.title) {
+          const stage = data.stage || 1;
+          el.innerHTML = `
+            <div class="current-card">
+              <div class="current-meta-row">
+                ${typeBadge(data.type || "task")}
+                <span class="current-code">${escHtml(data.code || "")}</span>
+              </div>
+              <div class="current-section-label">Request</div>
+              <div class="current-request-text"></div>
+              <div>
+                <span class="current-section-label">From</span>
+                <span class="current-submitter"></span>
+              </div>
+              ${(data.email || data.phone) ? `
+              <div class="current-contact-row">
+                ${data.email ? `<div>Email: <strong>${escHtml(data.email)}</strong></div>` : ""}
+                ${data.phone ? `<div>Phone: <strong>${escHtml(data.phone)}</strong></div>` : ""}
+              </div>` : ""}
+              <div class="current-card-footer">
+                <span class="stage-badge">${STAGE_LABELS[stage]}</span>
+                <span class="elapsed-timer" id="elapsed-timer">—</span>
+              </div>
+              <div class="admin-note-wrap">
+                <div class="admin-note-label">Internal Notes</div>
+                <textarea id="admin-note-input" rows="2" placeholder="Optional note (saved with ticket when done)...">${escHtml(data.adminNote || "")}</textarea>
+              </div>
+              <div class="stage-buttons">
+                ${stage < 4 ? `<button class="btn-advance advance-btn">&rarr; ${STAGE_LABELS[stage + 1]}</button>` : ""}
+                <button class="btn-done done-btn">Mark Done</button>
+                <button class="btn-ghost-sm return-btn">Back to Queue</button>
+                <button class="btn-ghost-sm clear-btn">Clear</button>
+              </div>
+            </div>`;
+
+          el.querySelector(".current-request-text").textContent = data.title;
+          el.querySelector(".current-submitter").textContent    = data.submittedBy || "Unknown";
+
+          if (stage < 4) el.querySelector(".advance-btn").addEventListener("click", () => advanceStage(stage));
+          el.querySelector(".done-btn").addEventListener("click",   () => markDone(data.sourceId, data.title));
+          el.querySelector(".return-btn").addEventListener("click", () => returnToQueue());
+          el.querySelector(".clear-btn").addEventListener("click",  () => clearCurrent());
+
+          if (timerInterval) clearInterval(timerInterval);
+          timerInterval = null;
+          if (data.startedAt) {
+            const startedAt = data.startedAt.toDate();
+            const tick = () => {
+              const timerEl = document.getElementById("elapsed-timer");
+              if (!timerEl) { clearInterval(timerInterval); return; }
+              const secs = Math.floor((new Date() - startedAt) / 1000);
+              const m    = Math.floor(secs / 60);
+              const h    = Math.floor(m / 60);
+              timerEl.textContent = h > 0 ? `${h} hr ${m % 60} min` : (m < 1 ? "< 1 min" : `${m} min`);
+            };
+            tick();
+            if (stage < 4) timerInterval = setInterval(tick, 1000);
+          }
+        } else {
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          el.innerHTML = `<p class="empty-msg">Nothing in progress. Pick up a task from the queue below.</p>`;
+        }
+      });
+
+      // Queue
+      onSnapshot(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")), (snap) => {
+        allQueueDocs = snap.docs;
+        renderStats(allQueueDocs);
+        renderQueue();
+      });
+
+      // Done
+      const DONE_PREVIEW = 5;
+      let allDoneDocs = [], showingAll = false;
+
+      onSnapshot(query(collection(db, "done"), orderBy("completedAt", "desc")), (snap) => {
+        allDoneDocs = snap.docs;
+        renderDone();
+      });
+
+      function renderDone() {
+        const list      = document.getElementById("done-list");
+        const toggleBtn = document.getElementById("toggle-done-btn");
+        if (allDoneDocs.length === 0) {
+          list.innerHTML          = `<li class="empty-msg">Nothing done yet.</li>`;
+          toggleBtn.style.display = "none";
+          return;
+        }
+        const docs = showingAll ? allDoneDocs : allDoneDocs.slice(0, DONE_PREVIEW);
+        list.innerHTML = "";
+        docs.forEach((d) => {
+          const data = d.data();
+          const li   = document.createElement("li");
+          li.className = "done-item";
+          li.innerHTML = `
+            <div class="done-item-info">
+              <div class="done-item-top">
+                ${typeBadge(data.type || "task")}
+                <span class="done-title"></span>
+              </div>
+              <div class="done-meta">
+                ${data.submittedBy ? escHtml(data.submittedBy) + " &middot; " : ""}${data.code || ""}${data.completedAt ? " &middot; " + formatTime(data.completedAt.toDate()) : ""}${data.email ? " &middot; " + escHtml(data.email) : ""}${data.phone ? " &middot; " + escHtml(data.phone) : ""}
+              </div>
+              ${data.adminNote ? `<div class="done-note">Note: ${escHtml(data.adminNote)}</div>` : ""}
+            </div>
+            <div class="done-actions">
+              <button class="btn-ghost-sm restart-btn">Restart</button>
+              <button class="btn-ghost-sm remove-btn">Remove</button>
+            </div>`;
+          li.querySelector(".done-title").textContent = data.title || "";
+          li.querySelector(".restart-btn").addEventListener("click", () => restartTask(d.id, data));
+          li.querySelector(".remove-btn").addEventListener("click",  () => deleteTask(d.id, "done"));
+          list.appendChild(li);
+        });
+        if (allDoneDocs.length > DONE_PREVIEW) {
+          toggleBtn.style.display = "inline-block";
+          toggleBtn.textContent   = showingAll ? "Show Less" : `Show All (${allDoneDocs.length})`;
+        } else {
+          toggleBtn.style.display = "none";
+        }
+      }
+
+      document.getElementById("toggle-done-btn").addEventListener("click", () => {
+        showingAll = !showingAll; renderDone();
+      });
+    }
+
+    // ── Task Actions ──
+    async function startTask(id, title, submittedBy, code, email, phone, submittedAt, type) {
+      const currentSnap = await getDoc(doc(db, "meta", "current"));
+      const current     = currentSnap.exists() ? currentSnap.data() : null;
+      if (current && current.title) {
+        await addDoc(collection(db, "queue"), {
+          title: current.title, submittedBy: current.submittedBy||"",
+          code: current.code||"", email: current.email||"",
+          phone: current.phone||"", type: current.type||"task",
+          createdAt: serverTimestamp(), order: Date.now()
+        });
+      }
+      await setDoc(doc(db, "meta", "current"), {
+        title, submittedBy, code, email, phone, type,
+        submittedAt: submittedAt||null, sourceId: id,
+        stage: 1, startedAt: serverTimestamp(), adminNote: ""
+      });
+      await deleteDoc(doc(db, "queue", id));
+    }
+
+    async function returnToQueue() {
+      const snap    = await getDoc(doc(db, "meta", "current"));
+      const current = snap.exists() ? snap.data() : null;
+      if (current && current.title) {
+        await addDoc(collection(db, "queue"), {
+          title: current.title, submittedBy: current.submittedBy||"",
+          code: current.code||"", email: current.email||"",
+          phone: current.phone||"", type: current.type||"task",
+          createdAt: serverTimestamp(), order: Date.now()
+        });
+        await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+      }
+    }
+
+    async function advanceStage(s) {
+      await updateDoc(doc(db, "meta", "current"), { stage: s + 1 });
+    }
+
+    async function markDone(sourceId, title) {
+      const snap      = await getDoc(doc(db, "meta", "current"));
+      const current   = snap.exists() ? snap.data() : {};
+      const adminNote = document.getElementById("admin-note-input")?.value.trim() || "";
+      await addDoc(collection(db, "done"), {
+        title,
+        submittedBy: current.submittedBy || "",
+        code:        current.code        || "",
+        email:       current.email       || "",
+        phone:       current.phone       || "",
+        type:        current.type        || "task",
+        adminNote,
+        submittedAt: current.submittedAt || null,
+        completedAt: serverTimestamp()
+      });
+      await setDoc(doc(db, "meta", "lastCompleted"), {
+        submittedBy: current.submittedBy || "",
+        code:        current.code        || "",
+        completedAt: serverTimestamp()
+      });
+      await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+    }
+
+    async function clearCurrent() {
+      await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
+    }
+
+    async function restartTask(id, data) {
+      await addDoc(collection(db, "queue"), {
+        title: data.title||"", submittedBy: data.submittedBy||"",
+        code: data.code||"", email: data.email||"",
+        phone: data.phone||"", type: data.type||"task",
+        createdAt: serverTimestamp(), order: Date.now()
+      });
+      await deleteDoc(doc(db, "done", id));
+    }
+
+    async function deleteTask(id, col = "queue") {
+      if (confirm("Delete this task?")) await deleteDoc(doc(db, col, id));
+    }
+
+    // ── Finance Helpers ──
     function syncEmpty(listId, emptyId) {
       const hasRows = document.getElementById(listId).querySelectorAll("[data-fin-row]").length > 0;
       const emptyEl = document.getElementById(emptyId);
       if (emptyEl) emptyEl.style.display = hasRows ? "none" : "block";
     }
 
-    // ── Paycheck Rows ──
     function createPaycheckRow(p = {}) {
       const row = document.createElement("div");
       row.className = "fin-row-paycheck";
       row.dataset.finRow = "paycheck";
       row.innerHTML = `
-        <input type="text" class="pc-label" placeholder="e.g. Apr 1st" value="${escHtml(p.label || '')}" />
+        <input type="text"   class="pc-label"  placeholder="e.g. Apr 1st" value="${escHtml(p.label||'')}" />
         <select class="fin-whose-select pc-whose">
-          <option value="his" ${p.whose === 'his' ? 'selected' : ''}>Mine</option>
-          <option value="hers" ${p.whose === 'hers' ? 'selected' : ''}>Hers</option>
+          <option value="his"  ${p.whose==="his"  ? "selected":""}>Mine</option>
+          <option value="hers" ${p.whose==="hers" ? "selected":""}>Hers</option>
         </select>
-        <input type="number" class="pc-amount" placeholder="0" min="0" step="1" value="${p.amount || ''}" />
-        <button type="button" class="fin-delete-btn">✕</button>
-      `;
-      row.querySelector(".fin-delete-btn").addEventListener("click", () => {
-        row.remove(); syncEmpty("paychecks-list", "paychecks-empty");
-      });
+        <input type="number" class="pc-amount" placeholder="0" min="0" step="1" value="${p.amount||''}" />
+        <button type="button" class="fin-delete-btn">✕</button>`;
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("paychecks-list","paychecks-empty"); });
       return row;
     }
-
     document.getElementById("add-paycheck-btn").addEventListener("click", () => {
       document.getElementById("paychecks-list").appendChild(createPaycheckRow());
-      syncEmpty("paychecks-list", "paychecks-empty");
+      syncEmpty("paychecks-list","paychecks-empty");
     });
 
-    // ── Spending Rows ──
     function createSpendingRow(s = {}) {
       const row = document.createElement("div");
       row.className = "fin-row-spending";
       row.dataset.finRow = "spending";
       row.innerHTML = `
-        <input type="text" class="spending-label" placeholder="e.g. Week of Apr 7" value="${escHtml(s.label || '')}" />
-        <input type="number" class="spending-amount" placeholder="0" min="0" step="1" value="${s.amount || ''}" />
-        <button type="button" class="fin-delete-btn">✕</button>
-      `;
-      row.querySelector(".fin-delete-btn").addEventListener("click", () => {
-        row.remove(); syncEmpty("spending-list", "spending-empty");
-      });
+        <input type="text"   class="spending-label"  placeholder="e.g. Week of Apr 7" value="${escHtml(s.label||'')}" />
+        <input type="number" class="spending-amount" placeholder="0" min="0" step="1" value="${s.amount||''}" />
+        <button type="button" class="fin-delete-btn">✕</button>`;
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("spending-list","spending-empty"); });
       return row;
     }
-
     document.getElementById("add-spending-btn").addEventListener("click", () => {
       document.getElementById("spending-list").appendChild(createSpendingRow());
-      syncEmpty("spending-list", "spending-empty");
+      syncEmpty("spending-list","spending-empty");
     });
 
-    // ── Bill Rows ──
     function createBillRow(b = {}) {
       let paid = b.paid || false;
       const row = document.createElement("div");
       row.className = "fin-row-bill";
       row.dataset.finRow = "bill";
       row.innerHTML = `
-        <input type="text" class="bill-name" placeholder="e.g. Rent" value="${escHtml(b.name || '')}" />
-        <input type="number" class="bill-amount" placeholder="0" min="0" step="1" value="${b.amount || ''}" />
-        <button type="button" class="fin-paid-btn ${paid ? 'paid' : 'unpaid'}">${paid ? 'Paid' : 'Unpaid'}</button>
-        <button type="button" class="fin-delete-btn">✕</button>
-      `;
+        <input type="text"   class="bill-name"   placeholder="e.g. Rent" value="${escHtml(b.name||'')}" />
+        <input type="number" class="bill-amount" placeholder="0" min="0" step="1" value="${b.amount||''}" />
+        <button type="button" class="fin-paid-btn ${paid?'paid':'unpaid'}">${paid?'Paid':'Unpaid'}</button>
+        <button type="button" class="fin-delete-btn">✕</button>`;
       const toggle = row.querySelector(".fin-paid-btn");
-      toggle.addEventListener("click", () => {
-        paid = !paid;
-        toggle.textContent = paid ? "Paid" : "Unpaid";
-        toggle.className = `fin-paid-btn ${paid ? 'paid' : 'unpaid'}`;
-      });
-      row.querySelector(".fin-delete-btn").addEventListener("click", () => {
-        row.remove(); syncEmpty("bills-list", "bills-empty");
-      });
+      toggle.addEventListener("click", () => { paid = !paid; toggle.textContent = paid?"Paid":"Unpaid"; toggle.className = `fin-paid-btn ${paid?'paid':'unpaid'}`; });
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("bills-list","bills-empty"); });
       row.getPaid = () => paid;
       return row;
     }
-
     document.getElementById("add-bill-btn").addEventListener("click", () => {
       document.getElementById("bills-list").appendChild(createBillRow());
-      syncEmpty("bills-list", "bills-empty");
+      syncEmpty("bills-list","bills-empty");
     });
 
-    // ── Fund Rows ──
     const FUND_TYPE_OPTIONS = [
-      { value: "fund",     label: "Fund" },
-      { value: "savings",  label: "Savings Account" },
-      { value: "checking", label: "Checking Account" },
-      { value: "cd",       label: "CD / Investment" },
-      { value: "other",    label: "Other" },
+      { value:"fund",     label:"Fund" },
+      { value:"savings",  label:"Savings Account" },
+      { value:"checking", label:"Checking Account" },
+      { value:"cd",       label:"CD / Investment" },
+      { value:"other",    label:"Other" },
     ];
 
     function createFundRow(f = {}) {
@@ -587,119 +1009,68 @@
       card.className = "fin-fund-card";
       card.dataset.finRow = "fund";
       const typeOpts = FUND_TYPE_OPTIONS.map(o =>
-        `<option value="${o.value}" ${(f.type||'fund') === o.value ? 'selected' : ''}>${o.label}</option>`
+        `<option value="${o.value}" ${(f.type||"fund")===o.value?"selected":""}>${o.label}</option>`
       ).join("");
       card.innerHTML = `
         <div class="fin-fund-card-top">
           <span class="fin-drag-handle" title="Drag to reorder">⠿</span>
-          <input type="text" class="fund-name" placeholder="e.g. Emergency Fund" value="${escHtml(f.name || '')}" style="flex:1;" />
+          <input type="text" class="fund-name" placeholder="e.g. Emergency Fund" value="${escHtml(f.name||'')}" style="flex:1;" />
           <select class="fin-fund-type-select fund-type">${typeOpts}</select>
           <button type="button" class="fin-delete-btn">✕</button>
         </div>
         <div class="fin-fund-card-fields">
-          <div class="fin-fund-field">
-            <label>Overall Goal</label>
-            <input type="number" class="fund-goal" placeholder="0" min="0" step="1" value="${f.goal || ''}" />
-          </div>
-          <div class="fin-fund-field">
-            <label>Monthly</label>
-            <input type="number" class="fund-monthly" placeholder="0" min="0" step="1" value="${f.monthly || ''}" />
-          </div>
-          <div class="fin-fund-field">
-            <label>This Month</label>
-            <input type="number" class="fund-contributed" placeholder="0" min="0" step="1" value="${f.contributed || ''}" />
-          </div>
-          <div class="fin-fund-field">
-            <label>Balance</label>
-            <input type="number" class="fund-balance" placeholder="0" min="0" step="1" value="${f.balance || ''}" />
-          </div>
-        </div>
-      `;
-      card.querySelector(".fin-delete-btn").addEventListener("click", () => {
-        card.remove(); syncEmpty("funds-list", "funds-empty");
-      });
+          <div class="fin-fund-field"><label>Overall Goal</label><input type="number" class="fund-goal" placeholder="0" min="0" step="1" value="${f.goal||''}" /></div>
+          <div class="fin-fund-field"><label>Monthly</label><input type="number" class="fund-monthly" placeholder="0" min="0" step="1" value="${f.monthly||''}" /></div>
+          <div class="fin-fund-field"><label>This Month</label><input type="number" class="fund-contributed" placeholder="0" min="0" step="1" value="${f.contributed||''}" /></div>
+          <div class="fin-fund-field"><label>Balance</label><input type="number" class="fund-balance" placeholder="0" min="0" step="1" value="${f.balance||''}" /></div>
+        </div>`;
+      card.querySelector(".fin-delete-btn").addEventListener("click", () => { card.remove(); syncEmpty("funds-list","funds-empty"); });
       addFundDrag(card);
       return card;
     }
 
-    // ── Drag-to-reorder for funds ──
     let dragSrc = null;
-
     function addFundDrag(card) {
-      card.setAttribute("draggable", "true");
-
-      card.addEventListener("dragstart", (e) => {
-        dragSrc = card;
-        card.classList.add("dragging");
-        e.dataTransfer.effectAllowed = "move";
-      });
-      card.addEventListener("dragend", () => {
-        card.classList.remove("dragging");
-        document.querySelectorAll(".fin-fund-card").forEach(c => c.classList.remove("drag-over"));
-        dragSrc = null;
-      });
-      card.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-      });
-      card.addEventListener("dragenter", () => {
-        if (dragSrc !== card) card.classList.add("drag-over");
-      });
-      card.addEventListener("dragleave", () => {
-        card.classList.remove("drag-over");
-      });
+      card.setAttribute("draggable","true");
+      card.addEventListener("dragstart",  (e) => { dragSrc=card; card.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; });
+      card.addEventListener("dragend",    ()  => { card.classList.remove("dragging"); document.querySelectorAll(".fin-fund-card").forEach(c=>c.classList.remove("drag-over")); dragSrc=null; });
+      card.addEventListener("dragover",   (e) => { e.preventDefault(); e.dataTransfer.dropEffect="move"; });
+      card.addEventListener("dragenter",  ()  => { if(dragSrc!==card) card.classList.add("drag-over"); });
+      card.addEventListener("dragleave",  ()  => { card.classList.remove("drag-over"); });
       card.addEventListener("drop", (e) => {
-        e.preventDefault();
-        card.classList.remove("drag-over");
-        if (!dragSrc || dragSrc === card) return;
-        const list = document.getElementById("funds-list");
+        e.preventDefault(); card.classList.remove("drag-over");
+        if (!dragSrc || dragSrc===card) return;
+        const list  = document.getElementById("funds-list");
         const cards = [...list.querySelectorAll("[data-fin-row='fund']")];
-        const srcIdx = cards.indexOf(dragSrc);
-        const dstIdx = cards.indexOf(card);
-        if (srcIdx < dstIdx) {
-          list.insertBefore(dragSrc, card.nextSibling);
-        } else {
-          list.insertBefore(dragSrc, card);
-        }
+        list.insertBefore(dragSrc, cards.indexOf(dragSrc)<cards.indexOf(card) ? card.nextSibling : card);
       });
     }
 
     document.getElementById("add-fund-btn").addEventListener("click", () => {
       document.getElementById("funds-list").appendChild(createFundRow());
-      syncEmpty("funds-list", "funds-empty");
+      syncEmpty("funds-list","funds-empty");
     });
 
-    // ── Finance: Load ──
     async function loadFinances() {
       const snap = await getDoc(doc(db, "finances", "overview"));
       if (!snap.exists()) return;
       const data = snap.data();
-
       document.getElementById("fin-greeting").value = data.greeting || "";
-      document.getElementById("fin-note").value = data.note || "";
-
-      const pcList = document.getElementById("paychecks-list");
-      pcList.innerHTML = "";
-      (data.paychecks || []).forEach(p => pcList.appendChild(createPaycheckRow(p)));
-      syncEmpty("paychecks-list", "paychecks-empty");
-
-      const spList = document.getElementById("spending-list");
-      spList.innerHTML = "";
-      (data.personalSpending || []).forEach(s => spList.appendChild(createSpendingRow(s)));
-      syncEmpty("spending-list", "spending-empty");
-
-      const bList = document.getElementById("bills-list");
-      bList.innerHTML = "";
-      (data.bills || []).forEach(b => bList.appendChild(createBillRow(b)));
-      syncEmpty("bills-list", "bills-empty");
-
-      const fList = document.getElementById("funds-list");
-      fList.innerHTML = "";
-      (data.funds || []).forEach(f => fList.appendChild(createFundRow(f)));
-      syncEmpty("funds-list", "funds-empty");
+      document.getElementById("fin-note").value     = data.note     || "";
+      const pcList = document.getElementById("paychecks-list"); pcList.innerHTML = "";
+      (data.paychecks||[]).forEach(p => pcList.appendChild(createPaycheckRow(p)));
+      syncEmpty("paychecks-list","paychecks-empty");
+      const spList = document.getElementById("spending-list"); spList.innerHTML = "";
+      (data.personalSpending||[]).forEach(s => spList.appendChild(createSpendingRow(s)));
+      syncEmpty("spending-list","spending-empty");
+      const bList = document.getElementById("bills-list"); bList.innerHTML = "";
+      (data.bills||[]).forEach(b => bList.appendChild(createBillRow(b)));
+      syncEmpty("bills-list","bills-empty");
+      const fList = document.getElementById("funds-list"); fList.innerHTML = "";
+      (data.funds||[]).forEach(f => fList.appendChild(createFundRow(f)));
+      syncEmpty("funds-list","funds-empty");
     }
 
-    // ── Finance: Save ──
     document.getElementById("fin-save-btn").addEventListener("click", async () => {
       const statusEl = document.getElementById("fin-save-status");
       statusEl.style.color = "#22c55e";
@@ -732,10 +1103,10 @@
       document.querySelectorAll("#funds-list [data-fin-row]").forEach(card => {
         const name        = card.querySelector(".fund-name").value.trim();
         const type        = card.querySelector(".fund-type").value;
-        const goal        = parseFloat(card.querySelector(".fund-goal").value) || 0;
-        const monthly     = parseFloat(card.querySelector(".fund-monthly").value) || 0;
+        const goal        = parseFloat(card.querySelector(".fund-goal").value)        || 0;
+        const monthly     = parseFloat(card.querySelector(".fund-monthly").value)     || 0;
         const contributed = parseFloat(card.querySelector(".fund-contributed").value) || 0;
-        const balance     = parseFloat(card.querySelector(".fund-balance").value) || 0;
+        const balance     = parseFloat(card.querySelector(".fund-balance").value)     || 0;
         if (name || goal) funds.push({ name, type, goal, monthly, contributed, balance });
       });
 
@@ -743,185 +1114,20 @@
         await setDoc(doc(db, "finances", "overview"), {
           greeting: document.getElementById("fin-greeting").value.trim(),
           note:     document.getElementById("fin-note").value.trim(),
-          paychecks,
-          personalSpending,
-          bills,
-          funds,
+          paychecks, personalSpending, bills, funds,
           updatedAt: serverTimestamp()
         });
         statusEl.textContent = "Saved!";
         setTimeout(() => { statusEl.textContent = ""; }, 3000);
-      } catch (err) {
+      } catch {
         statusEl.style.color = "#ef4444";
         statusEl.textContent = "Error — try again.";
       }
     });
-
-    // ── Task Listeners ──
-    let timerInterval = null;
-
-    function startListeners() {
-      onSnapshot(doc(db, "meta", "current"), (snap) => {
-        const el   = document.getElementById("current-admin-card");
-        const data = snap.exists() ? snap.data() : null;
-        if (data && data.title) {
-          const stage = data.stage || 1;
-          el.innerHTML = `
-            <div class="current-card">
-              <div class="current-card-info">
-                <p class="current-task-title"></p>
-                <p class="current-task-meta">
-                  ${data.submittedBy ? `From: ${data.submittedBy}` : ""}
-                  ${data.code ? ` &middot; ${data.code}` : ""}
-                </p>
-                <div class="current-card-footer">
-                  <span class="stage-badge">${STAGE_LABELS[stage]}</span>
-                  <span class="elapsed-timer" id="elapsed-timer">0:00</span>
-                </div>
-              </div>
-              <div class="stage-buttons">
-                ${stage < 4 ? `<button class="btn-advance advance-btn">&rarr; ${STAGE_LABELS[stage + 1]}</button>` : ""}
-                <button class="btn-done done-btn">Mark Done</button>
-                <button class="btn-ghost-sm return-btn">Back to Queue</button>
-                <button class="btn-ghost-sm clear-btn">Clear</button>
-              </div>
-            </div>`;
-          el.querySelector(".current-task-title").textContent = data.title;
-          if (stage < 4) el.querySelector(".advance-btn").addEventListener("click", () => advanceStage(stage));
-          el.querySelector(".done-btn").addEventListener("click", () => markDone(data.sourceId, data.title));
-          el.querySelector(".return-btn").addEventListener("click", () => returnToQueue());
-          el.querySelector(".clear-btn").addEventListener("click", () => clearCurrent());
-
-          if (timerInterval) clearInterval(timerInterval);
-          timerInterval = null;
-          if (data.startedAt) {
-            const startedAt = data.startedAt.toDate();
-            const tick = () => {
-              const timerEl = document.getElementById("elapsed-timer");
-              if (!timerEl) { clearInterval(timerInterval); return; }
-              const secs = Math.floor((new Date() - startedAt) / 1000);
-              const m = Math.floor(secs / 60);
-              const h = Math.floor(m / 60);
-              timerEl.textContent = h > 0 ? `${h} hr ${m % 60} min` : (m < 1 ? "< 1 min" : `${m} min`);
-            };
-            tick();
-            if (stage < 4) timerInterval = setInterval(tick, 1000);
-          }
-        } else {
-          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-          el.innerHTML = `<p class="empty-msg">Nothing in progress. Start a task from the queue below.</p>`;
-        }
-      });
-
-      const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
-      onSnapshot(queueQuery, (snap) => {
-        const list = document.getElementById("admin-queue-list");
-        if (snap.empty) { list.innerHTML = `<li class="empty-msg">Queue is empty.</li>`; return; }
-        list.innerHTML = "";
-        snap.docs.forEach((d, i) => {
-          const data = d.data();
-          const li = document.createElement("li");
-          li.className = "admin-queue-item";
-          li.innerHTML = `
-            <div class="queue-item-info">
-              <span class="queue-pos">${i + 1}</span>
-              <div>
-                <p class="admin-task-title"></p>
-                <p class="admin-task-meta">${data.submittedBy || "Anonymous"} &middot; ${data.code || ""}${data.email ? ` &middot; ${data.email}` : ""}${data.phone ? ` &middot; ${data.phone}` : ""}${data.createdAt ? ` &middot; ${formatTime(data.createdAt.toDate())}` : ""}</p>
-              </div>
-            </div>
-            <div class="task-actions">
-              <button class="start-btn">Pick Up</button>
-              <button class="delete-btn btn-ghost-sm">Delete</button>
-            </div>`;
-          li.querySelector(".admin-task-title").textContent = data.title;
-          li.querySelector(".start-btn").addEventListener("click", () =>
-            startTask(d.id, data.title, data.submittedBy||"", data.code||"", data.email||"", data.phone||"", data.createdAt||null));
-          li.querySelector(".delete-btn").addEventListener("click", () => deleteTask(d.id));
-          list.appendChild(li);
-        });
-      });
-
-      const DONE_PREVIEW = 5;
-      let allDoneDocs = [], showingAll = false;
-      const doneQuery = query(collection(db, "done"), orderBy("completedAt", "desc"));
-      onSnapshot(doneQuery, (snap) => { allDoneDocs = snap.docs; renderDone(); });
-
-      function renderDone() {
-        const list = document.getElementById("done-list");
-        const toggleBtn = document.getElementById("toggle-done-btn");
-        if (allDoneDocs.length === 0) {
-          list.innerHTML = `<li class="empty-msg">Nothing done yet.</li>`;
-          toggleBtn.style.display = "none"; return;
-        }
-        const docs = showingAll ? allDoneDocs : allDoneDocs.slice(0, DONE_PREVIEW);
-        list.innerHTML = "";
-        docs.forEach((d) => {
-          const data = d.data();
-          const li = document.createElement("li");
-          li.className = "done-item";
-          li.innerHTML = `
-            <div class="done-item-info">
-              <span class="done-title"></span>
-              <span class="done-meta">${data.submittedBy ? data.submittedBy+" &middot; ":""}${data.code||""}${data.completedAt?" &middot; "+formatTime(data.completedAt.toDate()):""}${data.email?" &middot; "+data.email:""}${data.phone?" &middot; "+data.phone:""}</span>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn-ghost-sm restart-btn">Restart</button>
-              <button class="btn-ghost-sm remove-btn">Remove</button>
-            </div>`;
-          li.querySelector(".done-title").textContent = data.title;
-          li.querySelector(".restart-btn").addEventListener("click", () => restartTask(d.id, data));
-          li.querySelector(".remove-btn").addEventListener("click", () => deleteTask(d.id, "done"));
-          list.appendChild(li);
-        });
-        if (allDoneDocs.length > DONE_PREVIEW) {
-          toggleBtn.style.display = "inline-block";
-          toggleBtn.textContent = showingAll ? "Show Less" : `Show All (${allDoneDocs.length})`;
-        } else { toggleBtn.style.display = "none"; }
-      }
-
-      document.getElementById("toggle-done-btn").addEventListener("click", () => { showingAll = !showingAll; renderDone(); });
-    }
-
-    window.startTask = async (id, title, submittedBy, code, email, phone, submittedAt) => {
-      const currentSnap = await getDoc(doc(db, "meta", "current"));
-      const current = currentSnap.exists() ? currentSnap.data() : null;
-      if (current && current.title) {
-        await addDoc(collection(db, "queue"), { title: current.title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", createdAt: serverTimestamp(), order: Date.now() });
-      }
-      await setDoc(doc(db, "meta", "current"), { title, submittedBy, code, email:email||"", phone:phone||"", submittedAt:submittedAt||null, sourceId:id, stage:1, startedAt:serverTimestamp() });
-      await deleteDoc(doc(db, "queue", id));
-    };
-    window.returnToQueue = async () => {
-      const currentSnap = await getDoc(doc(db, "meta", "current"));
-      const current = currentSnap.exists() ? currentSnap.data() : null;
-      if (current && current.title) {
-        await addDoc(collection(db, "queue"), { title: current.title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", createdAt: serverTimestamp(), order: Date.now() });
-        await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
-      }
-    };
-    window.advanceStage = async (s) => { await updateDoc(doc(db, "meta", "current"), { stage: s+1 }); };
-    window.markDone = async (sourceId, title) => {
-      const currentSnap = await getDoc(doc(db, "meta", "current"));
-      const current = currentSnap.exists() ? currentSnap.data() : {};
-      await addDoc(collection(db, "done"), { title, submittedBy: current.submittedBy||"", code: current.code||"", email: current.email||"", phone: current.phone||"", submittedAt: current.submittedAt||null, completedAt: serverTimestamp() });
-      await setDoc(doc(db, "meta", "lastCompleted"), { submittedBy: current.submittedBy||"", code: current.code||"", completedAt: serverTimestamp() });
-      await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 });
-    };
-    window.clearCurrent = async () => { await setDoc(doc(db, "meta", "current"), { title: null, stage: 0 }); };
-    window.restartTask = async (id, data) => {
-      await addDoc(collection(db, "queue"), { title: data.title, submittedBy: data.submittedBy||"", code: data.code||"", email: data.email||"", phone: data.phone||"", createdAt: serverTimestamp(), order: Date.now() });
-      await deleteDoc(doc(db, "done", id));
-    };
-    window.deleteTask = async (id, col="queue") => {
-      if (confirm("Delete this task?")) await deleteDoc(doc(db, col, id));
-    };
-    function formatTime(date) {
-      return date.toLocaleString("en-US", { month:"short", day:"numeric", hour:"numeric", minute:"2-digit", hour12:true });
-    }
   </script>
+
   <script>
-    const navToggleLogin = document.getElementById("nav-toggle-login");
+    const navToggleLogin   = document.getElementById("nav-toggle-login");
     const navDropdownLogin = document.getElementById("nav-dropdown-login");
     navToggleLogin.addEventListener("click", (e) => {
       e.stopPropagation();
