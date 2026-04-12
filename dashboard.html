@@ -280,22 +280,74 @@
       .dash-stat-value { font-size: 1.05rem; }
       .dash-fund-meta  { gap: 14px; }
     }
+
+    .nav-menu { position: relative; }
+    .nav-menu-btn {
+      padding: 8px 16px;
+      background: white;
+      color: #1a1a1a;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .nav-menu-btn:hover { opacity: 0.85; }
+    .nav-dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      min-width: 160px;
+      overflow: hidden;
+      z-index: 100;
+    }
+    .nav-dropdown.open { display: block; }
+    .nav-dropdown-item {
+      display: block;
+      padding: 12px 18px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: #1a1a1a;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .nav-dropdown-item:hover { background: #f5f5f5; }
+    .nav-dropdown-item + .nav-dropdown-item { border-top: 1px solid #f0f0f0; }
   </style>
 </head>
 <body>
 
   <!-- Login -->
-  <div id="login-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f0f0;">
-    <div class="login-box">
-      <h1 class="wordmark" style="margin-bottom:8px;"><span class="wordmark-task" style="color:#1a1a1a;">Task</span><span class="wordmark-trevor" style="color:#1a1a1a;">Trevor</span></h1>
-      <p style="display:block;width:fit-content;margin:0 auto 24px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;">Dashboard</p>
-      <form id="login-form">
-        <input type="email" id="email-input" placeholder="Email" required />
-        <input type="password" id="password-input" placeholder="Password" required />
-        <button type="submit">Sign In</button>
-      </form>
-      <p id="login-error"></p>
-      <a href="index.html" class="login-home-btn">← Return Home</a>
+  <div id="login-screen" style="min-height:100vh;display:flex;flex-direction:column;background:#f0f0f0;">
+    <header class="site-header">
+      <div class="header-inner">
+        <h1 class="wordmark"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></h1>
+        <div class="nav-menu">
+          <button class="nav-menu-btn" id="nav-toggle" aria-expanded="false">☰ ▾</button>
+          <div class="nav-dropdown" id="nav-dropdown">
+            <a href="index.html" class="nav-dropdown-item">Home</a>
+            <a href="admin.html" class="nav-dropdown-item">Admin</a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div class="login-box">
+        <p style="display:block;width:fit-content;margin:0 auto 24px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;">Dashboard</p>
+        <form id="login-form">
+          <input type="email" id="email-input" placeholder="Email" required />
+          <input type="password" id="password-input" placeholder="Password" required />
+          <button type="submit">Sign In</button>
+        </form>
+        <p id="login-error"></p>
+      </div>
     </div>
   </div>
 
@@ -749,6 +801,19 @@
     function escHtml(str) {
       return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
     }
+  </script>
+  <script>
+    const navToggle = document.getElementById("nav-toggle");
+    const navDropdown = document.getElementById("nav-dropdown");
+    navToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = navDropdown.classList.toggle("open");
+      navToggle.setAttribute("aria-expanded", open);
+    });
+    document.addEventListener("click", () => {
+      navDropdown.classList.remove("open");
+      navToggle.setAttribute("aria-expanded", false);
+    });
   </script>
 </body>
 </html>
