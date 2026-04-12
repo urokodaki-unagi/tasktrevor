@@ -272,44 +272,38 @@
 </head>
 <body>
 
-  <!-- Login -->
-  <div id="login-screen" style="min-height:100vh;display:flex;flex-direction:column;background:#f0f0f0;">
-    <header class="site-header">
-      <div class="header-inner">
-        <h1 class="wordmark"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></h1>
-        <div class="nav-menu">
-          <button class="nav-menu-btn" id="nav-toggle-login" aria-expanded="false">☰ ▾</button>
-          <div class="nav-dropdown" id="nav-dropdown-login">
-            <a href="index.html" class="nav-dropdown-item">Home</a>
-            <a href="dashboard.html" class="nav-dropdown-item">Dashboard</a>
-          </div>
+  <!-- Shared Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="wordmark">
+        <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span><span id="admin-portal-label" style="display:none;"><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin Portal</span></span>
+      </h1>
+      <div class="nav-menu" id="login-nav">
+        <button class="nav-menu-btn" id="nav-toggle-login" aria-expanded="false">☰ ▾</button>
+        <div class="nav-dropdown" id="nav-dropdown-login">
+          <a href="index.html" class="nav-dropdown-item">Home</a>
+          <a href="dashboard.html" class="nav-dropdown-item">Dashboard</a>
         </div>
       </div>
-    </header>
-    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:24px;">
-      <div class="login-box">
-        <p style="display:block;width:fit-content;margin:0 auto 24px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;">Admin Portal</p>
-        <form id="login-form">
-          <input type="email" id="email-input" placeholder="Email" required />
-          <input type="password" id="password-input" placeholder="Password" required />
-          <button type="submit">Login</button>
-        </form>
-        <p id="login-error"></p>
-      </div>
+      <button id="logout-btn" class="btn-ghost" style="display:none;">Logout</button>
+    </div>
+  </header>
+
+  <!-- Login -->
+  <div id="login-screen" style="display:flex;align-items:center;justify-content:center;background:#f0f0f0;padding:24px;min-height:calc(100vh - 73px);">
+    <div class="login-box">
+      <p style="display:block;width:fit-content;margin:0 auto 24px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;">Admin Portal</p>
+      <form id="login-form">
+        <input type="email" id="email-input" placeholder="Email" required />
+        <input type="password" id="password-input" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="login-error"></p>
     </div>
   </div>
 
   <!-- Admin Panel -->
   <div id="admin-panel" style="display:none;">
-
-    <header class="site-header">
-      <div class="header-inner">
-        <h1 class="wordmark">
-          <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin Portal</span>
-        </h1>
-        <button id="logout-btn" class="btn-ghost">Logout</button>
-      </div>
-    </header>
 
     <main class="container">
 
@@ -455,10 +449,16 @@
       if (user) {
         document.getElementById("login-screen").style.display = "none";
         document.getElementById("admin-panel").style.display = "block";
+        document.getElementById("login-nav").style.display = "none";
+        document.getElementById("logout-btn").style.display = "";
+        document.getElementById("admin-portal-label").style.display = "";
         startListeners();
       } else {
         document.getElementById("admin-panel").style.display = "none";
         document.getElementById("login-screen").style.display = "flex";
+        document.getElementById("login-nav").style.display = "";
+        document.getElementById("logout-btn").style.display = "none";
+        document.getElementById("admin-portal-label").style.display = "none";
       }
     });
 
