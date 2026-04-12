@@ -279,6 +279,8 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
+    const STAGE_LABELS = ["", "Getting Started", "In Progress", "Wrapping Up", "Complete"];
+
     let selectedType = "task";
 
     // ─── Type metadata ───
@@ -310,7 +312,7 @@
 
       if (title) {
         dot.className = "status-dot busy";
-        text.textContent = "Trevor is currently working on a request";
+        text.textContent = stage > 0 ? `Currently: ${STAGE_LABELS[stage]}` : "Trevor is working on a request";
       } else {
         dot.className = "status-dot";
         text.textContent = "No active tasks — submit a request below";
@@ -439,9 +441,17 @@
       document.getElementById("form-card").style.display    = "block";
     });
 
-    // ─── Lookup ───
-    const STAGE_LABELS = ["", "Getting Started", "In Progress", "Wrapping Up", "Complete"];
+    // ─── Helpers ───
+    function timeSince(date) {
+      const secs = Math.floor((new Date() - date) / 1000);
+      if (secs < 120) return "just now";
+      const mins = Math.floor(secs / 60);
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      return hrs === 1 ? "1 hr ago" : `${hrs} hrs ago`;
+    }
 
+    // ─── Lookup ───
     document.getElementById("lookup-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const code   = "TT-" + document.getElementById("lookup-input").value.trim();
@@ -451,31 +461,37 @@
       const currentSnap = await getDoc(doc(db, "meta", "current"));
       const current     = currentSnap.exists() ? currentSnap.data() : null;
       if (current?.code === code) {
+        const startedStr = current.startedAt ? ` · Started ${timeSince(current.startedAt.toDate())}` : "";
         result.innerHTML = `<div class="lcard inprogress">
           <div class="lcard-code">${code}</div>
           <div class="lcard-status">In progress now</div>
-          <div class="lcard-sub">${STAGE_LABELS[current.stage||1]}</div>
+          <div class="lcard-sub">${STAGE_LABELS[current.stage||1]}${startedStr}</div>
         </div>`;
         return;
       }
 
       const qSnap = await getDocs(query(collection(db, "queue"), where("code", "==", code)));
       if (!qSnap.empty) {
-        const allSnap = await getDocs(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")));
-        const pos = allSnap.docs.findIndex(d => d.data().code === code) + 1;
+        const allSnap  = await getDocs(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")));
+        const pos      = allSnap.docs.findIndex(d => d.data().code === code) + 1;
+        const qData    = qSnap.docs[0].data();
+        const waitStr  = qData.createdAt ? ` · Submitted ${timeSince(qData.createdAt.toDate())}` : "";
         result.innerHTML = `<div class="lcard queued">
           <div class="lcard-code">${code}</div>
           <div class="lcard-status">Waiting in queue</div>
-          <div class="lcard-sub">Position #${pos}</div>
+          <div class="lcard-sub">Position #${pos}${waitStr}</div>
         </div>`;
         return;
       }
 
       const dSnap = await getDocs(query(collection(db, "done"), where("code", "==", code)));
       if (!dSnap.empty) {
+        const dData    = dSnap.docs[0].data();
+        const doneStr  = dData.completedAt ? ` · Completed ${timeSince(dData.completedAt.toDate())}` : "";
         result.innerHTML = `<div class="lcard done">
           <div class="lcard-code">${code}</div>
-          <div class="lcard-status">Completed</div>
+          <div class="lcard-status">Completed ✓</div>
+          ${doneStr ? `<div class="lcard-sub">${doneStr.slice(3)}</div>` : ""}
         </div>`;
         return;
       }
