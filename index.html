@@ -4,160 +4,258 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Task Trevor</title>
-  <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
-    .nav-menu { position: relative; }
-    .nav-menu-btn {
-      padding: 8px 16px;
-      background: white;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f0f0;
       color: #1a1a1a;
-      border: none;
-      border-radius: 8px;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─── */
+    .site-header { background: #1a1a1a; color: white; padding: 20px; }
+    .header-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .wordmark { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 1.4rem; font-weight: 300; letter-spacing: -0.5px; }
+    .wordmark strong { font-weight: 700; }
+    .nav-menu { position: relative; }
+    .nav-btn { padding: 7px 14px; background: white; color: #1a1a1a; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .nav-dropdown { display: none; position: absolute; top: calc(100% + 8px); right: 0; background: white; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 160px; overflow: hidden; z-index: 100; }
+    .nav-dropdown.open { display: block; }
+    .nav-dropdown a { display: block; padding: 12px 18px; font-size: 0.88rem; font-weight: 500; color: #1a1a1a; text-decoration: none; }
+    .nav-dropdown a:hover { background: #f5f5f5; }
+    .nav-dropdown a + a { border-top: 1px solid #f0f0f0; }
+
+    /* ─── Status Strip ─── */
+    .status-strip { background: white; border-bottom: 2px solid #ebebeb; }
+    .status-inner { max-width: 640px; margin: 0 auto; padding: 13px 20px; display: flex; align-items: center; gap: 12px; }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; background: #e5e5e5; flex-shrink: 0; transition: background 0.3s; }
+    .status-dot.busy { background: #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+      50%       { box-shadow: 0 0 0 7px rgba(34,197,94,0.05); }
+    }
+    .status-text { font-size: 0.88rem; font-weight: 500; flex: 1; color: #444; }
+    .status-pips { display: flex; gap: 5px; }
+    .pip { width: 26px; height: 4px; border-radius: 2px; background: #e5e5e5; transition: background 0.3s; }
+    .pip.done   { background: #86efac; }
+    .pip.active { background: #22c55e; }
+    .status-queue-label { font-size: 0.78rem; color: #bbb; white-space: nowrap; }
+
+    /* ─── Main ─── */
+    .main { max-width: 640px; margin: 0 auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ─── Card ─── */
+    .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .card-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #bbb; margin-bottom: 20px; }
+
+    /* ─── Request Type Selector ─── */
+    .type-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .type-btn {
+      padding: 8px 18px;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 99px;
+      background: white;
       font-size: 0.82rem;
       font-weight: 600;
-      letter-spacing: 0.03em;
+      color: #999;
       cursor: pointer;
       font-family: inherit;
-      transition: opacity 0.2s;
+      transition: all 0.15s;
     }
-    .nav-menu-btn:hover { opacity: 0.85; }
-    .nav-dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      background: white;
+    .type-btn:hover { border-color: #ccc; color: #555; }
+    .type-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: white; }
+
+    /* ─── Form ─── */
+    .form-stack { display: flex; flex-direction: column; gap: 12px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e5e5e5;
       border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 160px;
-      overflow: hidden;
-      z-index: 100;
-    }
-    .nav-dropdown.open { display: block; }
-    .nav-dropdown-item {
-      display: block;
-      padding: 12px 18px;
-      font-size: 0.88rem;
-      font-weight: 500;
+      font-size: 0.95rem;
+      font-family: inherit;
       color: #1a1a1a;
-      text-decoration: none;
-      transition: background 0.15s;
+      background: white;
+      transition: border-color 0.2s;
     }
-    .nav-dropdown-item:hover { background: #f5f5f5; }
-    .nav-dropdown-item + .nav-dropdown-item { border-top: 1px solid #f0f0f0; }
+    input:focus, textarea:focus { outline: none; border-color: #1a1a1a; }
+    textarea { resize: none; }
+    .char-hint { text-align: right; font-size: 0.72rem; color: #ccc; margin-top: -4px; }
+    .char-hint.warn { color: #f59e0b; }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover { background: #333; }
+    .submit-btn:disabled { background: #ccc; cursor: default; }
+
+    /* ─── Confirmation ─── */
+    .confirm-wrap { text-align: center; padding: 8px 0; }
+    .confirm-type-badge {
+      display: inline-block;
+      padding: 5px 16px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 20px;
+    }
+    .confirm-headline { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .confirm-sub { font-size: 0.85rem; color: #888; line-height: 1.55; margin-bottom: 24px; }
+    .code-block { background: #f5f5f5; border-radius: 12px; padding: 18px 24px; margin-bottom: 20px; }
+    .code-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 6px; }
+    .code-value { font-size: 2.2rem; font-weight: 800; letter-spacing: 0.08em; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; }
+    .btn-row { display: flex; gap: 10px; justify-content: center; }
+    .btn-ghost { padding: 10px 22px; background: #f5f5f5; color: #1a1a1a; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-ghost:hover { background: #ebebeb; }
+    .copy-feedback { font-size: 0.75rem; color: #22c55e; margin-top: 10px; min-height: 1em; }
+
+    /* ─── Queue + Stats ─── */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: #f0f0f0; border-radius: 12px; overflow: hidden; margin-bottom: 24px; }
+    .stat-cell { background: white; padding: 16px; text-align: center; }
+    .stat-cell-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #bbb; margin-bottom: 5px; }
+    .stat-cell-value { font-size: 1.5rem; font-weight: 700; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; color: #1a1a1a; }
+
+    /* ─── Lookup ─── */
+    .lookup-form-row { display: flex; gap: 10px; align-items: center; }
+    .lookup-prefix { font-size: 0.9rem; font-weight: 700; color: #aaa; white-space: nowrap; }
+    .lookup-result { margin-top: 14px; }
+    .lcard { padding: 14px 18px; border-radius: 10px; border-left: 4px solid #e5e5e5; }
+    .lcard.queued     { border-left-color: #f59e0b; background: #fffbeb; }
+    .lcard.inprogress { border-left-color: #22c55e; background: #f0fdf4; }
+    .lcard.done       { border-left-color: #1a1a1a; background: #f5f5f5; }
+    .lcard.notfound   { background: #f9f9f9; color: #aaa; font-size: 0.88rem; padding: 12px 16px; }
+    .lcard-code   { font-weight: 800; font-size: 1rem; margin-bottom: 3px; }
+    .lcard-status { font-size: 0.88rem; font-weight: 600; }
+    .lcard-sub    { font-size: 0.78rem; color: #888; margin-top: 3px; }
+
+    /* ─── Divider between queue + lookup ─── */
+    .section-divider { border: none; border-top: 1px solid #f0f0f0; margin: 20px 0; }
+
+    @media (max-width: 480px) {
+      .two-col { grid-template-columns: 1fr; }
+      .status-pips { display: none; }
+    }
   </style>
 </head>
 <body>
 
   <header class="site-header">
     <div class="header-inner">
-      <h1 class="wordmark"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></h1>
+      <div class="wordmark">Task<strong>Trevor</strong></div>
       <div class="nav-menu">
-        <button class="nav-menu-btn" id="nav-toggle" aria-expanded="false">☰ ▾</button>
+        <button class="nav-btn" id="nav-toggle">☰</button>
         <div class="nav-dropdown" id="nav-dropdown">
-          <a href="dashboard.html" class="nav-dropdown-item">Dashboard</a>
-          <a href="admin.html" class="nav-dropdown-item">Admin</a>
+          <a href="dashboard.html">Dashboard</a>
+          <a href="admin.html">Admin</a>
         </div>
       </div>
     </div>
   </header>
 
-  <main class="container">
+  <!-- Live status strip -->
+  <div class="status-strip">
+    <div class="status-inner">
+      <span class="status-dot" id="status-dot"></span>
+      <span class="status-text" id="status-text">Loading...</span>
+      <div class="status-pips">
+        <div class="pip" id="pip-1"></div>
+        <div class="pip" id="pip-2"></div>
+        <div class="pip" id="pip-3"></div>
+        <div class="pip" id="pip-4"></div>
+      </div>
+      <span class="status-queue-label" id="status-queue-label"></span>
+    </div>
+  </div>
 
-    <!-- Progress Tracker -->
-    <section class="tracker-section">
-      <p class="section-title" id="tracker-task-name">Current Status</p>
-      <div class="stats-row">
-        <div class="stat-block">
-          <p class="stat-label">Time on Current Task</p>
-          <p class="stat-value"><span id="public-elapsed-timer">--</span></p>
-        </div>
-        <div class="stat-block">
-          <p class="stat-label">Tasks in Queue</p>
-          <p class="stat-value"><span id="queue-count-number">0</span></p>
-        </div>
-      </div>
-      <div class="tracker">
-        <div class="tracker-bar-bg">
-          <div class="tracker-bar-fill" id="tracker-bar-fill"></div>
-        </div>
-        <div class="tracker-labels">
-          <span class="tracker-stage-label" id="stage-label-1">Getting Started</span>
-          <span class="tracker-stage-label" id="stage-label-2">In Progress</span>
-          <span class="tracker-stage-label" id="stage-label-3">Wrapping Up</span>
-          <span class="tracker-stage-label" id="stage-label-4">Complete</span>
-        </div>
-      </div>
-      <p id="queue-avgwait" class="queue-avgwait-display" style="margin-top:12px;"></p>
-    </section>
+  <main class="main">
 
-    <!-- Ticket Lookup -->
-    <section class="lookup-section">
-      <details>
-        <summary class="lookup-summary">Have a ticket code? Look it up</summary>
-        <div class="lookup-inner">
-          <form id="lookup-form">
-            <div style="display:flex;gap:10px;margin-top:12px;align-items:center;">
-              <span class="lookup-prefix">TT-</span>
-              <input type="text" id="lookup-input" placeholder="XXXX" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" />
-              <button type="submit" style="white-space:nowrap;">Look Up</button>
-            </div>
-          </form>
-          <div id="lookup-result" style="display:none;"></div>
-        </div>
-      </details>
-    </section>
+    <!-- Request Form -->
+    <div class="card" id="form-card">
+      <div class="card-label">New Request</div>
 
-    <!-- Submit Form -->
-    <section class="submit-section">
-      <h2 class="section-title">Submit a Task</h2>
-      <div id="form-wrap">
-        <form id="submit-form">
-          <div style="display:flex;gap:12px;">
-            <input
-              type="text"
-              id="firstname-input"
-              placeholder="First name"
-              maxlength="50"
-              required
-              style="flex:1;"
-            />
-            <input
-              type="text"
-              id="lastname-input"
-              placeholder="Last name"
-              maxlength="50"
-              required
-              style="flex:1;"
-            />
-          </div>
-          <input type="email" id="email-input" placeholder="Email address" required />
-          <input type="text" id="phone-input" placeholder="Phone number (optional)" inputmode="tel" autocomplete="tel" />
-          <textarea
-            id="task-input"
-            placeholder="Describe your task..."
-            maxlength="300"
-            rows="3"
-            required
-          ></textarea>
-          <button type="submit">Add to Queue</button>
-        </form>
+      <div class="type-row">
+        <button class="type-btn active" data-type="task">Task</button>
+        <button class="type-btn" data-type="purchase">Purchase</button>
+        <button class="type-btn" data-type="fix">Fix / Repair</button>
+        <button class="type-btn" data-type="question">Question</button>
+        <button class="type-btn" data-type="other">Other</button>
       </div>
-      <!-- Confirmation shown after submit -->
-      <div id="confirm-wrap" style="display:none;">
-        <div class="confirm-card">
-          <p class="confirm-title">You're in the queue!</p>
-          <p class="confirm-code-label">Your confirmation code</p>
-          <p class="confirm-code" id="confirm-code"></p>
-          <button id="copy-code-btn" class="copy-btn">Copy Number</button>
-          <p id="copy-msg" style="font-size:0.78rem;color:#22c55e;min-height:1.2em;margin-top:4px;"></p>
-          <p class="confirm-note">Use this number to look up your task status.</p>
-          <button id="submit-another-btn">Submit Another</button>
+
+      <form id="submit-form" class="form-stack">
+        <div class="two-col">
+          <input type="text" id="name-input" placeholder="Your name" maxlength="80" required />
+          <input type="email" id="email-input" placeholder="Email" required />
+        </div>
+        <input type="tel" id="phone-input" placeholder="Phone (optional)" />
+        <textarea id="task-input" rows="4" maxlength="300" required placeholder="What would you like me to do?"></textarea>
+        <div class="char-hint" id="char-hint">300 left</div>
+        <button type="submit" class="submit-btn" id="submit-btn">Submit Request</button>
+      </form>
+    </div>
+
+    <!-- Confirmation (hidden until submit) -->
+    <div class="card" id="confirm-card" style="display:none;">
+      <div class="confirm-wrap">
+        <div class="confirm-type-badge" id="confirm-badge">Task</div>
+        <div class="confirm-headline">You're in the queue</div>
+        <div class="confirm-sub">Trevor will get to your request soon.<br>Save your ticket code to check back on the status.</div>
+        <div class="code-block">
+          <div class="code-label">Ticket Code</div>
+          <div class="code-value" id="confirm-code">TT-0000</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-ghost" id="copy-btn">Copy Code</button>
+          <button class="btn-ghost" id="another-btn">New Request</button>
+        </div>
+        <div class="copy-feedback" id="copy-feedback"></div>
+      </div>
+    </div>
+
+    <!-- Queue info + Lookup -->
+    <div class="card">
+      <div class="card-label">Queue Status</div>
+      <div class="stats-grid">
+        <div class="stat-cell">
+          <div class="stat-cell-label">Requests Waiting</div>
+          <div class="stat-cell-value" id="queue-count">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-cell-label">Avg. Completion</div>
+          <div class="stat-cell-value" id="avg-time">—</div>
         </div>
       </div>
-    </section>
+
+      <hr class="section-divider" />
+
+      <div class="card-label" style="margin-bottom:14px;">Track a Request</div>
+      <form id="lookup-form">
+        <div class="lookup-form-row">
+          <span class="lookup-prefix">TT-</span>
+          <input type="text" id="lookup-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" style="max-width:120px;" />
+          <button type="submit" class="submit-btn" style="width:auto;padding:12px 20px;">Look Up</button>
+        </div>
+      </form>
+      <div class="lookup-result" id="lookup-result"></div>
+    </div>
 
   </main>
 
@@ -165,278 +263,234 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore,
-      collection,
-      addDoc,
-      onSnapshot,
-      query,
-      orderBy,
-      where,
-      getDocs,
-      getDoc,
-      serverTimestamp,
-      doc
+      getFirestore, collection, addDoc, onSnapshot,
+      query, orderBy, where, getDocs, getDoc, serverTimestamp, doc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
-  authDomain: "work-que-16801.firebaseapp.com",
-  projectId: "work-que-16801",
-  storageBucket: "work-que-16801.firebasestorage.app",
-  messagingSenderId: "283312462855",
-  appId: "1:283312462855:web:ee0b71d588338902e1dea2"
+      apiKey: "AIzaSyB2qkcvy9_cgHlt1msPt42QbJTIwlSx5sA",
+      authDomain: "work-que-16801.firebaseapp.com",
+      projectId: "work-que-16801",
+      storageBucket: "work-que-16801.firebasestorage.app",
+      messagingSenderId: "283312462855",
+      appId: "1:283312462855:web:ee0b71d588338902e1dea2"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db  = getFirestore(app);
 
-    let publicTimerInterval = null;
+    let selectedType = "task";
 
-    // --- Progress tracker ---
-    const STAGES = ["In Queue", "Being Worked On", "Finishing Up", "All Done!"];
+    // ─── Type metadata ───
+    const TYPE_META = {
+      task:     { label: "Task",         placeholder: "What would you like me to do?",           color: "#6366f1", bg: "#eef2ff" },
+      purchase: { label: "Purchase",     placeholder: "What do you need purchased or ordered?",   color: "#f59e0b", bg: "#fffbeb" },
+      fix:      { label: "Fix / Repair", placeholder: "What needs fixing or attention?",          color: "#ef4444", bg: "#fef2f2" },
+      question: { label: "Question",     placeholder: "What do you need to know?",                color: "#3b82f6", bg: "#eff6ff" },
+      other:    { label: "Other",        placeholder: "What can I help with?",                    color: "#6b7280", bg: "#f9fafb" },
+    };
 
+    // ─── Type selector ───
+    document.querySelectorAll(".type-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedType = btn.dataset.type;
+        document.getElementById("task-input").placeholder = TYPE_META[selectedType].placeholder;
+      });
+    });
+
+    // ─── Live status ───
     onSnapshot(doc(db, "meta", "current"), (snap) => {
-      const data = snap.exists() ? snap.data() : null;
-      const stage = (data && data.stage) ? data.stage : 0;
-      const title = (data && data.title) ? data.title : null;
+      const data  = snap.exists() ? snap.data() : null;
+      const stage = data?.stage ?? 0;
+      const title = data?.title ?? null;
+      const dot   = document.getElementById("status-dot");
+      const text  = document.getElementById("status-text");
 
-      const label = document.getElementById("tracker-task-name");
       if (title) {
-        label.innerHTML = `Trevor is currently working on something`;
-
-        // Start elapsed timer
-        if (publicTimerInterval) clearInterval(publicTimerInterval);
-        publicTimerInterval = null;
-        const timerEl = document.getElementById("public-elapsed-timer");
-        if (data.startedAt) {
-          const startedAt = data.startedAt.toDate();
-          const tick = () => {
-            const secs = Math.floor((new Date() - startedAt) / 1000);
-            const m = Math.floor(secs / 60);
-            const h = Math.floor(m / 60);
-            if (h > 0) {
-              timerEl.textContent = `${h} hr ${m % 60} min`;
-            } else {
-              timerEl.textContent = m < 1 ? "< 1 min" : `${m} min`;
-            }
-          };
-          tick();
-          if (stage < 4) {
-            publicTimerInterval = setInterval(tick, 1000);
-          }
-        }
+        dot.className = "status-dot busy";
+        text.textContent = "Trevor is currently working on a request";
       } else {
-        if (publicTimerInterval) { clearInterval(publicTimerInterval); publicTimerInterval = null; }
-        document.getElementById("public-elapsed-timer").textContent = "--";
-        label.innerHTML = "Trevor hasn't started his next task yet";
+        dot.className = "status-dot";
+        text.textContent = "No active tasks — submit a request below";
       }
-
-      // Bar fills: 0%=idle, stage1=10%, stage2=40%, stage3=75%, stage4=100%
-      const fillMap = { 0: "0%", 1: "10%", 2: "40%", 3: "75%", 4: "100%" };
-      document.getElementById("tracker-bar-fill").style.width = fillMap[stage] || "0%";
 
       for (let i = 1; i <= 4; i++) {
-        const el = document.getElementById(`stage-label-${i}`);
-        el.classList.remove("stage-active", "stage-complete");
-        if (stage === 0) {
-          // nothing
-        } else if (i < stage) {
-          el.classList.add("stage-complete");
-        } else if (i === stage) {
-          el.classList.add("stage-active");
-        }
+        const pip = document.getElementById(`pip-${i}`);
+        pip.className = "pip";
+        if (stage === 0) continue;
+        if (i < stage)   pip.classList.add("done");
+        if (i === stage) pip.classList.add("active");
       }
     });
 
-    // --- Queue count ---
-    const queueQuery = query(collection(db, "queue"), orderBy("order"), orderBy("createdAt"));
-    onSnapshot(queueQuery, (snap) => {
-      document.getElementById("queue-count-number").textContent = snap.docs.length;
+    // ─── Queue count ───
+    onSnapshot(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")), (snap) => {
+      document.getElementById("queue-count").textContent = snap.docs.length;
+      document.getElementById("status-queue-label").textContent =
+        snap.docs.length === 1 ? "1 in queue" : `${snap.docs.length} in queue`;
     });
 
-    // --- Avg completion time (from done collection) ---
-    getDocs(collection(db, "done")).then((doneSnap) => {
-      const withTimes = doneSnap.docs
-        .map(d => d.data())
-        .filter(d => d.submittedAt && d.completedAt);
-      const avgEl = document.getElementById("queue-avgwait");
-      if (withTimes.length >= 3) {
-        const avg = withTimes.reduce((sum, d) => sum + (d.completedAt.toDate() - d.submittedAt.toDate()), 0) / withTimes.length;
+    // ─── Avg completion time ───
+    getDocs(collection(db, "done")).then((snap) => {
+      const timed = snap.docs.map(d => d.data()).filter(d => d.submittedAt && d.completedAt);
+      if (timed.length >= 3) {
+        const avg  = timed.reduce((s, d) => s + (d.completedAt.toDate() - d.submittedAt.toDate()), 0) / timed.length;
         const mins = Math.round(avg / 60000);
-        avgEl.textContent = mins < 60
-          ? `~${mins} min avg completion time`
-          : `~${Math.round(mins / 60)} hr avg completion time`;
+        document.getElementById("avg-time").textContent = mins < 60 ? `${mins}m` : `${Math.round(mins / 60)}h`;
       }
     });
 
-    // --- Submit form ---
+    // ─── Char counter ───
+    document.getElementById("task-input").addEventListener("input", (e) => {
+      const left = 300 - e.target.value.length;
+      const el   = document.getElementById("char-hint");
+      el.textContent  = `${left} left`;
+      el.className    = left < 50 ? "char-hint warn" : "char-hint";
+    });
+
+    // ─── Phone formatter ───
+    document.getElementById("phone-input").addEventListener("input", (e) => {
+      let v = e.target.value.replace(/\D/g, "").slice(0, 10);
+      if      (v.length >= 7) v = `(${v.slice(0,3)}) ${v.slice(3,6)}-${v.slice(6)}`;
+      else if (v.length >= 4) v = `(${v.slice(0,3)}) ${v.slice(3)}`;
+      else if (v.length >  0) v = `(${v}`;
+      e.target.value = v;
+    });
+
+    // ─── Unique code ───
     async function generateUniqueCode() {
       while (true) {
         const code = "TT-" + Math.floor(1000 + Math.random() * 9000);
-        const [qSnap, dSnap] = await Promise.all([
+        const [q, d] = await Promise.all([
           getDocs(query(collection(db, "queue"), where("code", "==", code))),
-          getDocs(query(collection(db, "done"), where("code", "==", code)))
+          getDocs(query(collection(db, "done"),  where("code", "==", code)))
         ]);
-        if (qSnap.empty && dSnap.empty) return code;
+        if (q.empty && d.empty) return code;
       }
     }
 
+    // ─── Submit ───
     document.getElementById("submit-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const title = document.getElementById("task-input").value.trim();
-      const firstName = document.getElementById("firstname-input").value.trim();
-      const lastName = document.getElementById("lastname-input").value.trim();
-      const name = `${firstName} ${lastName}`;
+      const btn = document.getElementById("submit-btn");
+      btn.disabled    = true;
+      btn.textContent = "Submitting...";
+
+      const name  = document.getElementById("name-input").value.trim();
       const email = document.getElementById("email-input").value.trim();
       const phone = document.getElementById("phone-input").value.trim();
-      const code = await generateUniqueCode();
+      const task  = document.getElementById("task-input").value.trim();
+      const type  = selectedType;
+      const code  = await generateUniqueCode();
 
       try {
         await addDoc(collection(db, "queue"), {
-          title,
-          submittedBy: name,
-          email,
-          phone,
-          code,
-          createdAt: serverTimestamp(),
-          order: Date.now()
+          title: task, submittedBy: name, email, phone, code, type,
+          createdAt: serverTimestamp(), order: Date.now()
         });
 
-        // Send confirmation email to submitter
+        const firstName = name.split(" ")[0];
         emailjs.send("service_6cr8wdn", "template_lhp8nqo", {
-          name: firstName,
-          email: email,
-          code: code.replace("TT-", "")
+          name: firstName, email, code: code.replace("TT-", "")
         }).catch(() => {});
-
-        // Notify Trevor
         emailjs.send("service_6cr8wdn", "template_xnmpjnt", {
-          submitter_name: name,
-          submitter_email: email,
+          submitter_name: name, submitter_email: email,
           submitter_phone: phone || "not provided",
-          task: title,
-          code: code.replace("TT-", "")
+          task, code: code.replace("TT-", "")
         }).catch(() => {});
 
         // Show confirmation
-        document.getElementById("form-wrap").style.display = "none";
+        const meta  = TYPE_META[type];
+        const badge = document.getElementById("confirm-badge");
+        badge.textContent       = meta.label;
+        badge.style.background  = meta.bg;
+        badge.style.color       = meta.color;
         document.getElementById("confirm-code").textContent = code;
-        document.getElementById("confirm-wrap").style.display = "block";
-        document.getElementById("copy-code-btn").onclick = () => {
-          const digits = code.replace("TT-", "");
-          navigator.clipboard.writeText(digits).then(() => {
-            const msg = document.getElementById("copy-msg");
-            msg.textContent = "Copied!";
-            setTimeout(() => msg.textContent = "", 2000);
-          });
-        };
-      } catch (err) {
+        document.getElementById("form-card").style.display    = "none";
+        document.getElementById("confirm-card").style.display = "block";
+        document.getElementById("confirm-card").scrollIntoView({ behavior: "smooth", block: "start" });
+      } catch {
+        btn.disabled    = false;
+        btn.textContent = "Submit Request";
         alert("Something went wrong. Please try again.");
       }
     });
 
-    document.getElementById("submit-another-btn").addEventListener("click", () => {
-      document.getElementById("task-input").value = "";
-      document.getElementById("firstname-input").value = "";
-      document.getElementById("lastname-input").value = "";
-      document.getElementById("email-input").value = "";
-      document.getElementById("phone-input").value = "";
-      document.getElementById("confirm-wrap").style.display = "none";
-      document.getElementById("form-wrap").style.display = "block";
-    });
-
-    // --- Phone formatter ---
-    document.getElementById("phone-input").addEventListener("input", (e) => {
-      let val = e.target.value.replace(/\D/g, "").slice(0, 10);
-      if (val.length >= 7) {
-        val = `(${val.slice(0,3)}) ${val.slice(3,6)}-${val.slice(6)}`;
-      } else if (val.length >= 4) {
-        val = `(${val.slice(0,3)}) ${val.slice(3)}`;
-      } else if (val.length > 0) {
-        val = `(${val}`;
-      }
-      e.target.value = val;
-    });
-
-    // --- No spaces in name fields ---
-    ["firstname-input", "lastname-input"].forEach(id => {
-      document.getElementById(id).addEventListener("input", (e) => {
-        e.target.value = e.target.value.replace(/\s/g, "");
+    // ─── Copy + New request ───
+    document.getElementById("copy-btn").addEventListener("click", () => {
+      const code = document.getElementById("confirm-code").textContent.replace("TT-", "");
+      navigator.clipboard.writeText(code).then(() => {
+        const fb = document.getElementById("copy-feedback");
+        fb.textContent = "Copied!";
+        setTimeout(() => fb.textContent = "", 2000);
       });
     });
 
-    // --- Ticket lookup ---
+    document.getElementById("another-btn").addEventListener("click", () => {
+      document.getElementById("submit-form").reset();
+      document.getElementById("char-hint").textContent = "300 left";
+      document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
+      document.querySelector("[data-type='task']").classList.add("active");
+      selectedType = "task";
+      document.getElementById("task-input").placeholder = TYPE_META.task.placeholder;
+      document.getElementById("confirm-card").style.display = "none";
+      document.getElementById("form-card").style.display    = "block";
+    });
+
+    // ─── Lookup ───
+    const STAGE_LABELS = ["", "Getting Started", "In Progress", "Wrapping Up", "Complete"];
+
     document.getElementById("lookup-form").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const code = "TT-" + document.getElementById("lookup-input").value.trim();
+      const code   = "TT-" + document.getElementById("lookup-input").value.trim();
       const result = document.getElementById("lookup-result");
-      result.style.display = "block";
-      result.innerHTML = `<p class="lookup-searching">Searching...</p>`;
+      result.innerHTML = `<p style="font-size:0.85rem;color:#aaa;padding-top:10px;">Looking up ${code}...</p>`;
 
-      // Check in-progress
-      const currentDoc = await getDoc(doc(db, "meta", "current"));
-      const current = currentDoc.exists() ? currentDoc.data() : null;
-      if (current && current.code === code) {
-        const stage = current.stage || 2;
-        const STAGE_LABELS = ["", "In Queue", "Being Worked On", "Finishing Up", "All Done!"];
-        result.innerHTML = `<div class="lookup-card lookup-inprogress">
-          <p class="lookup-code">${code}</p>
-          <p class="lookup-status">🟢 Currently in progress</p>
-          <p class="lookup-stage">${STAGE_LABELS[stage]}</p>
-          ${current.submittedBy ? `<p class="lookup-name">Submitted by ${current.submittedBy}</p>` : ""}
+      const currentSnap = await getDoc(doc(db, "meta", "current"));
+      const current     = currentSnap.exists() ? currentSnap.data() : null;
+      if (current?.code === code) {
+        result.innerHTML = `<div class="lcard inprogress">
+          <div class="lcard-code">${code}</div>
+          <div class="lcard-status">In progress now</div>
+          <div class="lcard-sub">${STAGE_LABELS[current.stage||1]}</div>
         </div>`;
         return;
       }
 
-      // Check queue
-      const queueSnap = await getDocs(query(collection(db, "queue"), where("code", "==", code)));
-      if (!queueSnap.empty) {
-        const data = queueSnap.docs[0].data();
-        // Get position
+      const qSnap = await getDocs(query(collection(db, "queue"), where("code", "==", code)));
+      if (!qSnap.empty) {
         const allSnap = await getDocs(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")));
         const pos = allSnap.docs.findIndex(d => d.data().code === code) + 1;
-        result.innerHTML = `<div class="lookup-card lookup-queued">
-          <p class="lookup-code">${code}</p>
-          <p class="lookup-status">⏳ In queue</p>
-          <p class="lookup-stage">Position #${pos}</p>
+        result.innerHTML = `<div class="lcard queued">
+          <div class="lcard-code">${code}</div>
+          <div class="lcard-status">Waiting in queue</div>
+          <div class="lcard-sub">Position #${pos}</div>
         </div>`;
         return;
       }
 
-      // Check done
-      const doneSnap = await getDocs(query(collection(db, "done"), where("code", "==", code)));
-      if (!doneSnap.empty) {
-        const data = doneSnap.docs[0].data();
-        result.innerHTML = `<div class="lookup-card lookup-done">
-          <p class="lookup-code">${code}</p>
-          <p class="lookup-status">✅ Completed</p>
-          ${data.submittedBy ? `<p class="lookup-name">Submitted by ${data.submittedBy}</p>` : ""}
+      const dSnap = await getDocs(query(collection(db, "done"), where("code", "==", code)));
+      if (!dSnap.empty) {
+        result.innerHTML = `<div class="lcard done">
+          <div class="lcard-code">${code}</div>
+          <div class="lcard-status">Completed</div>
         </div>`;
         return;
       }
 
-      result.innerHTML = `<div class="lookup-card lookup-notfound">No ticket found for <strong>${code}</strong>.</div>`;
+      result.innerHTML = `<div class="lcard notfound">No ticket found for <strong>${code}</strong>.</div>`;
     });
-
-    function formatTime(date) {
-      return date.toLocaleString("en-US", {
-        month: "short", day: "numeric",
-        hour: "numeric", minute: "2-digit", hour12: true
-      });
-    }
   </script>
   <script>
-    const toggle = document.getElementById("nav-toggle");
+    const toggle   = document.getElementById("nav-toggle");
     const dropdown = document.getElementById("nav-dropdown");
     toggle.addEventListener("click", (e) => {
       e.stopPropagation();
-      const open = dropdown.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", open);
+      dropdown.classList.toggle("open");
     });
-    document.addEventListener("click", () => {
-      dropdown.classList.remove("open");
-      toggle.setAttribute("aria-expanded", false);
-    });
+    document.addEventListener("click", () => dropdown.classList.remove("open"));
   </script>
 </body>
 </html>
