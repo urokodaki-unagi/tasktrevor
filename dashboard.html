@@ -798,7 +798,7 @@
     }
 
     function fmt(n) {
-      return "$" + Math.round(n||0).toLocaleString("en-US");
+      return "$" + (n||0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     function escHtml(str) {
       return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
