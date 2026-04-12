@@ -384,6 +384,15 @@
       .fin-col-labels-bill { grid-template-columns: 1fr 90px 36px; }
     }
 
+    /* ── OVERRIDE style.css conflicts ── */
+    /* style.css applies flex layouts + borders to these shared class names; reset them for admin */
+    .admin-queue-item { display: block; border-bottom: none; padding: 0; }
+    .current-card     { display: block; }
+    .done-item        { border-bottom: none; padding: 0; align-items: flex-start; }
+    .done-title       { text-decoration: none; color: #1a1a1a; }
+    .section-title    { text-align: left; }
+    #tab-tasks, #tab-finances { display: flex; flex-direction: column; gap: 20px; }
+
     /* ── NAV ── */
     .nav-menu { position: relative; }
     .nav-menu-btn { padding: 8px 16px; background: white; color: #1a1a1a; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
@@ -633,8 +642,8 @@
         document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         const tab = btn.dataset.tab;
-        document.getElementById("tab-tasks").style.display    = tab === "tasks"    ? "contents" : "none";
-        document.getElementById("tab-finances").style.display = tab === "finances" ? "contents" : "none";
+        document.getElementById("tab-tasks").style.display    = tab === "tasks"    ? "flex" : "none";
+        document.getElementById("tab-finances").style.display = tab === "finances" ? "flex" : "none";
         if (tab === "finances") loadFinances();
       });
     });
