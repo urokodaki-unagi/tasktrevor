@@ -673,7 +673,7 @@
         const billsLeftover = combined - totalBills - totalSpending;
         setTimeout(() => {
           renderBillsChart(bills, totalSpending, totalSaved, remaining, combined);
-          renderFlowChart(combined, totalBills, totalSpending, billsLeftover > 0 ? billsLeftover : 0);
+          renderFlowChart(combined, totalBills, totalSpending, billsLeftover);
         }, 50);
       }
 
@@ -789,9 +789,9 @@
       if (flowChart) { flowChart.destroy(); flowChart = null; }
       const segments = [];
       const colors   = [];
-      if (income > 0)        { segments.push({ label: "Brought In",        val: income });        colors.push("#22c55e"); }
-      if (totalBills > 0)    { segments.push({ label: "Bills",             val: totalBills });    colors.push("#ef4444"); }
-      if (totalSpending > 0) { segments.push({ label: "Her Spending Money",val: totalSpending }); colors.push("#ec4899"); }
+      if (income > 0)        { segments.push({ label: "Brought In",         val: income });        colors.push("#22c55e"); }
+      if (totalBills > 0)    { segments.push({ label: "Bills",              val: totalBills });    colors.push("#ef4444"); }
+      if (totalSpending > 0) { segments.push({ label: "Her Spending Money", val: totalSpending }); colors.push("#ec4899"); }
       segments.push({ label: "Left Over", val: leftover });
       colors.push(leftover < 0 ? "#ef4444" : "#e5e5e5");
       flowChart = makeDoughnut("flow-chart", segments, colors, "flow-legend", income);
