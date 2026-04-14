@@ -460,6 +460,9 @@
 
     document.getElementById("another-btn").addEventListener("click", () => {
       document.getElementById("submit-form").reset();
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = false;
+      btn.textContent = "Submit Request";
       document.getElementById("char-hint").textContent = "300 left";
       document.querySelectorAll(".type-btn").forEach(b => b.classList.remove("active"));
       document.querySelector("[data-type='task']").classList.add("active");
