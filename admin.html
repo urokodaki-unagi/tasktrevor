@@ -1233,43 +1233,56 @@
       });
     }
 
-    function startKanbanListener() {
-      const COLS = ["upnext", "inprogress", "done"];
+    // ── Kanban UI interactions (event delegation, no auth required) ──
+    const kanbanBoard = document.getElementById("tab-board");
 
-      // Wire up add forms
-      COLS.forEach(col => {
-        const addBtn    = document.querySelector(`.kanban-add-btn[data-col="${col}"]`);
-        const form      = document.getElementById(`kanban-form-${col}`);
+    kanbanBoard.addEventListener("click", async (e) => {
+      // "+ Add" button — show form
+      const addBtn = e.target.closest(".kanban-add-btn");
+      if (addBtn) {
+        const form = document.getElementById(`kanban-form-${addBtn.dataset.col}`);
+        form.style.display = "block";
+        form.querySelector(".kanban-title-input").focus();
+        return;
+      }
+      // Cancel button — hide form
+      const cancelBtn = e.target.closest(".kanban-cancel-btn");
+      if (cancelBtn) {
+        const form = cancelBtn.closest(".kanban-add-form");
+        form.style.display = "none";
+        form.querySelector(".kanban-title-input").value = "";
+        form.querySelector(".kanban-notes-input").value = "";
+        return;
+      }
+      // Save button — write to Firestore
+      const saveBtn = e.target.closest(".kanban-save-btn");
+      if (saveBtn) {
+        const form      = saveBtn.closest(".kanban-add-form");
+        const col       = form.id.replace("kanban-form-", "");
         const titleInp  = form.querySelector(".kanban-title-input");
         const notesInp  = form.querySelector(".kanban-notes-input");
-        const saveBtn   = form.querySelector(".kanban-save-btn");
-        const cancelBtn = form.querySelector(".kanban-cancel-btn");
+        const title     = titleInp.value.trim();
+        if (!title) { titleInp.focus(); return; }
+        const notes = notesInp.value.trim().slice(0, 250);
+        await addDoc(collection(db, "personal_tasks"), {
+          title, notes, column: col, createdAt: serverTimestamp(), order: Date.now()
+        });
+        form.style.display = "none";
+        titleInp.value = "";
+        notesInp.value = "";
+        return;
+      }
+    });
 
-        addBtn.addEventListener("click", () => {
-          form.style.display = "block";
-          titleInp.focus();
-        });
-        cancelBtn.addEventListener("click", () => {
-          form.style.display = "none";
-          titleInp.value = "";
-          notesInp.value = "";
-        });
-        saveBtn.addEventListener("click", async () => {
-          const title = titleInp.value.trim();
-          if (!title) { titleInp.focus(); return; }
-          const notes = notesInp.value.trim().slice(0, 250);
-          await addDoc(collection(db, "personal_tasks"), {
-            title, notes, column: col, createdAt: serverTimestamp(), order: Date.now()
-          });
-          form.style.display = "none";
-          titleInp.value = "";
-          notesInp.value = "";
-        });
-        titleInp.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") { e.preventDefault(); saveBtn.click(); }
-          if (e.key === "Escape") cancelBtn.click();
-        });
-      });
+    kanbanBoard.addEventListener("keydown", (e) => {
+      if (!e.target.matches(".kanban-title-input")) return;
+      const form = e.target.closest(".kanban-add-form");
+      if (e.key === "Enter")  { e.preventDefault(); form.querySelector(".kanban-save-btn").click(); }
+      if (e.key === "Escape") { form.querySelector(".kanban-cancel-btn").click(); }
+    });
+
+    function startKanbanListener() {
+      const COLS = ["upnext", "inprogress", "done"];
 
       // Wire up column drop zones
       COLS.forEach(col => {
