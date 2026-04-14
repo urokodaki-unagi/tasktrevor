@@ -662,14 +662,14 @@
           <div class="kanban-col" id="kanban-col-upnext" data-col="upnext">
             <div class="kanban-col-header">
               <span class="kanban-col-title">Up Next</span>
-              <button class="kanban-add-btn" data-col="upnext">+ Add</button>
+              <button type="button" class="kanban-add-btn" onclick="kanbanShowForm('upnext')">+ Add</button>
             </div>
             <div class="kanban-add-form" id="kanban-form-upnext" style="display:none;">
-              <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" />
+              <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" onkeydown="if(event.key==='Enter'){event.preventDefault();kanbanSave('upnext')}else if(event.key==='Escape'){kanbanHideForm('upnext')}" />
               <textarea class="kanban-notes-input" placeholder="Notes (optional)" maxlength="250" rows="2"></textarea>
               <div class="kanban-form-actions">
-                <button class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;">Add</button>
-                <button class="btn-ghost-sm kanban-cancel-btn">Cancel</button>
+                <button type="button" class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;" onclick="kanbanSave('upnext')">Add</button>
+                <button type="button" class="btn-ghost-sm kanban-cancel-btn" onclick="kanbanHideForm('upnext')">Cancel</button>
               </div>
             </div>
             <div class="kanban-cards" id="kanban-cards-upnext"></div>
@@ -678,14 +678,14 @@
           <div class="kanban-col" id="kanban-col-inprogress" data-col="inprogress">
             <div class="kanban-col-header">
               <span class="kanban-col-title">In Progress</span>
-              <button class="kanban-add-btn" data-col="inprogress">+ Add</button>
+              <button type="button" class="kanban-add-btn" onclick="kanbanShowForm('inprogress')">+ Add</button>
             </div>
             <div class="kanban-add-form" id="kanban-form-inprogress" style="display:none;">
-              <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" />
+              <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" onkeydown="if(event.key==='Enter'){event.preventDefault();kanbanSave('inprogress')}else if(event.key==='Escape'){kanbanHideForm('inprogress')}" />
               <textarea class="kanban-notes-input" placeholder="Notes (optional)" maxlength="250" rows="2"></textarea>
               <div class="kanban-form-actions">
-                <button class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;">Add</button>
-                <button class="btn-ghost-sm kanban-cancel-btn">Cancel</button>
+                <button type="button" class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;" onclick="kanbanSave('inprogress')">Add</button>
+                <button type="button" class="btn-ghost-sm kanban-cancel-btn" onclick="kanbanHideForm('inprogress')">Cancel</button>
               </div>
             </div>
             <div class="kanban-cards" id="kanban-cards-inprogress"></div>
@@ -694,14 +694,14 @@
           <div class="kanban-col" id="kanban-col-done" data-col="done">
             <div class="kanban-col-header">
               <span class="kanban-col-title">Done</span>
-              <button class="kanban-add-btn" data-col="done">+ Add</button>
+              <button type="button" class="kanban-add-btn" onclick="kanbanShowForm('done')">+ Add</button>
             </div>
             <div class="kanban-add-form" id="kanban-form-done" style="display:none;">
-              <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" />
+              <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" onkeydown="if(event.key==='Enter'){event.preventDefault();kanbanSave('done')}else if(event.key==='Escape'){kanbanHideForm('done')}" />
               <textarea class="kanban-notes-input" placeholder="Notes (optional)" maxlength="250" rows="2"></textarea>
               <div class="kanban-form-actions">
-                <button class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;">Add</button>
-                <button class="btn-ghost-sm kanban-cancel-btn">Cancel</button>
+                <button type="button" class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;" onclick="kanbanSave('done')">Add</button>
+                <button type="button" class="btn-ghost-sm kanban-cancel-btn" onclick="kanbanHideForm('done')">Cancel</button>
               </div>
             </div>
             <div class="kanban-cards" id="kanban-cards-done"></div>
@@ -1233,53 +1233,30 @@
       });
     }
 
-    // ── Kanban UI interactions (event delegation, no auth required) ──
-    const kanbanBoard = document.getElementById("tab-board");
-
-    kanbanBoard.addEventListener("click", async (e) => {
-      // "+ Add" button — show form
-      const addBtn = e.target.closest(".kanban-add-btn");
-      if (addBtn) {
-        const form = document.getElementById(`kanban-form-${addBtn.dataset.col}`);
-        form.style.display = "block";
-        form.querySelector(".kanban-title-input").focus();
-        return;
-      }
-      // Cancel button — hide form
-      const cancelBtn = e.target.closest(".kanban-cancel-btn");
-      if (cancelBtn) {
-        const form = cancelBtn.closest(".kanban-add-form");
-        form.style.display = "none";
-        form.querySelector(".kanban-title-input").value = "";
-        form.querySelector(".kanban-notes-input").value = "";
-        return;
-      }
-      // Save button — write to Firestore
-      const saveBtn = e.target.closest(".kanban-save-btn");
-      if (saveBtn) {
-        const form      = saveBtn.closest(".kanban-add-form");
-        const col       = form.id.replace("kanban-form-", "");
-        const titleInp  = form.querySelector(".kanban-title-input");
-        const notesInp  = form.querySelector(".kanban-notes-input");
-        const title     = titleInp.value.trim();
-        if (!title) { titleInp.focus(); return; }
-        const notes = notesInp.value.trim().slice(0, 250);
-        await addDoc(collection(db, "personal_tasks"), {
-          title, notes, column: col, createdAt: serverTimestamp(), order: Date.now()
-        });
-        form.style.display = "none";
-        titleInp.value = "";
-        notesInp.value = "";
-        return;
-      }
-    });
-
-    kanbanBoard.addEventListener("keydown", (e) => {
-      if (!e.target.matches(".kanban-title-input")) return;
-      const form = e.target.closest(".kanban-add-form");
-      if (e.key === "Enter")  { e.preventDefault(); form.querySelector(".kanban-save-btn").click(); }
-      if (e.key === "Escape") { form.querySelector(".kanban-cancel-btn").click(); }
-    });
+    // ── Kanban UI — globally exposed so inline onclick works ──
+    window.kanbanShowForm = (col) => {
+      const form = document.getElementById(`kanban-form-${col}`);
+      form.style.display = "block";
+      form.querySelector(".kanban-title-input").focus();
+    };
+    window.kanbanHideForm = (col) => {
+      const form = document.getElementById(`kanban-form-${col}`);
+      form.style.display = "none";
+      form.querySelector(".kanban-title-input").value = "";
+      form.querySelector(".kanban-notes-input").value = "";
+    };
+    window.kanbanSave = async (col) => {
+      const form     = document.getElementById(`kanban-form-${col}`);
+      const titleInp = form.querySelector(".kanban-title-input");
+      const notesInp = form.querySelector(".kanban-notes-input");
+      const title    = titleInp.value.trim();
+      if (!title) { titleInp.focus(); return; }
+      const notes    = notesInp.value.trim().slice(0, 250);
+      await addDoc(collection(db, "personal_tasks"), {
+        title, notes, column: col, createdAt: serverTimestamp(), order: Date.now()
+      });
+      window.kanbanHideForm(col);
+    };
 
     function startKanbanListener() {
       const COLS = ["upnext", "inprogress", "done"];
