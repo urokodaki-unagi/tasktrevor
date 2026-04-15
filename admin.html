@@ -1252,10 +1252,15 @@
       const title    = titleInp.value.trim();
       if (!title) { titleInp.focus(); return; }
       const notes    = notesInp.value.trim().slice(0, 250);
-      await addDoc(collection(db, "personal_tasks"), {
-        title, notes, column: col, createdAt: serverTimestamp(), order: Date.now()
-      });
-      window.kanbanHideForm(col);
+      try {
+        await addDoc(collection(db, "personal_tasks"), {
+          title, notes, column: col, createdAt: serverTimestamp(), order: Date.now()
+        });
+        window.kanbanHideForm(col);
+      } catch (err) {
+        console.error("Kanban save failed:", err);
+        alert("Could not save card: " + err.message);
+      }
     };
 
     function startKanbanListener() {
