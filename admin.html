@@ -795,7 +795,8 @@
       updateDoc, deleteDoc, setDoc, addDoc, getDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
-      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+      getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+      setPersistence, browserSessionPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -855,6 +856,7 @@
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       try {
+        await setPersistence(auth, browserSessionPersistence);
         await signInWithEmailAndPassword(auth,
           document.getElementById("email-input").value,
           document.getElementById("password-input").value);
