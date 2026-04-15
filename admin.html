@@ -401,10 +401,10 @@
     .fin-col-labels-paycheck { display: grid; grid-template-columns: 1fr 90px 110px 36px; gap: 8px; }
     .fin-whose-select { padding: 8px 10px; border: 1.5px solid #e5e5e5; border-radius: 10px; font-size: 0.85rem; font-family: inherit; background: white; cursor: pointer; color: #1a1a1a; }
     .fin-whose-select:focus { outline: none; border-color: #1a1a1a; }
-    .fin-row-bill { display: grid; grid-template-columns: 1fr 110px 80px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
+    .fin-row-bill { display: grid; grid-template-columns: 1fr 64px 110px 80px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
     .fin-row-bill:last-child { border-bottom: none; }
     .fin-row-bill input { font-size: 0.88rem; padding: 8px 12px; }
-    .fin-col-labels-bill { display: grid; grid-template-columns: 1fr 110px 80px 36px; gap: 8px; }
+    .fin-col-labels-bill { display: grid; grid-template-columns: 1fr 64px 110px 80px 36px; gap: 8px; }
     .fin-paid-btn { padding: 7px 10px; border: none; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
     .fin-paid-btn.paid { background: #dcfce7; color: #16a34a; }
     .fin-paid-btn.unpaid { background: #f5f5f5; color: #aaa; }
@@ -428,8 +428,9 @@
       .fin-row-paycheck { grid-template-columns: 1fr 80px 36px; }
       .fin-col-labels-paycheck { grid-template-columns: 1fr 80px 36px; }
       .fin-row-paycheck .fin-whose-select { display: none; }
-      .fin-row-bill { grid-template-columns: 1fr 90px 36px; }
-      .fin-col-labels-bill { grid-template-columns: 1fr 90px 36px; }
+      .fin-row-bill { grid-template-columns: 1fr 64px 90px 36px; }
+      .fin-col-labels-bill { grid-template-columns: 1fr 64px 90px 36px; }
+      .fin-row-bill .fin-paid-btn { display: none; }
     }
 
     /* ── KANBAN BOARD ── */
@@ -575,6 +576,24 @@
     .nav-dropdown-item { display: block; padding: 12px 18px; font-size: 0.88rem; font-weight: 500; color: #1a1a1a; text-decoration: none; transition: background 0.15s; }
     .nav-dropdown-item:hover { background: #f5f5f5; }
     .nav-dropdown-item + .nav-dropdown-item { border-top: 1px solid #f0f0f0; }
+
+    /* ── ARCHIVE ── */
+    .fin-archive-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid #f0f0f0; }
+    .fin-archive-item { border: 1.5px solid #f0f0f0; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+    .fin-archive-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; background: #fafafa; transition: background 0.15s; }
+    .fin-archive-header:hover { background: #f5f5f5; }
+    .fin-archive-month-label { font-size: 0.88rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
+    .fin-archive-summary { display: flex; gap: 12px; flex-wrap: wrap; flex: 1; }
+    .fin-archive-summary-item { font-size: 0.75rem; color: #999; }
+    .fin-archive-summary-item strong { color: #555; font-weight: 700; }
+    .fin-archive-chevron { font-size: 0.7rem; color: #bbb; flex-shrink: 0; transition: transform 0.2s; }
+    .fin-archive-chevron.open { transform: rotate(90deg); }
+    .fin-archive-detail { padding: 14px; border-top: 1px solid #f0f0f0; background: white; }
+    .fin-archive-detail-section { margin-bottom: 14px; }
+    .fin-archive-detail-section:last-child { margin-bottom: 0; }
+    .fin-archive-detail-label { font-size: 0.67rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #bbb; margin-bottom: 6px; }
+    .fin-archive-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: #444; padding: 4px 0; border-bottom: 1px solid #f8f8f8; }
+    .fin-archive-row:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -756,6 +775,7 @@
             </div>
             <div class="fin-col-labels fin-col-labels-bill">
               <span class="fin-col-label">Bill Name</span>
+              <span class="fin-col-label">Due</span>
               <span class="fin-col-label">Amount</span>
               <span class="fin-col-label">Status</span>
               <span></span>
@@ -780,8 +800,18 @@
 
           <div class="fin-save-row">
             <button type="button" id="fin-save-btn" class="btn-primary" style="flex:1;">Save Dashboard</button>
+            <button type="button" id="fin-archive-btn" class="btn-ghost-sm" style="white-space:nowrap;">Archive Month</button>
             <span id="fin-save-status" class="fin-save-status"></span>
           </div>
+
+          <div class="fin-archive-section" id="fin-archive-section" style="display:none;">
+            <div class="fin-subsection-header">
+              <span class="fin-section-title" style="margin-bottom:0;">Past Months</span>
+            </div>
+            <div id="fin-archive-list"></div>
+            <p class="fin-empty-note" id="fin-archive-empty" style="display:none;">No archived months yet.</p>
+          </div>
+
         </section>
       </div>
 
@@ -792,7 +822,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, doc, onSnapshot, query, orderBy,
-      updateDoc, deleteDoc, setDoc, addDoc, getDoc, serverTimestamp
+      updateDoc, deleteDoc, setDoc, addDoc, getDoc, getDocs, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
@@ -1342,7 +1372,8 @@
       row.className = "fin-row-bill";
       row.dataset.finRow = "bill";
       row.innerHTML = `
-        <input type="text"   class="bill-name"   placeholder="e.g. Rent" value="${escHtml(b.name||'')}" />
+        <input type="text"   class="bill-name"   placeholder="e.g. Rent"  value="${escHtml(b.name||'')}" />
+        <input type="text"   class="bill-due"    placeholder="e.g. 1st"   value="${escHtml(b.dueDate||'')}" maxlength="6" />
         <input type="number" class="bill-amount" placeholder="0" min="0" step="1" value="${b.amount||''}" />
         <button type="button" class="fin-paid-btn ${paid?'paid':'unpaid'}">${paid?'Paid':'Unpaid'}</button>
         <button type="button" class="fin-delete-btn">✕</button>`;
@@ -1414,29 +1445,27 @@
 
     async function loadFinances() {
       const snap = await getDoc(doc(db, "finances", "overview"));
-      if (!snap.exists()) return;
-      const data = snap.data();
-      document.getElementById("fin-greeting").value = data.greeting || "";
-      document.getElementById("fin-note").value     = data.note     || "";
-      const pcList = document.getElementById("paychecks-list"); pcList.innerHTML = "";
-      (data.paychecks||[]).forEach(p => pcList.appendChild(createPaycheckRow(p)));
-      syncEmpty("paychecks-list","paychecks-empty");
-      const spList = document.getElementById("spending-list"); spList.innerHTML = "";
-      (data.personalSpending||[]).forEach(s => spList.appendChild(createSpendingRow(s)));
-      syncEmpty("spending-list","spending-empty");
-      const bList = document.getElementById("bills-list"); bList.innerHTML = "";
-      (data.bills||[]).forEach(b => bList.appendChild(createBillRow(b)));
-      syncEmpty("bills-list","bills-empty");
-      const fList = document.getElementById("funds-list"); fList.innerHTML = "";
-      (data.funds||[]).forEach(f => fList.appendChild(createFundRow(f)));
-      syncEmpty("funds-list","funds-empty");
+      if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("fin-greeting").value = data.greeting || "";
+        document.getElementById("fin-note").value     = data.note     || "";
+        const pcList = document.getElementById("paychecks-list"); pcList.innerHTML = "";
+        (data.paychecks||[]).forEach(p => pcList.appendChild(createPaycheckRow(p)));
+        syncEmpty("paychecks-list","paychecks-empty");
+        const spList = document.getElementById("spending-list"); spList.innerHTML = "";
+        (data.personalSpending||[]).forEach(s => spList.appendChild(createSpendingRow(s)));
+        syncEmpty("spending-list","spending-empty");
+        const bList = document.getElementById("bills-list"); bList.innerHTML = "";
+        (data.bills||[]).forEach(b => bList.appendChild(createBillRow(b)));
+        syncEmpty("bills-list","bills-empty");
+        const fList = document.getElementById("funds-list"); fList.innerHTML = "";
+        (data.funds||[]).forEach(f => fList.appendChild(createFundRow(f)));
+        syncEmpty("funds-list","funds-empty");
+      }
+      await loadArchives();
     }
 
-    document.getElementById("fin-save-btn").addEventListener("click", async () => {
-      const statusEl = document.getElementById("fin-save-status");
-      statusEl.style.color = "#22c55e";
-      statusEl.textContent = "Saving…";
-
+    function collectFinanceData() {
       const paychecks = [];
       document.querySelectorAll("#paychecks-list [data-fin-row]").forEach(row => {
         const label  = row.querySelector(".pc-label").value.trim();
@@ -1454,10 +1483,11 @@
 
       const bills = [];
       document.querySelectorAll("#bills-list [data-fin-row]").forEach(row => {
-        const name   = row.querySelector(".bill-name").value.trim();
-        const amount = parseFloat(row.querySelector(".bill-amount").value) || 0;
-        const paid   = row.getPaid();
-        if (name || amount) bills.push({ name, amount, paid });
+        const name    = row.querySelector(".bill-name").value.trim();
+        const dueDate = row.querySelector(".bill-due").value.trim();
+        const amount  = parseFloat(row.querySelector(".bill-amount").value) || 0;
+        const paid    = row.getPaid();
+        if (name || amount) bills.push({ name, dueDate, amount, paid });
       });
 
       const funds = [];
@@ -1471,11 +1501,20 @@
         if (name || goal) funds.push({ name, type, goal, monthly, contributed, balance });
       });
 
+      return {
+        greeting: document.getElementById("fin-greeting").value.trim(),
+        note:     document.getElementById("fin-note").value.trim(),
+        paychecks, personalSpending, bills, funds
+      };
+    }
+
+    document.getElementById("fin-save-btn").addEventListener("click", async () => {
+      const statusEl = document.getElementById("fin-save-status");
+      statusEl.style.color = "#22c55e";
+      statusEl.textContent = "Saving…";
       try {
         await setDoc(doc(db, "finances", "overview"), {
-          greeting: document.getElementById("fin-greeting").value.trim(),
-          note:     document.getElementById("fin-note").value.trim(),
-          paychecks, personalSpending, bills, funds,
+          ...collectFinanceData(),
           updatedAt: serverTimestamp()
         });
         statusEl.textContent = "Saved!";
@@ -1485,6 +1524,162 @@
         statusEl.textContent = "Error — try again.";
       }
     });
+
+    document.getElementById("fin-archive-btn").addEventListener("click", async () => {
+      const now   = new Date();
+      const label = now.toLocaleString("en-US", { month: "long", year: "numeric" });
+      const key   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+      if (!confirm(`Archive ${label} and start fresh?\n\nFund balances and bill names/due dates will carry over. Paychecks, spending, and bill amounts will reset.`)) return;
+
+      const statusEl = document.getElementById("fin-save-status");
+      statusEl.style.color = "#22c55e";
+      statusEl.textContent = "Archiving…";
+
+      try {
+        const data = collectFinanceData();
+
+        // Save full snapshot to archive
+        await setDoc(doc(db, "finances_archive", key), {
+          ...data, label, archivedAt: serverTimestamp()
+        });
+
+        // Carry forward: fund balances unchanged, bill names + due dates only (reset amount + paid)
+        const carryFunds = data.funds.map(f => ({ ...f }));
+        const carryBills = data.bills.map(b => ({ name: b.name, dueDate: b.dueDate, amount: 0, paid: false }));
+
+        await setDoc(doc(db, "finances", "overview"), {
+          greeting: "", note: "",
+          paychecks: [], personalSpending: [],
+          bills: carryBills, funds: carryFunds,
+          updatedAt: serverTimestamp()
+        });
+
+        statusEl.textContent = `${label} archived!`;
+        setTimeout(() => { statusEl.textContent = ""; }, 4000);
+        await loadFinances();
+      } catch (err) {
+        statusEl.style.color = "#ef4444";
+        statusEl.textContent = "Error — try again.";
+        console.error("Archive failed:", err);
+      }
+    });
+
+    async function loadArchives() {
+      const snap    = await getDocs(query(collection(db, "finances_archive"), orderBy("archivedAt", "desc")));
+      const section = document.getElementById("fin-archive-section");
+      const list    = document.getElementById("fin-archive-list");
+      const empty   = document.getElementById("fin-archive-empty");
+
+      if (snap.empty) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      empty.style.display   = "none";
+      list.innerHTML        = "";
+
+      snap.docs.forEach(d => {
+        const data  = d.data();
+        const label = data.label || d.id;
+
+        const totalIncome   = (data.paychecks||[]).reduce((s, p) => s + (p.amount||0), 0);
+        const totalSpending = (data.personalSpending||[]).reduce((s, p) => s + (p.amount||0), 0);
+        const billsPaid     = (data.bills||[]).filter(b => b.paid).length;
+        const billsTotal    = (data.bills||[]).length;
+
+        const item = document.createElement("div");
+        item.className = "fin-archive-item";
+        item.innerHTML = `
+          <div class="fin-archive-header">
+            <span class="fin-archive-month-label">${escHtml(label)}</span>
+            <div class="fin-archive-summary">
+              ${totalIncome   > 0 ? `<span class="fin-archive-summary-item">Income <strong>$${totalIncome.toLocaleString()}</strong></span>` : ""}
+              ${totalSpending > 0 ? `<span class="fin-archive-summary-item">Spending <strong>$${totalSpending.toLocaleString()}</strong></span>` : ""}
+              ${billsTotal    > 0 ? `<span class="fin-archive-summary-item">Bills <strong>${billsPaid}/${billsTotal} paid</strong></span>` : ""}
+            </div>
+            <span class="fin-archive-chevron">▸</span>
+          </div>
+          <div class="fin-archive-detail" style="display:none;"></div>`;
+
+        const header  = item.querySelector(".fin-archive-header");
+        const detail  = item.querySelector(".fin-archive-detail");
+        const chevron = item.querySelector(".fin-archive-chevron");
+
+        header.addEventListener("click", () => {
+          const isOpen = detail.style.display !== "none";
+          if (isOpen) {
+            detail.style.display = "none";
+            chevron.classList.remove("open");
+          } else {
+            detail.innerHTML     = renderArchiveDetail(data);
+            detail.style.display = "block";
+            chevron.classList.add("open");
+          }
+        });
+
+        list.appendChild(item);
+      });
+    }
+
+    function renderArchiveDetail(data) {
+      let html = "";
+
+      if (data.greeting) {
+        html += `<div class="fin-archive-detail-section">
+          <div class="fin-archive-detail-label">Greeting</div>
+          <div style="font-size:0.85rem;color:#555;">${escHtml(data.greeting)}</div>
+        </div>`;
+      }
+
+      if ((data.paychecks||[]).length > 0) {
+        html += `<div class="fin-archive-detail-section"><div class="fin-archive-detail-label">Paychecks</div>`;
+        data.paychecks.forEach(p => {
+          html += `<div class="fin-archive-row"><span>${escHtml(p.label||"")} <span style="font-size:0.72rem;color:#bbb;">(${p.whose==="his"?"Mine":"Hers"})</span></span><span>$${(p.amount||0).toLocaleString()}</span></div>`;
+        });
+        html += `</div>`;
+      }
+
+      if ((data.personalSpending||[]).length > 0) {
+        html += `<div class="fin-archive-detail-section"><div class="fin-archive-detail-label">Her Spending Money</div>`;
+        data.personalSpending.forEach(s => {
+          html += `<div class="fin-archive-row"><span>${escHtml(s.label||"")}</span><span>$${(s.amount||0).toLocaleString()}</span></div>`;
+        });
+        html += `</div>`;
+      }
+
+      if ((data.bills||[]).length > 0) {
+        html += `<div class="fin-archive-detail-section"><div class="fin-archive-detail-label">Bills</div>`;
+        data.bills.forEach(b => {
+          const paidBadge = b.paid
+            ? `<span style="color:#16a34a;font-size:0.72rem;font-weight:700;margin-right:8px;">PAID</span>`
+            : `<span style="color:#bbb;font-size:0.72rem;margin-right:8px;">UNPAID</span>`;
+          html += `<div class="fin-archive-row">
+            <span>${escHtml(b.name||"")}${b.dueDate ? ` <span style="font-size:0.72rem;color:#bbb;">due ${escHtml(b.dueDate)}</span>` : ""}</span>
+            <span style="display:flex;align-items:center;">${paidBadge}$${(b.amount||0).toLocaleString()}</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      if ((data.funds||[]).length > 0) {
+        html += `<div class="fin-archive-detail-section"><div class="fin-archive-detail-label">Savings &amp; Funds</div>`;
+        data.funds.forEach(f => {
+          html += `<div class="fin-archive-row"><span>${escHtml(f.name||"")}</span><span>Balance <strong>$${(f.balance||0).toLocaleString()}</strong></span></div>`;
+        });
+        html += `</div>`;
+      }
+
+      if (data.note) {
+        html += `<div class="fin-archive-detail-section">
+          <div class="fin-archive-detail-label">Note</div>
+          <div style="font-size:0.85rem;color:#777;font-style:italic;">${escHtml(data.note)}</div>
+        </div>`;
+      }
+
+      return html || `<div style="font-size:0.82rem;color:#ccc;font-style:italic;text-align:center;padding:8px 0;">No details recorded.</div>`;
+    }
   </script>
 
   <script>
