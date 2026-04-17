@@ -327,12 +327,12 @@
   <!-- Header (login state) -->
   <header id="login-header" class="site-header">
     <div class="header-inner">
-      <h1 class="wordmark"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></h1>
+      <h1 class="wordmark"><a href="index.html" style="text-decoration:none;color:inherit;"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></a></h1>
       <div class="nav-menu">
         <button class="nav-menu-btn" id="nav-toggle" aria-expanded="false">☰</button>
         <div class="nav-dropdown" id="nav-dropdown">
           <a href="index.html" class="nav-dropdown-item">Home</a>
-          <a href="admin.html" class="nav-dropdown-item">Admin</a>
+          <a href="admin.html" class="nav-dropdown-item">Admin Portal</a>
         </div>
       </div>
     </div>
@@ -515,7 +515,7 @@
       if (personalSpending.length > 0) {
         const spCard = document.createElement("div");
         spCard.className = "dash-card";
-        spCard.innerHTML = `<div class="dash-card-title">Her Spending Money</div>`;
+        spCard.innerHTML = `<div class="dash-card-title">Her Money</div>`;
 
         personalSpending.forEach(s => {
           const row = document.createElement("div");
@@ -791,7 +791,7 @@
       const colors   = [];
       if (income > 0)        { segments.push({ label: "Brought In",         val: income });        colors.push("#22c55e"); }
       if (totalBills > 0)    { segments.push({ label: "Bills",              val: totalBills });    colors.push("#ef4444"); }
-      if (totalSpending > 0) { segments.push({ label: "Her Spending Money", val: totalSpending }); colors.push("#ec4899"); }
+      if (totalSpending > 0) { segments.push({ label: "Her Money", val: totalSpending }); colors.push("#ec4899"); }
       segments.push({ label: "Left Over", val: leftover });
       colors.push(leftover < 0 ? "#ef4444" : "#e5e5e5");
       flowChart = makeDoughnut("flow-chart", segments, colors, "flow-legend", income);
