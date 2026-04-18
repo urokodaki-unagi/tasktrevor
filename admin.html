@@ -550,6 +550,19 @@
       font-family: inherit;
     }
     .kanban-delete-btn:hover { color: #ef4444; }
+    .kanban-clear-btn {
+      padding: 4px 10px;
+      background: transparent;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #aaa;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .kanban-clear-btn:hover { border-color: #fca5a5; color: #ef4444; }
     .kanban-empty-msg {
       font-size: 0.78rem;
       color: #ccc;
@@ -603,7 +616,7 @@
     <div class="header-inner">
       <h1 class="wordmark">
         <a href="index.html" style="text-decoration:none;color:inherit;"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></a>
-        <span id="admin-portal-label" style="display:none;"><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin Portal</span></span>
+        <span id="admin-portal-label"><span class="wordmark-divider"> · </span><span class="wordmark-portal">Admin</span></span>
       </h1>
       <div class="nav-menu" id="login-nav">
         <button class="nav-menu-btn" id="nav-toggle-login" aria-expanded="false">☰</button>
@@ -713,7 +726,10 @@
           <div class="kanban-col" id="kanban-col-done" data-col="done">
             <div class="kanban-col-header">
               <span class="kanban-col-title">Done</span>
-              <button type="button" class="kanban-add-btn" onclick="kanbanShowForm('done')">+ Add</button>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <button type="button" class="kanban-clear-btn" onclick="kanbanClearDone()">Clear</button>
+                <button type="button" class="kanban-add-btn" onclick="kanbanShowForm('done')">+ Add</button>
+              </div>
             </div>
             <div class="kanban-add-form" id="kanban-form-done" style="display:none;">
               <input type="text" class="kanban-title-input" placeholder="Title" maxlength="120" onkeydown="if(event.key==='Enter'){event.preventDefault();kanbanSave('done')}else if(event.key==='Escape'){kanbanHideForm('done')}" />
@@ -821,7 +837,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore, collection, doc, onSnapshot, query, orderBy,
+      getFirestore, collection, doc, onSnapshot, query, orderBy, where,
       updateDoc, deleteDoc, setDoc, addDoc, getDoc, getDocs, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
@@ -872,14 +888,12 @@
         document.getElementById("admin-panel").style.display          = "block";
         document.getElementById("login-nav").style.display            = "none";
         document.getElementById("logout-btn").style.display           = "";
-        document.getElementById("admin-portal-label").style.display   = "";
         startListeners();
       } else {
         document.getElementById("admin-panel").style.display          = "none";
         document.getElementById("login-screen").style.display         = "flex";
         document.getElementById("login-nav").style.display            = "";
         document.getElementById("logout-btn").style.display           = "none";
-        document.getElementById("admin-portal-label").style.display   = "none";
       }
     });
 
@@ -1225,6 +1239,52 @@
     // ── Kanban Board ──
     let dragKanbanId = null;
 
+    function buildCardContent(card, data, d) {
+      card.draggable = true;
+      card.innerHTML = `
+        <div class="kanban-card-title"></div>
+        ${data.notes ? `<div class="kanban-card-notes"></div>` : ""}
+        <button class="kanban-delete-btn" title="Delete">✕</button>`;
+      card.querySelector(".kanban-card-title").textContent = data.title || "";
+      if (data.notes) card.querySelector(".kanban-card-notes").textContent = data.notes;
+      card.querySelector(".kanban-delete-btn").addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (confirm("Delete this card?")) await deleteDoc(doc(db, "personal_tasks", d.id));
+      });
+      card.ondblclick = (e) => {
+        if (e.target.classList.contains("kanban-delete-btn")) return;
+        card.draggable = false;
+        card.ondblclick = null;
+        card.innerHTML = `
+          <input type="text" class="kanban-title-input" maxlength="120" />
+          <textarea class="kanban-notes-input" maxlength="250" rows="2" placeholder="Notes (optional)" style="margin-top:6px;"></textarea>
+          <div class="kanban-form-actions" style="margin-top:8px;">
+            <button type="button" class="btn-pickup kanban-save-btn" style="padding:7px 14px;font-size:0.8rem;">Save</button>
+            <button type="button" class="btn-ghost-sm kanban-cancel-btn">Cancel</button>
+          </div>`;
+        card.querySelector(".kanban-title-input").value = data.title || "";
+        card.querySelector(".kanban-notes-input").value = data.notes || "";
+        card.querySelector(".kanban-title-input").select();
+        const saveEdit = async () => {
+          const newTitle = card.querySelector(".kanban-title-input").value.trim();
+          if (!newTitle) { card.querySelector(".kanban-title-input").focus(); return; }
+          const newNotes = card.querySelector(".kanban-notes-input").value.trim().slice(0, 250);
+          try {
+            await updateDoc(doc(db, "personal_tasks", d.id), { title: newTitle, notes: newNotes });
+          } catch (err) {
+            alert("Could not save: " + err.message);
+            buildCardContent(card, data, d);
+          }
+        };
+        card.querySelector(".kanban-save-btn").addEventListener("click", saveEdit);
+        card.querySelector(".kanban-cancel-btn").addEventListener("click", () => buildCardContent(card, data, d));
+        card.querySelector(".kanban-title-input").addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter") { ev.preventDefault(); saveEdit(); }
+          if (ev.key === "Escape") buildCardContent(card, data, d);
+        });
+      };
+    }
+
     function renderKanbanCol(colKey, docs) {
       const container = document.getElementById(`kanban-cards-${colKey}`);
       const colDocs   = docs.filter(d => d.data().column === colKey);
@@ -1236,21 +1296,9 @@
       colDocs.forEach(d => {
         const data = d.data();
         const card = document.createElement("div");
-        card.className   = "kanban-card";
-        card.draggable   = true;
-        card.dataset.id  = d.id;
-        card.innerHTML   = `
-          <div class="kanban-card-title"></div>
-          ${data.notes ? `<div class="kanban-card-notes"></div>` : ""}
-          <button class="kanban-delete-btn" title="Delete">✕</button>`;
-        card.querySelector(".kanban-card-title").textContent = data.title || "";
-        if (data.notes) card.querySelector(".kanban-card-notes").textContent = data.notes;
-
-        card.querySelector(".kanban-delete-btn").addEventListener("click", async (e) => {
-          e.stopPropagation();
-          if (confirm("Delete this card?")) await deleteDoc(doc(db, "personal_tasks", d.id));
-        });
-
+        card.className  = "kanban-card";
+        card.dataset.id = d.id;
+        buildCardContent(card, data, d);
         card.addEventListener("dragstart", (e) => {
           dragKanbanId = d.id;
           card.classList.add("dragging");
@@ -1260,7 +1308,6 @@
           card.classList.remove("dragging");
           dragKanbanId = null;
         });
-
         container.appendChild(card);
       });
     }
@@ -1293,6 +1340,11 @@
         console.error("Kanban save failed:", err);
         alert("Could not save card: " + err.message);
       }
+    };
+    window.kanbanClearDone = async () => {
+      if (!confirm("Remove all Done cards?")) return;
+      const snap = await getDocs(query(collection(db, "personal_tasks"), where("column", "==", "done")));
+      await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "personal_tasks", d.id))));
     };
 
     function startKanbanListener() {
