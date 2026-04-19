@@ -83,13 +83,20 @@
     #admin-queue-list { list-style: none; padding: 0; margin: 0; }
     .admin-queue-item {
       background: white;
-      border-radius: 12px;
+      border: none;
+      border-left: 3px solid #e0e0e0;
+      border-radius: 0 12px 12px 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
       padding: 16px;
       margin-bottom: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-      transition: box-shadow 0.15s;
+      transition: box-shadow 0.15s, transform 0.1s;
     }
-    .admin-queue-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .admin-queue-item:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.11); transform: translateX(2px); }
+    .admin-queue-item[data-type="task"]     { border-left-color: #6366f1; }
+    .admin-queue-item[data-type="purchase"] { border-left-color: #f59e0b; }
+    .admin-queue-item[data-type="fix"]      { border-left-color: #ef4444; }
+    .admin-queue-item[data-type="question"] { border-left-color: #3b82f6; }
+    .admin-queue-item[data-type="other"]    { border-left-color: #9ca3af; }
     .qi-top {
       display: flex;
       align-items: flex-start;
@@ -160,11 +167,11 @@
 
     /* ── IN PROGRESS CARD ── */
     .current-card {
-      background: white;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-left: 4px solid #22c55e;
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      border-left: 4px solid #22c55e;
       position: relative;
     }
     .current-card-menu { position: absolute; top: 14px; right: 14px; }
@@ -330,14 +337,16 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 10px;
-      background: white;
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 6px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-      opacity: 0.75;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+      border-radius: 0;
+      padding: 11px 2px;
+      margin-bottom: 0;
+      opacity: 0.6;
       transition: opacity 0.15s;
     }
+    .done-item:last-child { border-bottom: none; }
     .done-item:hover { opacity: 1; }
     .done-item-info { min-width: 0; flex: 1; }
     .done-item-top {
@@ -437,12 +446,64 @@
 
     /* ── KANBAN BOARD ── */
     #tab-board { display: none; }
+    .kanban-view-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      justify-content: flex-end;
+    }
+    .kanban-view-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #bbb; }
+    .kanban-toggle-track {
+      width: 44px; height: 24px; border-radius: 99px; background: #e5e5e5;
+      position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+    }
+    .kanban-toggle-track.mobile { background: #1a1a1a; }
+    .kanban-toggle-thumb {
+      width: 18px; height: 18px; border-radius: 50%; background: white;
+      position: absolute; top: 3px; left: 3px;
+      transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .kanban-toggle-track.mobile .kanban-toggle-thumb { transform: translateX(20px); }
     .kanban-board {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 14px;
       align-items: start;
     }
+    /* ── Mobile slider mode ── */
+    .kanban-board.slider-mode {
+      display: block;
+      overflow: hidden;
+      position: relative;
+    }
+    .kanban-board.slider-mode .kanban-col {
+      display: none;
+    }
+    .kanban-board.slider-mode .kanban-col.slider-active {
+      display: block;
+    }
+    .kanban-slider-nav {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .kanban-slider-nav.visible { display: flex; }
+    .kanban-slider-arrow {
+      background: white; border: 1.5px solid #e5e5e5; border-radius: 8px;
+      width: 32px; height: 32px; cursor: pointer; font-size: 1rem; color: #888;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .kanban-slider-arrow:hover { border-color: #1a1a1a; color: #1a1a1a; }
+    .kanban-slider-arrow:disabled { opacity: 0.25; cursor: default; border-color: #e5e5e5; color: #ccc; }
+    .kanban-slider-dots { display: flex; gap: 6px; }
+    .kanban-slider-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #e5e5e5;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .kanban-slider-dot.active { background: #1a1a1a; }
     @media (max-width: 700px) { .kanban-board { grid-template-columns: 1fr; } }
     .kanban-col {
       background: #f5f5f5;
@@ -552,6 +613,43 @@
       font-family: inherit;
     }
     .kanban-delete-btn:hover { color: #ef4444; }
+    .kanban-move-btn {
+      display: none;
+      margin-top: 10px;
+      width: 100%;
+      padding: 7px;
+      background: #f5f5f5;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #888;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .kanban-move-btn:hover { background: #ebebeb; color: #1a1a1a; }
+    .slider-mode .kanban-move-btn { display: block; }
+    .kanban-move-picker {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .kanban-move-option {
+      padding: 8px 12px;
+      background: white;
+      border: 1.5px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+      transition: border-color 0.15s;
+    }
+    .kanban-move-option:hover { border-color: #1a1a1a; }
     .kanban-clear-btn {
       padding: 4px 10px;
       background: transparent;
@@ -612,9 +710,9 @@
 
     /* ── OVERRIDE style.css conflicts ── */
     /* style.css applies flex layouts + borders to these shared class names; reset them for admin */
-    .admin-queue-item { display: block; border-bottom: none; padding: 0; }
+    .admin-queue-item { display: block; border-bottom: none; padding: 16px; }
     .current-card     { display: block; }
-    .done-item        { border-bottom: none; padding: 0; align-items: flex-start; }
+    .done-item        { align-items: flex-start; }
     .done-title       { text-decoration: none; color: #1a1a1a; }
     .section-title    { text-align: left; }
     #tab-tasks, #tab-finances { display: flex; flex-direction: column; gap: 20px; }
@@ -729,6 +827,21 @@
 
       <!-- ── My Board Tab ── -->
       <div id="tab-board">
+        <div class="kanban-view-toggle">
+          <span class="kanban-view-label" id="kanban-view-label">Desktop</span>
+          <div class="kanban-toggle-track" id="kanban-toggle-track">
+            <div class="kanban-toggle-thumb"></div>
+          </div>
+        </div>
+        <div class="kanban-slider-nav" id="kanban-slider-nav">
+          <button class="kanban-slider-arrow" id="kanban-prev">&#8592;</button>
+          <div class="kanban-slider-dots" id="kanban-dots">
+            <div class="kanban-slider-dot active" data-idx="0"></div>
+            <div class="kanban-slider-dot" data-idx="1"></div>
+            <div class="kanban-slider-dot" data-idx="2"></div>
+          </div>
+          <button class="kanban-slider-arrow" id="kanban-next">&#8594;</button>
+        </div>
         <div class="kanban-board">
 
           <div class="kanban-col" id="kanban-col-upnext" data-col="upnext">
@@ -1126,7 +1239,7 @@
 
     // Close any open card menu when clicking outside
     document.addEventListener("click", () => {
-      document.querySelector(".current-card-dropdown")?.classList.remove("open");
+      document.querySelectorAll(".current-card-dropdown.open").forEach(d => d.classList.remove("open"));
     });
 
     // ── Tabs ──
@@ -1190,7 +1303,17 @@
         const posAll = allQueueDocs.indexOf(d) + 1;
         const li     = document.createElement("li");
         li.className = "admin-queue-item";
+        li.dataset.type = data.type || "task";
+        li.style.position = "relative";
         li.innerHTML = `
+          <div class="current-card-menu">
+            <button class="current-card-menu-btn" title="More options">•••</button>
+            <div class="current-card-dropdown">
+              <button class="current-card-dropdown-item qi-pickup-btn">Pick Up</button>
+              <button class="current-card-dropdown-item qi-contact-btn">Create Contact</button>
+              <button class="current-card-dropdown-item danger qi-delete-btn">Delete</button>
+            </div>
+          </div>
           <div class="qi-top">
             <div class="queue-pos-badge">${posAll}</div>
             <div class="qi-header">
@@ -1207,16 +1330,28 @@
           <div class="qi-contact">
             ${data.email ? `<div class="qi-contact-item">Email: <strong>${escHtml(data.email)}</strong></div>` : ""}
             ${data.phone ? `<div class="qi-contact-item">Phone: <strong>${escHtml(data.phone)}</strong></div>` : ""}
-          </div>` : ""}
-          <div class="qi-actions">
-            <button class="btn-pickup">Pick Up</button>
-            <button class="btn-ghost-sm delete-btn">Delete</button>
-          </div>`;
+          </div>` : ""}`;
 
-        li.querySelector(".btn-pickup").addEventListener("click", () =>
+        const qiMenuBtn  = li.querySelector(".current-card-menu-btn");
+        const qiDropdown = li.querySelector(".current-card-dropdown");
+        qiMenuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.querySelectorAll(".current-card-dropdown.open").forEach(d => d.classList.remove("open"));
+          qiDropdown.classList.toggle("open");
+        });
+        li.querySelector(".qi-pickup-btn").addEventListener("click", () => {
+          qiDropdown.classList.remove("open");
           startTask(d.id, data.title, data.submittedBy||"", data.code||"",
-                    data.email||"", data.phone||"", data.createdAt||null, data.type||"task"));
-        li.querySelector(".delete-btn").addEventListener("click", () => deleteTask(d.id));
+                    data.email||"", data.phone||"", data.createdAt||null, data.type||"task");
+        });
+        li.querySelector(".qi-contact-btn").addEventListener("click", () => {
+          qiDropdown.classList.remove("open");
+          createContactFromTask({ name: data.submittedBy||"", email: data.email||"", phone: data.phone||"" });
+        });
+        li.querySelector(".qi-delete-btn").addEventListener("click", () => {
+          qiDropdown.classList.remove("open");
+          deleteTask(d.id);
+        });
         list.appendChild(li);
       });
     }
@@ -1459,17 +1594,39 @@
     // ── Kanban Board ──
     let dragKanbanId = null;
 
+    const COL_LABELS = { upnext: "Up Next", inprogress: "In Progress", done: "Done" };
+
     function buildCardContent(card, data, d) {
       card.draggable = true;
       card.innerHTML = `
         <div class="kanban-card-title"></div>
         ${data.notes ? `<div class="kanban-card-notes"></div>` : ""}
-        <button class="kanban-delete-btn" title="Delete">✕</button>`;
+        <button class="kanban-delete-btn" title="Delete">✕</button>
+        <button class="kanban-move-btn">Move to →</button>`;
       card.querySelector(".kanban-card-title").textContent = data.title || "";
       if (data.notes) card.querySelector(".kanban-card-notes").textContent = data.notes;
       card.querySelector(".kanban-delete-btn").addEventListener("click", async (e) => {
         e.stopPropagation();
         if (confirm("Delete this card?")) await deleteDoc(doc(db, "personal_tasks", d.id));
+      });
+      card.querySelector(".kanban-move-btn").addEventListener("click", (e) => {
+        e.stopPropagation();
+        const existing = card.querySelector(".kanban-move-picker");
+        if (existing) { existing.remove(); return; }
+        const picker = document.createElement("div");
+        picker.className = "kanban-move-picker";
+        KANBAN_COLS.filter(col => col !== data.column).forEach(col => {
+          const btn = document.createElement("button");
+          btn.className = "kanban-move-option";
+          btn.textContent = COL_LABELS[col];
+          btn.addEventListener("click", async (ev) => {
+            ev.stopPropagation();
+            await updateDoc(doc(db, "personal_tasks", d.id), { column: col });
+            if (kanbanMobile) kanbanSetSlide(KANBAN_COLS.indexOf(col));
+          });
+          picker.appendChild(btn);
+        });
+        card.appendChild(picker);
       });
       card.ondblclick = (e) => {
         if (e.target.classList.contains("kanban-delete-btn")) return;
@@ -1566,6 +1723,42 @@
       const snap = await getDocs(query(collection(db, "personal_tasks"), where("column", "==", "done")));
       await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "personal_tasks", d.id))));
     };
+
+    // ── Kanban view toggle (desktop / mobile slider) ──
+    const KANBAN_COLS = ["upnext", "inprogress", "done"];
+    let kanbanSliderIdx = 0;
+    let kanbanMobile    = false;
+
+    function kanbanSetSlide(idx) {
+      kanbanSliderIdx = idx;
+      KANBAN_COLS.forEach((col, i) => {
+        document.getElementById(`kanban-col-${col}`).classList.toggle("slider-active", i === idx);
+      });
+      document.querySelectorAll(".kanban-slider-dot").forEach((dot, i) => dot.classList.toggle("active", i === idx));
+      document.getElementById("kanban-prev").disabled = idx === 0;
+      document.getElementById("kanban-next").disabled = idx === KANBAN_COLS.length - 1;
+    }
+
+    function kanbanSetMode(mobile) {
+      kanbanMobile = mobile;
+      const board  = document.querySelector(".kanban-board");
+      const nav    = document.getElementById("kanban-slider-nav");
+      const track  = document.getElementById("kanban-toggle-track");
+      const label  = document.getElementById("kanban-view-label");
+      board.classList.toggle("slider-mode", mobile);
+      nav.classList.toggle("visible", mobile);
+      track.classList.toggle("mobile", mobile);
+      label.textContent = mobile ? "Mobile" : "Desktop";
+      if (mobile) kanbanSetSlide(kanbanSliderIdx);
+      else KANBAN_COLS.forEach(col => document.getElementById(`kanban-col-${col}`).classList.remove("slider-active"));
+    }
+
+    document.getElementById("kanban-toggle-track").addEventListener("click", () => kanbanSetMode(!kanbanMobile));
+    document.getElementById("kanban-prev").addEventListener("click", () => { if (kanbanSliderIdx > 0) kanbanSetSlide(kanbanSliderIdx - 1); });
+    document.getElementById("kanban-next").addEventListener("click", () => { if (kanbanSliderIdx < KANBAN_COLS.length - 1) kanbanSetSlide(kanbanSliderIdx + 1); });
+    document.querySelectorAll(".kanban-slider-dot").forEach(dot => {
+      dot.addEventListener("click", () => kanbanSetSlide(parseInt(dot.dataset.idx)));
+    });
 
     function startKanbanListener() {
       const COLS = ["upnext", "inprogress", "done"];
