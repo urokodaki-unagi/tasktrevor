@@ -139,11 +139,14 @@
     .dash-paid-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .dash-paid-dot.paid   { background: #22c55e; }
     .dash-paid-dot.unpaid { background: #e5e5e5; }
-    .dash-bill-name { font-size: 0.92rem; font-weight: 500; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-bill-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .dash-bill-name { font-size: 0.92rem; font-weight: 500; color: #1a1a1a; }
+    .dash-bill-tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
     .dash-bill-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .dash-bill-status { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
     .dash-bill-status.paid   { color: #22c55e; }
     .dash-bill-status.unpaid { color: #ccc; }
+    .dash-bill-due { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
     .dash-bill-amount { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; }
     .dash-bill-pct { font-size: 0.72rem; color: #bbb; min-width: 34px; text-align: right; }
 
@@ -234,6 +237,7 @@
       gap: 12px;
       align-items: start;
     }
+    .dash-charts-right { display: flex; flex-direction: column; gap: 12px; }
     .dash-chart-wrap { max-width: 180px; margin: 0 auto; }
     .dash-chart-legend { display: flex; flex-direction: column; gap: 7px; margin-top: 18px; }
     .dash-legend-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
@@ -547,16 +551,30 @@
         billsCard.className = "dash-card";
         billsCard.innerHTML = `<div class="dash-card-title">Bills This Month</div>`;
 
+        const BILL_TAG_COLORS = {
+          "Subscription":    { bg: "#ede9fe", text: "#6d28d9" },
+          "Loan / Credit":   { bg: "#fef3c7", text: "#b45309" },
+          "Utilities":       { bg: "#dbeafe", text: "#1d4ed8" },
+          "Cost of Living":  { bg: "#dcfce7", text: "#15803d" },
+          "Insurance":       { bg: "#fce7f3", text: "#be185d" },
+          "Rent / Mortgage": { bg: "#f1f5f9", text: "#475569" },
+          "Other":           { bg: "#f3f4f6", text: "#6b7280" },
+        };
         bills.forEach(b => {
           const pct = totalOut > 0 ? Math.round((b.amount / totalOut) * 100) : 0;
+          const tagColors = b.tag && BILL_TAG_COLORS[b.tag];
+          const tagHtml = tagColors ? `<span class="dash-bill-tag" style="background:${tagColors.bg};color:${tagColors.text};">${escHtml(b.tag)}</span>` : "";
           const row = document.createElement("div");
           row.className = "dash-bill-row";
           row.innerHTML = `
             <div class="dash-bill-left">
               <div class="dash-paid-dot ${b.paid ? 'paid' : 'unpaid'}"></div>
               <div style="min-width:0;">
-                <div class="dash-bill-name">${escHtml(b.name)}</div>
-                <div class="dash-bill-status ${b.paid ? 'paid' : 'unpaid'}">${b.paid ? 'Paid' : 'Unpaid'}</div>
+                <div class="dash-bill-name-row"><span class="dash-bill-name">${escHtml(b.name)}</span>${tagHtml}</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="dash-bill-status ${b.paid ? 'paid' : 'unpaid'}">${b.paid ? 'Paid' : 'Unpaid'}</div>
+                  ${b.dueDate ? `<div class="dash-bill-due">Due ${escHtml(b.dueDate)}</div>` : ""}
+                </div>
               </div>
             </div>
             <div class="dash-bill-right">
@@ -669,13 +687,28 @@
           <div class="dash-chart-legend" id="flow-legend"></div>
         `;
 
+        // Chart 3: Bills by Tag
+        const tagChartCard = document.createElement("div");
+        tagChartCard.className = "dash-card";
+        tagChartCard.innerHTML = `
+          <div class="dash-card-title">Bills by Tag</div>
+          <div class="dash-chart-wrap"><canvas id="tag-chart"></canvas></div>
+          <div class="dash-chart-legend" id="tag-legend"></div>
+        `;
+
+        const rightCol = document.createElement("div");
+        rightCol.className = "dash-charts-right";
+        rightCol.appendChild(flowChartCard);
+        rightCol.appendChild(tagChartCard);
+
         chartsRow.appendChild(billsChartCard);
-        chartsRow.appendChild(flowChartCard);
+        chartsRow.appendChild(rightCol);
         content.appendChild(chartsRow);
         const billsLeftover = combined - totalBills - totalSpending;
         setTimeout(() => {
           renderBillsChart(bills, totalSpending, totalSaved, remaining, combined);
           renderFlowChart(combined, totalBills, totalSpending, billsLeftover);
+          renderTagChart(bills);
         }, 50);
       }
 
@@ -698,6 +731,7 @@
 
     let billsChart = null;
     let flowChart  = null;
+    let tagChart   = null;
 
     // ── Doughnut (In vs. Out) ──
     function makeDoughnut(canvasId, segments, colors, legendId, income) {
@@ -710,7 +744,7 @@
           cutout: "62%",
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: (c) => ` ${fmt(c.parsed)}` } }
+            tooltip: { callbacks: { label: (c) => ` ${segments[c.dataIndex].label}: ${fmt(c.parsed)}` } }
           }
         }
       });
@@ -760,7 +794,7 @@
           maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: (c) => ` ${fmt(c.parsed.x)}` } }
+            tooltip: { callbacks: { label: (c) => ` ${c.label}: ${fmt(c.parsed.x)}` } }
           },
           scales: {
             x: {
@@ -776,27 +810,50 @@
 
     function renderBillsChart(bills, totalSpending, totalSaved, remaining, income) {
       if (billsChart) { billsChart.destroy(); billsChart = null; }
-      const items  = [];
-      const colors = [];
-      bills.forEach((b, i) => {
-        if ((b.amount||0) > 0) {
-          items.push({ label: b.name, val: b.amount });
-          colors.push(BILL_COLORS[i % BILL_COLORS.length]);
-        }
-      });
+      const raw = bills
+        .filter(b => (b.amount||0) > 0)
+        .map((b, i) => ({ label: b.name, val: b.amount, colorIdx: i }))
+        .sort((a, b) => b.val - a.val);
+      const items  = raw.map(r => ({ label: r.label, val: r.val }));
+      const colors = raw.map(r => BILL_COLORS[r.colorIdx % BILL_COLORS.length]);
       billsChart = makeBarChart("bills-chart", items, colors);
     }
 
     function renderFlowChart(income, totalBills, totalSpending, leftover) {
       if (flowChart) { flowChart.destroy(); flowChart = null; }
-      const segments = [];
-      const colors   = [];
-      if (income > 0)        { segments.push({ label: "Brought In",         val: income });        colors.push("#22c55e"); }
-      if (totalBills > 0)    { segments.push({ label: "Bills",              val: totalBills });    colors.push("#ef4444"); }
-      if (totalSpending > 0) { segments.push({ label: "Her Money", val: totalSpending }); colors.push("#ec4899"); }
-      segments.push({ label: "Left Over", val: leftover });
-      colors.push(leftover < 0 ? "#ef4444" : "#e5e5e5");
+      const mid = [];
+      if (income > 0)        mid.push({ label: "Brought In", val: income,        color: "#22c55e" });
+      if (totalBills > 0)    mid.push({ label: "Bills",       val: totalBills,    color: "#ef4444" });
+      if (totalSpending > 0) mid.push({ label: "Her Money",   val: totalSpending, color: "#ec4899" });
+      mid.sort((a, b) => b.val - a.val);
+      mid.push({ label: "Left Over", val: leftover, color: leftover < 0 ? "#ef4444" : "#e5e5e5" });
+      const segments = mid.map(s => ({ label: s.label, val: s.val }));
+      const colors   = mid.map(s => s.color);
       flowChart = makeDoughnut("flow-chart", segments, colors, "flow-legend", income);
+    }
+
+    function renderTagChart(bills) {
+      if (tagChart) { tagChart.destroy(); tagChart = null; }
+      const TAG_COLORS = {
+        "Subscription":    "#6d28d9",
+        "Loan / Credit":   "#b45309",
+        "Utilities":       "#1d4ed8",
+        "Cost of Living":  "#15803d",
+        "Insurance":       "#be185d",
+        "Rent / Mortgage": "#475569",
+        "Other":           "#6b7280",
+      };
+      const tagTotals = {};
+      bills.forEach(b => {
+        if (!b.tag || !(b.amount > 0)) return;
+        tagTotals[b.tag] = (tagTotals[b.tag] || 0) + b.amount;
+      });
+      const entries = Object.entries(tagTotals).sort((a, b) => b[1] - a[1]);
+      if (entries.length === 0) return;
+      const total    = entries.reduce((s, [, v]) => s + v, 0);
+      const segments = entries.map(([tag, val]) => ({ label: tag, val }));
+      const colors   = entries.map(([tag]) => TAG_COLORS[tag] || "#aaa");
+      tagChart = makeDoughnut("tag-chart", segments, colors, "tag-legend", total);
     }
 
     function fmt(n) {
