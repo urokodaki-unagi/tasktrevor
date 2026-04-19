@@ -401,10 +401,11 @@
     .fin-col-labels-paycheck { display: grid; grid-template-columns: 1fr 90px 110px 36px; gap: 8px; }
     .fin-whose-select { padding: 8px 10px; border: 1.5px solid #e5e5e5; border-radius: 10px; font-size: 0.85rem; font-family: inherit; background: white; cursor: pointer; color: #1a1a1a; }
     .fin-whose-select:focus { outline: none; border-color: #1a1a1a; }
-    .fin-row-bill { display: grid; grid-template-columns: 1fr 64px 110px 80px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
+    .fin-row-bill { display: grid; grid-template-columns: 20px 1fr 130px 64px 110px 80px 36px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f8f8f8; }
     .fin-row-bill:last-child { border-bottom: none; }
     .fin-row-bill input { font-size: 0.88rem; padding: 8px 12px; }
-    .fin-col-labels-bill { display: grid; grid-template-columns: 1fr 64px 110px 80px 36px; gap: 8px; }
+    .fin-row-bill.dragging { opacity: 0.35; }
+    .fin-col-labels-bill { display: grid; grid-template-columns: 20px 1fr 130px 64px 110px 80px 36px; gap: 8px; }
     .fin-paid-btn { padding: 7px 10px; border: none; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; }
     .fin-paid-btn.paid { background: #dcfce7; color: #16a34a; }
     .fin-paid-btn.unpaid { background: #f5f5f5; color: #aaa; }
@@ -428,9 +429,10 @@
       .fin-row-paycheck { grid-template-columns: 1fr 80px 36px; }
       .fin-col-labels-paycheck { grid-template-columns: 1fr 80px 36px; }
       .fin-row-paycheck .fin-whose-select { display: none; }
-      .fin-row-bill { grid-template-columns: 1fr 64px 90px 36px; }
-      .fin-col-labels-bill { grid-template-columns: 1fr 64px 90px 36px; }
+      .fin-row-bill { grid-template-columns: 20px 1fr 64px 90px 36px; }
+      .fin-col-labels-bill { grid-template-columns: 20px 1fr 64px 90px 36px; }
       .fin-row-bill .fin-paid-btn { display: none; }
+      .fin-row-bill .bill-tag { display: none; }
     }
 
     /* ── KANBAN BOARD ── */
@@ -790,7 +792,9 @@
               <button type="button" id="add-bill-btn" class="btn-ghost-sm">+ Add</button>
             </div>
             <div class="fin-col-labels fin-col-labels-bill">
+              <span></span>
               <span class="fin-col-label">Bill Name</span>
+              <span class="fin-col-label">Tag</span>
               <span class="fin-col-label">Due</span>
               <span class="fin-col-label">Amount</span>
               <span class="fin-col-label">Status</span>
@@ -1418,13 +1422,20 @@
       syncEmpty("spending-list","spending-empty");
     });
 
+    const BILL_TAGS = ["Subscription", "Loan / Credit", "Utilities", "Cost of Living", "Insurance", "Rent / Mortgage", "Other"];
+    let dragBillEl = null;
+
     function createBillRow(b = {}) {
       let paid = b.paid || false;
       const row = document.createElement("div");
       row.className = "fin-row-bill";
       row.dataset.finRow = "bill";
+      row.draggable = true;
+      const tagOptions = BILL_TAGS.map(t => `<option value="${t}"${b.tag===t?' selected':''}>${t}</option>`).join("");
       row.innerHTML = `
+        <span class="fin-drag-handle" title="Drag to reorder">⠿</span>
         <input type="text"   class="bill-name"   placeholder="e.g. Rent"  value="${escHtml(b.name||'')}" />
+        <select class="bill-tag fin-whose-select"><option value="">— Tag —</option>${tagOptions}</select>
         <input type="text"   class="bill-due"    placeholder="e.g. 1st"   value="${escHtml(b.dueDate||'')}" maxlength="6" />
         <input type="number" class="bill-amount" placeholder="0" min="0" step="1" value="${b.amount||''}" />
         <button type="button" class="fin-paid-btn ${paid?'paid':'unpaid'}">${paid?'Paid':'Unpaid'}</button>
@@ -1432,6 +1443,18 @@
       const toggle = row.querySelector(".fin-paid-btn");
       toggle.addEventListener("click", () => { paid = !paid; toggle.textContent = paid?"Paid":"Unpaid"; toggle.className = `fin-paid-btn ${paid?'paid':'unpaid'}`; });
       row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("bills-list","bills-empty"); });
+      row.addEventListener("dragstart", (e) => { dragBillEl = row; row.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; });
+      row.addEventListener("dragend", () => { row.classList.remove("dragging"); dragBillEl = null; });
+      row.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        if (!dragBillEl || dragBillEl === row) return;
+        const container = document.getElementById("bills-list");
+        const rows = [...container.querySelectorAll("[data-fin-row]")];
+        const dragIdx = rows.indexOf(dragBillEl);
+        const targetIdx = rows.indexOf(row);
+        if (dragIdx < targetIdx) container.insertBefore(dragBillEl, row.nextSibling);
+        else container.insertBefore(dragBillEl, row);
+      });
       row.getPaid = () => paid;
       return row;
     }
@@ -1539,7 +1562,8 @@
         const dueDate = row.querySelector(".bill-due").value.trim();
         const amount  = parseFloat(row.querySelector(".bill-amount").value) || 0;
         const paid    = row.getPaid();
-        if (name || amount) bills.push({ name, dueDate, amount, paid });
+        const tag     = row.querySelector(".bill-tag").value;
+        if (name || amount) bills.push({ name, dueDate, amount, paid, tag });
       });
 
       const funds = [];
@@ -1598,7 +1622,7 @@
 
         // Carry forward: fund balances unchanged, bill names + due dates only (reset amount + paid)
         const carryFunds = data.funds.map(f => ({ ...f }));
-        const carryBills = data.bills.map(b => ({ name: b.name, dueDate: b.dueDate, amount: 0, paid: false }));
+        const carryBills = data.bills.map(b => ({ name: b.name, dueDate: b.dueDate, tag: b.tag||"", amount: 0, paid: false }));
 
         await setDoc(doc(db, "finances", "overview"), {
           greeting: "", note: "",
