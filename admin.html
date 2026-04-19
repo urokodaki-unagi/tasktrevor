@@ -573,6 +573,43 @@
       font-style: italic;
     }
 
+    /* ── CONTACTS ── */
+    #tab-contacts { display: none; flex-direction: column; gap: 16px; }
+    .contacts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .contact-card { background: white; border: 1.5px solid #f0f0f0; border-radius: 14px; padding: 18px; transition: border-color 0.15s; position: relative; }
+    .contact-card:hover { border-color: #e0e0e0; }
+    .contact-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .contact-avatar { width: 40px; height: 40px; border-radius: 50%; background: #1a1a1a; color: white; font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; letter-spacing: 0.03em; }
+    .contact-name-wrap { flex: 1; min-width: 0; }
+    .contact-name { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-since { font-size: 0.7rem; color: #bbb; margin-top: 1px; }
+    .contact-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .contact-edit-btn, .contact-delete-btn { background: transparent; border: 1.5px solid #eee; border-radius: 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer; padding: 4px 9px; font-family: inherit; transition: all 0.15s; color: #aaa; }
+    .contact-edit-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
+    .contact-delete-btn:hover { border-color: #fca5a5; color: #ef4444; }
+    .contact-fields { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .contact-field { display: flex; flex-direction: column; gap: 2px; }
+    .contact-field-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #bbb; }
+    .contact-field-value { font-size: 0.85rem; color: #444; }
+    .contact-field-value.empty { color: #ccc; font-style: italic; }
+    .contact-field input, .contact-field textarea { width: 100%; padding: 7px 10px; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 0.85rem; font-family: inherit; color: #1a1a1a; resize: none; }
+    .contact-field input:focus, .contact-field textarea:focus { outline: none; border-color: #1a1a1a; }
+    .contact-edit-actions { display: flex; gap: 8px; margin-bottom: 14px; }
+    .contact-create-task-btn { width: 100%; padding: 10px; background: #1a1a1a; color: white; border: none; border-radius: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.15s; }
+    .contact-create-task-btn:hover { opacity: 0.8; }
+    .contact-task-form { margin-top: 12px; padding-top: 12px; border-top: 1px solid #f0f0f0; display: none; }
+    .contact-task-form.open { display: block; }
+    .contact-task-types { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .contact-type-btn { padding: 4px 11px; border: 1.5px solid #e5e5e5; border-radius: 99px; font-size: 0.72rem; font-weight: 700; color: #aaa; background: white; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .contact-type-btn.active { background: #1a1a1a; border-color: #1a1a1a; color: white; }
+    .contact-task-input { width: 100%; padding: 8px 10px; border: 1.5px solid #e5e5e5; border-radius: 8px; font-size: 0.85rem; font-family: inherit; resize: none; margin-bottom: 8px; }
+    .contact-task-input:focus { outline: none; border-color: #1a1a1a; }
+    .contact-task-submit { padding: 8px 16px; background: #1a1a1a; color: white; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .contact-task-cancel { padding: 8px 12px; background: transparent; color: #aaa; border: 1.5px solid #eee; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .contacts-empty { font-size: 0.85rem; color: #bbb; text-align: center; padding: 40px 0; font-style: italic; }
+    .admin-toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: #16a34a; color: white; font-size: 0.82rem; font-weight: 600; padding: 10px 20px; border-radius: 99px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
+    .admin-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     /* ── OVERRIDE style.css conflicts ── */
     /* style.css applies flex layouts + borders to these shared class names; reset them for admin */
     .admin-queue-item { display: block; border-bottom: none; padding: 0; }
@@ -652,6 +689,7 @@
         <button class="admin-tab-btn active" data-tab="tasks">Tasks</button>
         <button class="admin-tab-btn" data-tab="board">My Board</button>
         <button class="admin-tab-btn" data-tab="finances">Finances</button>
+        <button class="admin-tab-btn" data-tab="contacts">Contacts</button>
       </div>
 
       <!-- ── Tasks Tab ── -->
@@ -835,6 +873,14 @@
         </section>
       </div>
 
+      <div class="admin-toast" id="admin-toast"></div>
+
+      <!-- ── Contacts Tab ── -->
+      <div id="tab-contacts">
+        <div class="contacts-grid" id="contacts-grid"></div>
+        <p class="contacts-empty" id="contacts-empty" style="display:none;">No contacts yet. Create one from a task using the ••• menu.</p>
+      </div>
+
     </main>
   </div>
 
@@ -875,6 +921,169 @@
 
     function escHtml(str) {
       return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("admin-toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2500);
+    }
+
+    // ── Contacts ──
+    const TASK_TYPES_CONTACT = ["task","purchase","fix","question","other"];
+
+    function initials(name) {
+      return (name||"?").split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("") || "?";
+    }
+
+    async function generateContactTaskCode() {
+      for (let i = 0; i < 10; i++) {
+        const code = "TT-" + Math.floor(1000 + Math.random() * 9000);
+        const [q, d] = await Promise.all([
+          getDocs(query(collection(db, "queue"), where("code","==",code))),
+          getDocs(query(collection(db, "done"),  where("code","==",code)))
+        ]);
+        if (q.empty && d.empty) return code;
+      }
+      return "TT-" + Date.now().toString().slice(-4);
+    }
+
+    async function createContactFromTask({ name, email, phone }) {
+      if (!name && !email) { alert("This task has no name or email to create a contact from."); return; }
+      if (email) {
+        const existing = await getDocs(query(collection(db, "contacts"), where("email","==",email)));
+        if (!existing.empty) { alert("A contact with this email already exists."); return; }
+      }
+      await addDoc(collection(db, "contacts"), { name, email, phone, notes: "", createdAt: serverTimestamp() });
+      showToast("Contact created ✓");
+      // Switch to Contacts tab
+      document.querySelectorAll(".admin-tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelector(".admin-tab-btn[data-tab='contacts']").classList.add("active");
+      document.getElementById("tab-tasks").style.display    = "none";
+      document.getElementById("tab-board").style.display    = "none";
+      document.getElementById("tab-finances").style.display = "none";
+      document.getElementById("tab-contacts").style.display = "flex";
+    }
+
+    function renderContactCard(d) {
+      const data = d.data();
+      const card = document.createElement("div");
+      card.className = "contact-card";
+
+      function showView() {
+        card.innerHTML = `
+          <div class="contact-card-header">
+            <div class="contact-avatar">${escHtml(initials(data.name))}</div>
+            <div class="contact-name-wrap">
+              <div class="contact-name">${escHtml(data.name||"No Name")}</div>
+              <div class="contact-since">Added ${data.createdAt ? data.createdAt.toDate().toLocaleDateString() : "—"}</div>
+            </div>
+            <div class="contact-actions">
+              <button class="contact-edit-btn">Edit</button>
+              <button class="contact-delete-btn">✕</button>
+            </div>
+          </div>
+          <div class="contact-fields">
+            <div class="contact-field">
+              <div class="contact-field-label">Email</div>
+              <div class="contact-field-value ${!data.email?'empty':''}">${data.email ? escHtml(data.email) : "Not provided"}</div>
+            </div>
+            <div class="contact-field">
+              <div class="contact-field-label">Phone</div>
+              <div class="contact-field-value ${!data.phone?'empty':''}">${data.phone ? escHtml(data.phone) : "Not provided"}</div>
+            </div>
+            ${data.notes ? `<div class="contact-field"><div class="contact-field-label">Notes</div><div class="contact-field-value">${escHtml(data.notes)}</div></div>` : ""}
+          </div>
+          <button class="contact-create-task-btn">+ Create Task</button>
+          <div class="contact-task-form" id="ctf-${d.id}">
+            <div class="contact-task-types">
+              ${TASK_TYPES_CONTACT.map(t => `<button type="button" class="contact-type-btn" data-type="${t}">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`).join("")}
+            </div>
+            <textarea class="contact-task-input" rows="2" placeholder="Describe the task…"></textarea>
+            <div style="display:flex;gap:8px;">
+              <button class="contact-task-submit">Submit</button>
+              <button class="contact-task-cancel">Cancel</button>
+            </div>
+          </div>`;
+
+        card.querySelector(".contact-edit-btn").addEventListener("click", showEdit);
+        card.querySelector(".contact-delete-btn").addEventListener("click", async () => {
+          if (confirm("Delete this contact?")) await deleteDoc(doc(db, "contacts", d.id));
+        });
+
+        let selectedType = "task";
+        const taskForm = card.querySelector(".contact-task-form");
+        card.querySelector(".contact-create-task-btn").addEventListener("click", () => taskForm.classList.toggle("open"));
+        card.querySelectorAll(".contact-type-btn").forEach(btn => {
+          if (btn.dataset.type === "task") btn.classList.add("active");
+          btn.addEventListener("click", () => {
+            card.querySelectorAll(".contact-type-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedType = btn.dataset.type;
+          });
+        });
+        card.querySelector(".contact-task-cancel").addEventListener("click", () => taskForm.classList.remove("open"));
+        card.querySelector(".contact-task-submit").addEventListener("click", async () => {
+          const title = card.querySelector(".contact-task-input").value.trim();
+          if (!title) { card.querySelector(".contact-task-input").focus(); return; }
+          const code = await generateContactTaskCode();
+          await addDoc(collection(db, "queue"), {
+            title, submittedBy: data.name||"", email: data.email||"",
+            phone: data.phone||"", code, type: selectedType,
+            createdAt: serverTimestamp(), order: Date.now()
+          });
+          taskForm.classList.remove("open");
+          card.querySelector(".contact-task-input").value = "";
+          alert(`Task submitted! Code: ${code}`);
+        });
+      }
+
+      function showEdit() {
+        card.innerHTML = `
+          <div class="contact-card-header">
+            <div class="contact-avatar">${escHtml(initials(data.name))}</div>
+            <div class="contact-name-wrap">
+              <div class="contact-field"><input class="edit-name" value="${escHtml(data.name||"")}" placeholder="Name" /></div>
+            </div>
+          </div>
+          <div class="contact-fields">
+            <div class="contact-field"><div class="contact-field-label">Email</div><input class="edit-email" value="${escHtml(data.email||"")}" placeholder="Email" /></div>
+            <div class="contact-field"><div class="contact-field-label">Phone</div><input class="edit-phone" value="${escHtml(data.phone||"")}" placeholder="Phone" /></div>
+            <div class="contact-field"><div class="contact-field-label">Notes</div><textarea class="edit-notes" rows="2">${escHtml(data.notes||"")}</textarea></div>
+          </div>
+          <div class="contact-edit-actions">
+            <button class="btn-pickup" style="padding:8px 18px;font-size:0.82rem;">Save</button>
+            <button class="btn-ghost-sm cancel-edit-btn">Cancel</button>
+          </div>`;
+
+        card.querySelector(".cancel-edit-btn").addEventListener("click", showView);
+        card.querySelector(".btn-pickup").addEventListener("click", async () => {
+          const updates = {
+            name:  card.querySelector(".edit-name").value.trim(),
+            email: card.querySelector(".edit-email").value.trim(),
+            phone: card.querySelector(".edit-phone").value.trim(),
+            notes: card.querySelector(".edit-notes").value.trim(),
+          };
+          await updateDoc(doc(db, "contacts", d.id), updates);
+          Object.assign(data, updates);
+          showView();
+        });
+      }
+
+      showView();
+      return card;
+    }
+
+    function startContactsListener() {
+      onSnapshot(query(collection(db, "contacts"), orderBy("createdAt", "desc")), (snap) => {
+        const grid  = document.getElementById("contacts-grid");
+        const empty = document.getElementById("contacts-empty");
+        grid.innerHTML = "";
+        if (snap.empty) { empty.style.display = "block"; return; }
+        empty.style.display = "none";
+        snap.docs.forEach(d => grid.appendChild(renderContactCard(d)));
+      });
     }
 
     function formatTime(date) {
@@ -929,6 +1138,7 @@
         document.getElementById("tab-tasks").style.display    = tab === "tasks"    ? "flex"  : "none";
         document.getElementById("tab-board").style.display    = tab === "board"    ? "block" : "none";
         document.getElementById("tab-finances").style.display = tab === "finances" ? "flex"  : "none";
+        document.getElementById("tab-contacts").style.display = tab === "contacts" ? "flex"  : "none";
         if (tab === "finances") loadFinances();
       });
     });
@@ -1028,6 +1238,7 @@
                 <button class="current-card-menu-btn" title="More options">•••</button>
                 <div class="current-card-dropdown">
                   <button class="current-card-dropdown-item return-btn">Back to Queue</button>
+                  <button class="current-card-dropdown-item create-contact-btn">Create Contact</button>
                   <button class="current-card-dropdown-item danger clear-btn">Delete Task</button>
                 </div>
               </div>
@@ -1067,6 +1278,10 @@
           el.querySelector(".done-btn").addEventListener("click", () => markDone(data.sourceId, data.title));
           el.querySelector(".return-btn").addEventListener("click", () => returnToQueue());
           el.querySelector(".clear-btn").addEventListener("click",  () => { if (confirm("Delete this task? It won't be saved anywhere.")) clearCurrent(); });
+          el.querySelector(".create-contact-btn").addEventListener("click", () => {
+            menuDropdown.classList.remove("open");
+            createContactFromTask({ name: data.submittedBy||"", email: data.email||"", phone: data.phone||"" });
+          });
 
           const menuBtn      = el.querySelector(".current-card-menu-btn");
           const menuDropdown = el.querySelector(".current-card-dropdown");
@@ -1159,6 +1374,7 @@
       });
 
       startKanbanListener();
+      startContactsListener();
     }
 
     // ── Task Actions ──
