@@ -3,70 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
+  <title>Dashboard — Task Trevor</title>
+  <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     input[type="number"] {
       padding: 12px 16px;
-      border: 1.5px solid #e5e5e5;
       border-radius: 10px;
       font-size: 0.95rem;
       width: 100%;
-      font-family: inherit;
+      font-family: 'DM Sans', sans-serif;
     }
 
-    /* ── Header ── */
-    .dash-header {
-      background: #1a1a1a;
-      color: white;
-      padding: 20px 20px;
-    }
-    .dash-header-inner {
-      max-width: 680px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .dash-header-left { display: flex; flex-direction: column; gap: 3px; }
-    .dash-wordmark {
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
+    /* ── Header updated ── */
     .dash-updated-header {
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.35);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
       font-weight: 400;
+      margin-top: 3px;
+      letter-spacing: 0.5px;
     }
 
     /* ── Cards ── */
     .dash-card {
-      background: white;
-      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .dash-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,255,255,0.14);
+    }
+    .dash-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan);
     }
     .dash-card-title {
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #888;
+      letter-spacing: 2.5px;
+      color: var(--muted);
       margin-bottom: 18px;
-      text-align: center;
     }
 
     /* ── Greeting ── */
     .dash-greeting {
-      font-size: 1.05rem;
-      font-weight: 500;
-      color: #1a1a1a;
-      line-height: 1.5;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.6;
     }
 
     /* ── Income Stat Row ── */
@@ -74,32 +70,33 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1px;
-      background: #f0f0f0;
+      background: var(--border);
       border-radius: 10px;
       overflow: hidden;
       margin-bottom: 20px;
     }
     .dash-stat-cell {
-      background: white;
+      background: var(--surface2);
       padding: 16px 12px;
       text-align: center;
     }
     .dash-stat-label {
+      font-family: 'DM Mono', monospace;
       font-size: 0.68rem;
-      font-weight: 700;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      color: #bbb;
+      color: var(--muted);
       margin-bottom: 6px;
     }
     .dash-stat-value {
-      font-size: 1.25rem;
-      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-      font-weight: 700;
-      color: #1a1a1a;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      color: var(--white);
+      letter-spacing: 1px;
     }
-    .dash-stat-value.green { color: #22c55e; }
-    .dash-stat-value.red   { color: #ef4444; }
+    .dash-stat-value.green { color: var(--green); }
+    .dash-stat-value.red   { color: var(--pink); }
 
     /* ── Paycheck List ── */
     .dash-paycheck-row {
@@ -107,23 +104,24 @@
       align-items: center;
       justify-content: space-between;
       padding: 10px 0;
-      border-bottom: 1px solid #f5f5f5;
+      border-bottom: 1px solid var(--border);
       gap: 12px;
     }
     .dash-paycheck-row:last-child { border-bottom: none; }
-    .dash-paycheck-label { font-size: 0.9rem; color: #555; }
+    .dash-paycheck-label { font-size: 0.9rem; color: var(--text); }
     .dash-paycheck-whose {
-      font-size: 0.68rem;
-      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       padding: 3px 8px;
-      border-radius: 20px;
+      border-radius: 4px;
       margin-left: 8px;
     }
-    .dash-paycheck-whose.his  { background: #eff6ff; color: #3b82f6; }
-    .dash-paycheck-whose.hers { background: #fdf2f8; color: #ec4899; }
-    .dash-paycheck-amount { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
+    .dash-paycheck-whose.his  { background: rgba(0,212,255,0.1); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25); }
+    .dash-paycheck-whose.hers { background: rgba(255,77,141,0.1); color: var(--pink); border: 1px solid rgba(255,77,141,0.25); }
+    .dash-paycheck-amount { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--white); flex-shrink: 0; }
 
     /* ── Bills ── */
     .dash-bill-row {
@@ -131,24 +129,33 @@
       align-items: center;
       justify-content: space-between;
       padding: 12px 0;
-      border-bottom: 1px solid #f5f5f5;
+      border-bottom: 1px solid var(--border);
       gap: 12px;
     }
     .dash-bill-row:last-child { border-bottom: none; }
     .dash-bill-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-    .dash-paid-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-    .dash-paid-dot.paid   { background: #22c55e; }
-    .dash-paid-dot.unpaid { background: #e5e5e5; }
+    .dash-paid-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dash-paid-dot.paid   { background: var(--green); box-shadow: 0 0 6px rgba(0,245,160,0.5); }
+    .dash-paid-dot.unpaid { background: var(--muted); }
     .dash-bill-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-    .dash-bill-name { font-size: 0.92rem; font-weight: 500; color: #1a1a1a; }
-    .dash-bill-tag { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 20px; white-space: nowrap; }
+    .dash-bill-name { font-size: 0.92rem; font-weight: 500; color: var(--text); }
+    .dash-bill-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
     .dash-bill-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-    .dash-bill-status { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
-    .dash-bill-status.paid   { color: #22c55e; }
-    .dash-bill-status.unpaid { color: #ccc; }
-    .dash-bill-due { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
-    .dash-bill-amount { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; }
-    .dash-bill-pct { font-size: 0.72rem; color: #bbb; min-width: 34px; text-align: right; }
+    .dash-bill-status { font-family: 'DM Mono', monospace; font-size: 0.65rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+    .dash-bill-status.paid   { color: var(--green); }
+    .dash-bill-status.unpaid { color: var(--muted); }
+    .dash-bill-due { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .dash-bill-amount { font-family: 'DM Mono', monospace; font-size: 0.95rem; font-weight: 500; color: var(--white); }
+    .dash-bill-pct { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); min-width: 34px; text-align: right; }
 
     /* ── Bills Footer ── */
     .dash-bills-total-row {
@@ -157,43 +164,46 @@
       justify-content: space-between;
       padding-top: 14px;
       margin-top: 4px;
-      border-top: 1px solid #f0f0f0;
+      border-top: 1px solid var(--border);
     }
-    .dash-bills-total-label { font-size: 0.78rem; color: #aaa; font-weight: 500; }
-    .dash-bills-total-value { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+    .dash-bills-total-label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); font-weight: 500; }
+    .dash-bills-total-value { font-family: 'DM Mono', monospace; font-size: 1rem; font-weight: 500; color: var(--white); }
     .dash-still-due {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #fffbeb;
-      border: 1.5px solid #fde68a;
+      background: rgba(255,184,0,0.08);
+      border: 1px solid rgba(255,184,0,0.25);
       border-radius: 10px;
       padding: 10px 14px;
       margin-top: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #d97706;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--amber);
     }
     .dash-all-paid {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f0fdf4;
+      background: rgba(0,245,160,0.08);
+      border: 1px solid rgba(0,245,160,0.2);
       border-radius: 10px;
       padding: 9px;
       margin-top: 10px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: #16a34a;
-      letter-spacing: 0.04em;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     /* ── Funds ── */
     .dash-fund-item {
       padding: 16px 0;
-      border-bottom: 1px solid #f5f5f5;
-      border-left: 3px solid #e5e5e5;
+      border-bottom: 1px solid var(--border);
+      border-left: 2px solid var(--border);
       padding-left: 14px;
       margin-left: -14px;
     }
@@ -206,29 +216,31 @@
       gap: 12px;
     }
     .dash-fund-header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .dash-fund-name { font-size: 0.95rem; font-weight: 600; color: #1a1a1a; }
+    .dash-fund-name { font-size: 0.95rem; font-weight: 600; color: var(--white); }
     .dash-fund-type-badge {
-      font-size: 0.67rem;
-      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       padding: 3px 8px;
-      border-radius: 20px;
+      border-radius: 4px;
     }
-    .dash-fund-progress-label { font-size: 0.92rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
+    .dash-fund-progress-label { font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 500; color: var(--white); flex-shrink: 0; }
     .dash-fund-meta { display: flex; gap: 20px; margin: 10px 0; flex-wrap: wrap; }
     .dash-fund-meta-label {
-      font-size: 0.67rem;
-      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.07em;
-      color: #bbb;
+      color: var(--muted);
       margin-bottom: 2px;
     }
-    .dash-fund-meta-value { font-size: 0.88rem; font-weight: 600; color: #555; }
-    .dash-fund-bar-bg { width: 100%; height: 6px; background: #f0f0f0; border-radius: 999px; overflow: hidden; margin-bottom: 4px; }
+    .dash-fund-meta-value { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+    .dash-fund-bar-bg { width: 100%; height: 6px; background: var(--surface2); border-radius: 999px; overflow: hidden; margin-bottom: 4px; }
     .dash-fund-bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
-    .dash-fund-bar-label { font-size: 0.72rem; color: #bbb; text-align: right; }
+    .dash-fund-bar-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); text-align: right; }
 
     /* ── Charts ── */
     .dash-charts-row {
@@ -243,9 +255,9 @@
     .dash-legend-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
     .dash-legend-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .dash-legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .dash-legend-label { font-size: 0.78rem; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dash-legend-value { font-size: 0.78rem; font-weight: 700; color: #1a1a1a; flex-shrink: 0; }
-    .dash-legend-pct { font-size: 0.7rem; color: #bbb; margin-left: 2px; }
+    .dash-legend-label { font-size: 0.78rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-legend-value { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; color: var(--white); flex-shrink: 0; }
+    .dash-legend-pct { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-left: 2px; }
     @media (max-width: 480px) {
       .dash-charts-row { grid-template-columns: 1fr; }
       .dash-chart-wrap { max-width: 200px; }
@@ -253,85 +265,54 @@
 
     /* ── Note ── */
     .dash-note-card {
-      background: #fffbeb;
-      border-left: 4px solid #f59e0b;
-      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid rgba(255,184,0,0.2);
+      border-top: 2px solid var(--amber);
+      border-radius: 12px;
       padding: 20px 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      box-shadow: inset 0 0 60px rgba(255,184,0,0.03);
     }
     .dash-note-label {
-      font-size: 0.7rem;
-      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: #d97706;
+      color: var(--amber);
       margin-bottom: 10px;
     }
-    .dash-note-text { font-size: 0.95rem; color: #1a1a1a; line-height: 1.6; white-space: pre-wrap; }
+    .dash-note-text { font-size: 0.95rem; color: var(--text); line-height: 1.65; white-space: pre-wrap; }
 
     /* ── No Data ── */
     .dash-no-data {
-      background: white;
-      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 48px 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       text-align: center;
-      color: #bbb;
+      color: var(--muted);
       font-size: 0.95rem;
     }
 
     @media (max-width: 400px) {
-      .dash-stat-value { font-size: 1.05rem; }
+      .dash-stat-value { font-size: 1.2rem; }
       .dash-fund-meta  { gap: 14px; }
     }
-
-    .nav-menu { position: relative; }
-    .nav-menu-btn {
-      padding: 8px 16px;
-      background: white;
-      color: #1a1a1a;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      cursor: pointer;
-      font-family: inherit;
-      transition: opacity 0.2s;
-    }
-    .nav-menu-btn:hover { opacity: 0.85; }
-    .nav-dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 0;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-      min-width: 160px;
-      overflow: hidden;
-      z-index: 100;
-    }
-    .nav-dropdown.open { display: block; }
-    .nav-dropdown-item {
-      display: block;
-      padding: 12px 18px;
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: #1a1a1a;
-      text-decoration: none;
-      transition: background 0.15s;
-    }
-    .nav-dropdown-item:hover { background: #f5f5f5; }
-    .nav-dropdown-item + .nav-dropdown-item { border-top: 1px solid #f0f0f0; }
   </style>
 </head>
 <body>
 
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
   <!-- Header (login state) -->
   <header id="login-header" class="site-header">
     <div class="header-inner">
-      <h1 class="wordmark"><a href="index.html" style="text-decoration:none;color:inherit;"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></a><span class="wordmark-divider"> · </span><span class="wordmark-portal">Dashboard</span></h1>
+      <div class="wordmark">
+        <a href="index.html" style="text-decoration:none;color:inherit;">
+          <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span>
+        </a><span class="wordmark-divider"> · </span><span class="wordmark-portal">Dashboard</span>
+      </div>
       <div class="nav-menu">
         <button class="nav-menu-btn" id="nav-toggle" aria-expanded="false">☰</button>
         <div class="nav-dropdown" id="nav-dropdown">
@@ -343,9 +324,9 @@
   </header>
 
   <!-- Login -->
-  <div id="login-screen" style="display:flex;align-items:center;justify-content:center;background:#f0f0f0;padding:24px;min-height:calc(100vh - 73px);">
+  <div id="login-screen" style="display:flex;align-items:center;justify-content:center;padding:24px;min-height:calc(100vh - 73px);position:relative;z-index:1;">
     <div class="login-box">
-      <p style="display:block;width:fit-content;margin:0 auto 24px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;background:#ebebeb;border-radius:99px;padding:4px 12px;">Dashboard</p>
+      <span class="eyebrow" style="text-align:center;display:block;">Dashboard</span>
       <form id="login-form">
         <input type="email" id="email-input" placeholder="Email" required />
         <input type="password" id="password-input" placeholder="Password" required />
@@ -360,9 +341,11 @@
     <header class="site-header">
       <div class="header-inner">
         <div>
-          <h1 class="wordmark">
-            <a href="index.html" style="text-decoration:none;color:inherit;"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></a><span class="wordmark-divider"> · </span><span class="wordmark-portal">Dashboard</span>
-          </h1>
+          <div class="wordmark">
+            <a href="index.html" style="text-decoration:none;color:inherit;">
+              <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span>
+            </a><span class="wordmark-divider"> · </span><span class="wordmark-portal">Dashboard</span>
+          </div>
           <div class="dash-updated-header" id="dash-updated-header"></div>
         </div>
         <button id="logout-btn" class="btn-ghost">Sign Out</button>
@@ -474,14 +457,14 @@
       // ── Greeting ──
       if (data.greeting) {
         const el = document.createElement("div");
-        el.className = "dash-card";
+        el.className = "dash-card anim-fadeup";
         el.innerHTML = `<div class="dash-greeting">${escHtml(data.greeting)}</div>`;
         content.appendChild(el);
       }
 
       // ── Income ──
       const incomeCard = document.createElement("div");
-      incomeCard.className = "dash-card";
+      incomeCard.className = "dash-card anim-fadeup";
       incomeCard.innerHTML = `<div class="dash-card-title">Income This Month</div>`;
 
       incomeCard.innerHTML += `
@@ -520,7 +503,7 @@
       // ── Spending Money ──
       if (personalSpending.length > 0) {
         const spCard = document.createElement("div");
-        spCard.className = "dash-card";
+        spCard.className = "dash-card anim-fadeup";
         spCard.innerHTML = `<div class="dash-card-title">Her Money</div>`;
 
         personalSpending.forEach(s => {
@@ -528,17 +511,17 @@
           row.className = "dash-paycheck-row";
           row.innerHTML = `
             <span class="dash-paycheck-label">${escHtml(s.label || "")}</span>
-            <span class="dash-paycheck-amount" style="color:#ef4444;">− ${fmt(s.amount||0)}</span>
+            <span class="dash-paycheck-amount" style="color:var(--pink);">− ${fmt(s.amount||0)}</span>
           `;
           spCard.appendChild(row);
         });
 
         if (personalSpending.length > 1) {
           const totalRow = document.createElement("div");
-          totalRow.style.cssText = "display:flex;justify-content:space-between;padding:12px 0 0;border-top:1px solid #f0f0f0;margin-top:4px;";
+          totalRow.style.cssText = "display:flex;justify-content:space-between;padding:12px 0 0;border-top:1px solid var(--border);margin-top:4px;";
           totalRow.innerHTML = `
-            <span style="font-size:0.78rem;color:#aaa;font-weight:500;">Total This Month</span>
-            <span style="font-size:1rem;font-weight:700;color:#ef4444;">− ${fmt(totalSpending)}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);font-weight:500;">Total This Month</span>
+            <span style="font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;color:var(--pink);">− ${fmt(totalSpending)}</span>
           `;
           spCard.appendChild(totalRow);
         }
@@ -548,22 +531,22 @@
       // ── Bills ──
       if (bills.length > 0) {
         const billsCard = document.createElement("div");
-        billsCard.className = "dash-card";
+        billsCard.className = "dash-card anim-fadeup";
         billsCard.innerHTML = `<div class="dash-card-title">Bills This Month</div>`;
 
         const BILL_TAG_COLORS = {
-          "Subscription":    { bg: "#ede9fe", text: "#6d28d9" },
-          "Loan / Credit":   { bg: "#fef3c7", text: "#b45309" },
-          "Utilities":       { bg: "#dbeafe", text: "#1d4ed8" },
-          "Cost of Living":  { bg: "#dcfce7", text: "#15803d" },
-          "Insurance":       { bg: "#fce7f3", text: "#be185d" },
-          "Rent / Mortgage": { bg: "#f1f5f9", text: "#475569" },
-          "Other":           { bg: "#f3f4f6", text: "#6b7280" },
+          "Subscription":    { bg: "rgba(109,40,217,0.15)", text: "#a78bfa" },
+          "Loan / Credit":   { bg: "rgba(255,184,0,0.12)",  text: "#ffb800" },
+          "Utilities":       { bg: "rgba(0,212,255,0.1)",   text: "#00d4ff" },
+          "Cost of Living":  { bg: "rgba(0,245,160,0.1)",   text: "#00f5a0" },
+          "Insurance":       { bg: "rgba(255,77,141,0.1)",  text: "#ff4d8d" },
+          "Rent / Mortgage": { bg: "rgba(74,96,128,0.15)",  text: "#8ba3c0" },
+          "Other":           { bg: "rgba(74,96,128,0.12)",  text: "#4a6080" },
         };
         bills.forEach(b => {
           const pct = totalOut > 0 ? Math.round((b.amount / totalOut) * 100) : 0;
           const tagColors = b.tag && BILL_TAG_COLORS[b.tag];
-          const tagHtml = tagColors ? `<span class="dash-bill-tag" style="background:${tagColors.bg};color:${tagColors.text};">${escHtml(b.tag)}</span>` : "";
+          const tagHtml = tagColors ? `<span class="dash-bill-tag" style="background:${tagColors.bg};color:${tagColors.text};border:1px solid ${tagColors.text}33;">${escHtml(b.tag)}</span>` : "";
           const row = document.createElement("div");
           row.className = "dash-bill-row";
           row.innerHTML = `
@@ -612,16 +595,16 @@
 
       // ── Funds ──
       const FUND_COLORS = {
-        fund:     { border: "#3b82f6", bg: "#eff6ff", text: "#1d4ed8", label: "Fund" },
-        savings:  { border: "#22c55e", bg: "#f0fdf4", text: "#15803d", label: "Savings Account" },
-        checking: { border: "#8b5cf6", bg: "#f5f3ff", text: "#7c3aed", label: "Checking" },
-        cd:       { border: "#f59e0b", bg: "#fffbeb", text: "#b45309", label: "CD / Investment" },
-        other:    { border: "#6b7280", bg: "#f9fafb", text: "#4b5563", label: "Other" },
+        fund:     { border: "#00d4ff", bg: "rgba(0,212,255,0.1)",  text: "#00d4ff",  label: "Fund" },
+        savings:  { border: "#00f5a0", bg: "rgba(0,245,160,0.1)",  text: "#00f5a0",  label: "Savings Account" },
+        checking: { border: "#a78bfa", bg: "rgba(167,139,250,0.1)", text: "#a78bfa", label: "Checking" },
+        cd:       { border: "#ffb800", bg: "rgba(255,184,0,0.1)",  text: "#ffb800",  label: "CD / Investment" },
+        other:    { border: "#4a6080", bg: "rgba(74,96,128,0.15)", text: "#8ba3c0",  label: "Other" },
       };
 
       if (funds.length > 0) {
         const fundsCard = document.createElement("div");
-        fundsCard.className = "dash-card";
+        fundsCard.className = "dash-card anim-fadeup";
         fundsCard.innerHTML = `<div class="dash-card-title">Savings &amp; Funds</div>`;
 
         funds.forEach(f => {
@@ -640,7 +623,7 @@
             <div class="dash-fund-header">
               <div class="dash-fund-header-left">
                 <span class="dash-fund-name">${escHtml(f.name)}</span>
-                <span class="dash-fund-type-badge" style="background:${colors.bg};color:${colors.text};">${colors.label}</span>
+                <span class="dash-fund-type-badge" style="background:${colors.bg};color:${colors.text};border:1px solid ${colors.border}33;">${colors.label}</span>
               </div>
               ${goal > 0 ? `<span class="dash-fund-progress-label">${fmt(balance)} / ${fmt(goal)}</span>` : `<span class="dash-fund-progress-label">${fmt(balance)}</span>`}
             </div>
@@ -651,12 +634,12 @@
               </div>
               <div>
                 <div class="dash-fund-meta-label">This Month</div>
-                <div class="dash-fund-meta-value" style="color:${metMonthly ? '#22c55e' : '#f59e0b'}">${fmt(contributed)}</div>
+                <div class="dash-fund-meta-value" style="color:${metMonthly ? 'var(--green)' : 'var(--amber)'}">${fmt(contributed)}</div>
               </div>
             </div>
             ${goal > 0 ? `
               <div class="dash-fund-bar-bg">
-                <div class="dash-fund-bar-fill" style="width:${barPct}%;background:${colors.border};"></div>
+                <div class="dash-fund-bar-fill" style="width:${barPct}%;background:${colors.border};box-shadow:0 0 8px ${colors.border}66;"></div>
               </div>
             ` : ''}
           `;
@@ -715,7 +698,7 @@
       // ── Note ──
       if (data.note) {
         const noteCard = document.createElement("div");
-        noteCard.className = "dash-note-card";
+        noteCard.className = "dash-note-card anim-fadeup";
         noteCard.innerHTML = `<div class="dash-note-label">Note from Trevor</div><div class="dash-note-text"></div>`;
         noteCard.querySelector(".dash-note-text").textContent = data.note;
         content.appendChild(noteCard);
@@ -724,14 +707,18 @@
 
     // ── Charts ──
     const BILL_COLORS = [
-      "#f59e0b","#f97316","#ef4444","#ec4899","#a855f7",
-      "#6366f1","#3b82f6","#06b6d4","#14b8a6","#84cc16",
-      "#fbbf24","#fb923c","#f43f5e","#8b5cf6","#60a5fa"
+      "#ffb800","#ff9500","#ff4d8d","#c084fc","#818cf8",
+      "#00d4ff","#00f5a0","#34d399","#60a5fa","#f472b6",
+      "#fbbf24","#fb923c","#f43f5e","#a78bfa","#38bdf8"
     ];
 
     let billsChart = null;
     let flowChart  = null;
     let tagChart   = null;
+
+    // ── Chart defaults for dark theme ──
+    Chart.defaults.color = "#4a6080";
+    Chart.defaults.borderColor = "rgba(255,255,255,0.06)";
 
     // ── Doughnut (In vs. Out) ──
     function makeDoughnut(canvasId, segments, colors, legendId, income) {
@@ -761,7 +748,7 @@
               <span class="dash-legend-label">${escHtml(label)}</span>
             </div>
             <div>
-              <span class="dash-legend-value" style="${isNeg ? 'color:#ef4444;' : ''}">${isNeg ? '−' : ''}${fmt(Math.abs(val))}</span>
+              <span class="dash-legend-value" style="${isNeg ? 'color:var(--pink);' : ''}">${isNeg ? '−' : ''}${fmt(Math.abs(val))}</span>
               <span class="dash-legend-pct">${pct}%</span>
             </div>
           `;
@@ -784,7 +771,7 @@
           datasets: [{
             data: items.map(i => i.val),
             backgroundColor: colors,
-            borderRadius: 5,
+            borderRadius: 4,
             borderSkipped: false,
           }]
         },
@@ -799,10 +786,10 @@
           scales: {
             x: {
               beginAtZero: true,
-              ticks: { callback: (v) => "$" + Math.round(v).toLocaleString() },
-              grid: { color: "#f5f5f5" }
+              ticks: { callback: (v) => "$" + Math.round(v).toLocaleString(), color: "#4a6080" },
+              grid: { color: "rgba(255,255,255,0.05)" }
             },
-            y: { grid: { display: false } }
+            y: { grid: { display: false }, ticks: { color: "#4a6080" } }
           }
         }
       });
@@ -822,11 +809,11 @@
     function renderFlowChart(income, totalBills, totalSpending, leftover) {
       if (flowChart) { flowChart.destroy(); flowChart = null; }
       const mid = [];
-      if (income > 0)        mid.push({ label: "Brought In", val: income,        color: "#22c55e" });
-      if (totalBills > 0)    mid.push({ label: "Bills",       val: totalBills,    color: "#ef4444" });
-      if (totalSpending > 0) mid.push({ label: "Her Money",   val: totalSpending, color: "#ec4899" });
+      if (income > 0)        mid.push({ label: "Brought In", val: income,        color: "#00f5a0" });
+      if (totalBills > 0)    mid.push({ label: "Bills",       val: totalBills,    color: "#ff4d8d" });
+      if (totalSpending > 0) mid.push({ label: "Her Money",   val: totalSpending, color: "#ffb800" });
       mid.sort((a, b) => b.val - a.val);
-      mid.push({ label: "Left Over", val: leftover, color: leftover < 0 ? "#ef4444" : "#e5e5e5" });
+      mid.push({ label: "Left Over", val: leftover, color: leftover < 0 ? "#ff4d8d" : "#0f1e38" });
       const segments = mid.map(s => ({ label: s.label, val: s.val }));
       const colors   = mid.map(s => s.color);
       flowChart = makeDoughnut("flow-chart", segments, colors, "flow-legend", income);
@@ -835,13 +822,13 @@
     function renderTagChart(bills) {
       if (tagChart) { tagChart.destroy(); tagChart = null; }
       const TAG_COLORS = {
-        "Subscription":    "#6d28d9",
-        "Loan / Credit":   "#b45309",
-        "Utilities":       "#1d4ed8",
-        "Cost of Living":  "#15803d",
-        "Insurance":       "#be185d",
-        "Rent / Mortgage": "#475569",
-        "Other":           "#6b7280",
+        "Subscription":    "#a78bfa",
+        "Loan / Credit":   "#ffb800",
+        "Utilities":       "#00d4ff",
+        "Cost of Living":  "#00f5a0",
+        "Insurance":       "#ff4d8d",
+        "Rent / Mortgage": "#8ba3c0",
+        "Other":           "#4a6080",
       };
       const tagTotals = {};
       bills.forEach(b => {
@@ -852,7 +839,7 @@
       if (entries.length === 0) return;
       const total    = entries.reduce((s, [, v]) => s + v, 0);
       const segments = entries.map(([tag, val]) => ({ label: tag, val }));
-      const colors   = entries.map(([tag]) => TAG_COLORS[tag] || "#aaa");
+      const colors   = entries.map(([tag]) => TAG_COLORS[tag] || "#4a6080");
       tagChart = makeDoughnut("tag-chart", segments, colors, "tag-legend", total);
     }
 
