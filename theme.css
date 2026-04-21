@@ -702,4 +702,6 @@ button[type="submit"]:disabled, .submit-btn:disabled {
   .tracker-stage-label { font-size: 0.62rem; }
   .wordmark { font-size: 1.3rem; }
   .container { padding: 20px 16px; }
+  .orb-1 { width: 300px; height: 300px; top: -150px; left: -150px; }
+  .orb-2 { width: 250px; height: 250px; bottom: -150px; right: -150px; }
 }
