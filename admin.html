@@ -1302,7 +1302,7 @@
       const label = now.toLocaleString("en-US", { month: "long", year: "numeric" });
       const key   = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-      if (!confirm(`Archive ${label} and start fresh?\n\nFund balances and bill names/due dates will carry over. Paychecks, spending, and bill amounts will reset.`)) return;
+      if (!confirm(`Archive ${label} and start fresh?\n\nFund balances and bills (name, due date, amount) will carry over. Paychecks and spending will reset.`)) return;
 
       const statusEl = document.getElementById("fin-save-status");
       statusEl.style.color = "#22c55e";
@@ -1318,7 +1318,7 @@
 
         // Carry forward: fund balances unchanged, bill names + due dates only (reset amount + paid)
         const carryFunds = data.funds.map(f => ({ ...f }));
-        const carryBills = data.bills.map(b => ({ name: b.name, dueDate: b.dueDate, tag: b.tag||"", amount: 0, paid: false }));
+        const carryBills = data.bills.map(b => ({ name: b.name, dueDate: b.dueDate, tag: b.tag||"", amount: b.amount||0, paid: false }));
 
         await setDoc(doc(db, "finances", "overview"), {
           greeting: "", note: "",
