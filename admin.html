@@ -75,6 +75,7 @@
         <button class="admin-tab-btn" data-tab="board">My Board</button>
         <button class="admin-tab-btn" data-tab="finances">Finances</button>
         <button class="admin-tab-btn" data-tab="contacts">Contacts</button>
+        <button class="admin-tab-btn" data-tab="invoice">Invoice</button>
       </div>
 
       <!-- ── Tasks Tab ── -->
@@ -257,8 +258,11 @@
           </div>
 
           <div class="fin-save-row">
-            <button type="button" id="fin-save-btn" class="btn-primary" style="flex:1;">Save Dashboard</button>
-            <button type="button" id="fin-archive-btn" class="btn-ghost-sm" style="white-space:nowrap;">Archive Month</button>
+            <button type="button" id="fin-save-btn" class="btn-primary" style="width:100%;">Save Dashboard</button>
+            <div class="fin-save-actions">
+              <button type="button" id="fin-archive-btn" class="btn-ghost-sm" style="white-space:nowrap;">Archive Month</button>
+              <button type="button" id="fin-preview-btn" class="btn-ghost-sm" style="white-space:nowrap;">Preview Dashboard</button>
+            </div>
             <span id="fin-save-status" class="fin-save-status"></span>
           </div>
 
@@ -279,6 +283,11 @@
       <div id="tab-contacts">
         <div class="contacts-grid" id="contacts-grid"></div>
         <p class="contacts-empty" id="contacts-empty" style="display:none;">No contacts yet. Create one from a task using the ••• menu.</p>
+      </div>
+
+      <!-- ── Invoice Tab ── -->
+      <div id="tab-invoice" style="display:none;">
+        <iframe src="invoice.html" style="width:100%; height:calc(100vh - 120px); border:none; border-radius:12px;"></iframe>
       </div>
 
     </main>
@@ -539,6 +548,7 @@
         document.getElementById("tab-board").style.display    = tab === "board"    ? "block" : "none";
         document.getElementById("tab-finances").style.display = tab === "finances" ? "flex"  : "none";
         document.getElementById("tab-contacts").style.display = tab === "contacts" ? "flex"  : "none";
+        document.getElementById("tab-invoice").style.display  = tab === "invoice"  ? "block" : "none";
         if (tab === "finances") loadFinances();
       });
     });
@@ -1295,6 +1305,10 @@
         statusEl.style.color = "#ef4444";
         statusEl.textContent = "Error — try again.";
       }
+    });
+
+    document.getElementById("fin-preview-btn").addEventListener("click", () => {
+      window.open("dashboard.html", "_blank");
     });
 
     document.getElementById("fin-archive-btn").addEventListener("click", async () => {
