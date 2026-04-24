@@ -372,7 +372,7 @@ details[open] .lookup-summary::before { transform: rotate(90deg); }
 .fin-fund-card-top input { font-size: 0.9rem; padding: 8px 12px; }
 .fin-drag-handle { color: var(--muted); cursor: grab; font-size: 1rem; padding: 0 2px; flex-shrink: 0; user-select: none; line-height: 1; }
 .fin-drag-handle:active { cursor: grabbing; }
-.fin-fund-type-select { padding: 8px 10px; border-radius: 10px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif; cursor: pointer; flex-shrink: 0; }
+.fin-fund-type-select { padding: 8px 10px; border-radius: 10px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif; cursor: pointer; flex-shrink: 0; width: auto; }
 .fin-fund-card-fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .fin-fund-field label { display: block; font-family: 'DM Mono', monospace; font-size: 0.67rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 4px; }
 .fin-fund-field input { font-size: 0.88rem; padding: 8px 12px; }
