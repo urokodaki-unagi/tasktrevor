@@ -258,6 +258,13 @@
     }
     .toast.show { opacity: 1; transform: translateY(0); }
 
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+    html { scrollbar-width: thin; scrollbar-color: var(--muted) var(--bg); }
+
     /* ── Selected summary badge ── */
     .selected-badge {
       font-family: 'DM Mono', monospace;
