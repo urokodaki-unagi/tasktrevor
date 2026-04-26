@@ -512,7 +512,7 @@
           row.className = "dash-paycheck-row";
           row.innerHTML = `
             <span class="dash-paycheck-label">${escHtml(s.label || "")}</span>
-            <span class="dash-paycheck-amount" style="color:var(--pink);">− ${fmt(s.amount||0)}</span>
+            <span class="dash-paycheck-amount" style="color:var(--amber);">− ${fmt(s.amount||0)}</span>
           `;
           spCard.appendChild(row);
         });
@@ -522,7 +522,7 @@
           totalRow.style.cssText = "display:flex;justify-content:space-between;padding:12px 0 0;border-top:1px solid var(--border);margin-top:4px;";
           totalRow.innerHTML = `
             <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);font-weight:500;">Total This Month</span>
-            <span style="font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;color:var(--pink);">− ${fmt(totalSpending)}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;color:var(--amber);">− ${fmt(totalSpending)}</span>
           `;
           spCard.appendChild(totalRow);
         }
