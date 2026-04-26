@@ -24,10 +24,184 @@
       background: var(--cyan);
       box-shadow: 0 0 20px var(--cyan);
     }
-    #tab-tasks section:nth-child(2)::before { background: var(--green); box-shadow: 0 0 20px var(--green); }
-    #tab-tasks section:nth-child(3)::before { background: var(--muted); box-shadow: none; }
-    #tab-finances section::before           { background: var(--amber); box-shadow: 0 0 20px var(--amber); }
-    #tab-contacts section::before           { background: var(--pink);  box-shadow: 0 0 20px var(--pink); }
+    #current-section::before  { background: var(--green); box-shadow: 0 0 20px var(--green); }
+    #open-section::before     { background: var(--cyan);  box-shadow: 0 0 20px var(--cyan); }
+    #done-section::before     { background: var(--muted); box-shadow: none; }
+    #tab-finances section::before { background: var(--amber); box-shadow: 0 0 20px var(--amber); }
+    #tab-contacts section::before { background: var(--pink);  box-shadow: 0 0 20px var(--pink); }
+
+    /* ── Ticketing UI ── */
+    .tt-search-input {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 16px; font-size: 0.9rem;
+      font-family: 'DM Sans', sans-serif; color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    .tt-search-input::placeholder { color: var(--muted); }
+    .tt-search-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.08); }
+    .tt-section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+    }
+    .tt-head-left { display: flex; align-items: center; gap: 10px; }
+    .tt-count-badge {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 600;
+      padding: 2px 8px; border-radius: 99px;
+      background: rgba(0,212,255,0.1); color: var(--cyan); border: 1px solid rgba(0,212,255,0.2);
+    }
+    .tt-count-muted { background: rgba(74,96,128,0.12); color: var(--muted); border-color: rgba(74,96,128,0.2); }
+    .tt-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 4px; border-bottom: 1px solid var(--border); min-width: 0;
+    }
+    .tt-row:last-child { border-bottom: none; }
+    .tt-row-code {
+      font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--cyan);
+      white-space: nowrap; flex-shrink: 0; min-width: 118px;
+    }
+    .tt-row-name {
+      font-size: 0.8rem; color: var(--muted); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; max-width: 100px;
+    }
+    .tt-row-title {
+      font-size: 0.88rem; color: var(--text); overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0;
+    }
+    .tt-row-age {
+      font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .tt-row-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+    .tt-done-item {
+      display: flex; flex-direction: column; border-bottom: 1px solid var(--border);
+      opacity: 0.65; transition: opacity 0.15s;
+    }
+    .tt-done-item:last-child { border-bottom: none; }
+    .tt-done-item:hover { opacity: 1; }
+    .tt-done-item .tt-row { border-bottom: none; padding-bottom: 2px; }
+    .tt-done-note { font-size: 0.75rem; color: var(--muted); font-style: italic; padding: 0 4px 8px 4px; }
+    @media (max-width: 560px) {
+      .tt-row-name { display: none; }
+      .tt-row-code { min-width: 90px; font-size: 0.7rem; }
+    }
+
+    /* ── Get Going Picker ── */
+    .get-going-wrap {
+      margin-bottom: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    .get-going-wrap::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      box-shadow: 0 0 24px rgba(0,212,255,0.35);
+    }
+    .get-going-heading {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .get-going-btn {
+      padding: 13px 40px;
+      background: var(--cyan);
+      color: var(--bg);
+      border: none;
+      border-radius: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.35rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 0 40px rgba(0,212,255,0.2);
+    }
+    .get-going-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 0 60px rgba(0,212,255,0.4);
+    }
+    .get-going-btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+    .get-going-result {
+      margin-top: 20px;
+      background: var(--surface2);
+      border: 1px solid rgba(0,212,255,0.12);
+      border-radius: 10px;
+      padding: 20px 24px;
+    }
+    .get-going-col-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.67rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+    .gg-col-upnext    { background: rgba(0,212,255,0.1);  color: var(--cyan);  border: 1px solid rgba(0,212,255,0.25); }
+    .gg-col-inprogress { background: rgba(0,245,160,0.1); color: var(--green); border: 1px solid rgba(0,245,160,0.25); }
+    .get-going-task-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      color: var(--white);
+      letter-spacing: 1px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .get-going-task-notes {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 8px;
+      font-style: italic;
+    }
+    @keyframes ggLand {
+      0%   { transform: scale(0.96); opacity: 0.5; }
+      65%  { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1);    opacity: 1; }
+    }
+    .get-going-result.landing { animation: ggLand 0.4s ease both; }
+    .get-going-empty { font-size: 0.85rem; color: var(--muted); font-style: italic; margin-top: 14px; }
+
+    /* ── Per-row menu: override the absolute positioning from style.css ── */
+    .tt-row .current-card-menu { position: relative; top: auto; right: auto; }
+
+    /* ── Allow dropdowns to overflow the open section boundary ── */
+    #open-section { overflow: visible; }
+
+    /* ── Send to Board submenu ── */
+    .has-submenu { position: relative; }
+    .qi-board-item { display: flex !important; justify-content: space-between; align-items: center; }
+    .qi-board-item::after { content: '▶'; font-size: 0.55rem; opacity: 0.5; margin-left: 10px; }
+    .submenu {
+      display: none; position: absolute;
+      left: 100%; top: -1px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      min-width: 136px; z-index: 51; overflow: hidden;
+    }
+    .has-submenu:hover .submenu { display: block; }
+    .submenu-item {
+      display: block; width: 100%; padding: 11px 16px;
+      background: transparent; border: none;
+      border-bottom: 1px solid var(--border);
+      text-align: left; font-size: 0.85rem; font-weight: 500;
+      color: var(--text); cursor: pointer;
+      font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+    }
+    .submenu-item:last-child { border-bottom: none; }
+    .submenu-item:hover { background: rgba(255,255,255,0.04); }
+    /* Allow the submenu to escape the dropdown's overflow boundary */
+    .tt-row .current-card-dropdown { overflow: visible; }
   </style>
 </head>
 <body>
@@ -38,10 +212,10 @@
   <!-- Shared Header -->
   <header class="site-header">
     <div class="header-inner">
-      <h1 class="wordmark">
+      <div class="wordmark">
         <a href="index.html" style="text-decoration:none;color:inherit;"><span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span></a>
-        <span id="admin-portal-label"><span class="wordmark-divider"> · </span><span class="wordmark-portal">Workspace</span></span>
-      </h1>
+        <span class="wordmark-portal">Workspace</span>
+      </div>
       <div class="nav-menu" id="login-nav">
         <button class="nav-menu-btn" id="nav-toggle-login" aria-expanded="false">☰</button>
         <div class="nav-dropdown" id="nav-dropdown-login">
@@ -83,32 +257,45 @@
 
         <div class="queue-stats" id="queue-stats"></div>
 
-        <section>
+        <input type="text" class="tt-search-input" id="tt-search" placeholder="Search by ticket number, name, or description…" />
+
+        <!-- In Progress -->
+        <section id="current-section">
           <h2 class="section-title">In Progress</h2>
           <div id="current-admin-card">
-            <p class="empty-msg">Nothing in progress. Pick up a task from the queue below.</p>
+            <p class="empty-msg">Nothing in progress. Pick up a ticket from the open queue below.</p>
           </div>
         </section>
 
-        <section>
-          <h2 class="section-title">Queue</h2>
-          <div class="queue-filter" id="queue-filter">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="task">Task</button>
-            <button class="filter-btn" data-filter="purchase">Purchase</button>
-            <button class="filter-btn" data-filter="fix">Fix / Repair</button>
-            <button class="filter-btn" data-filter="question">Question</button>
-            <button class="filter-btn" data-filter="other">Other</button>
+        <!-- Open Tickets -->
+        <section id="open-section">
+          <div class="tt-section-head">
+            <div class="tt-head-left">
+              <h2 class="section-title" style="margin-bottom:0;">Open</h2>
+              <span class="tt-count-badge" id="open-count-badge">0</span>
+            </div>
+            <div class="queue-filter" id="queue-filter">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="task">Task</button>
+              <button class="filter-btn" data-filter="purchase">Purchase</button>
+              <button class="filter-btn" data-filter="fix">Fix</button>
+              <button class="filter-btn" data-filter="question">Question</button>
+              <button class="filter-btn" data-filter="other">Other</button>
+            </div>
           </div>
-          <ul id="admin-queue-list"><li class="empty-msg">Queue is empty.</li></ul>
+          <ul id="admin-queue-list"><li class="empty-msg" style="padding:12px 0;">No open tickets.</li></ul>
         </section>
 
-        <section>
-          <div class="done-header">
-            <h2 class="section-title" style="margin-bottom:0;">Done</h2>
+        <!-- Completed -->
+        <section id="done-section">
+          <div class="tt-section-head">
+            <div class="tt-head-left">
+              <h2 class="section-title" style="margin-bottom:0;">Completed</h2>
+              <span class="tt-count-badge tt-count-muted" id="done-count-badge">0</span>
+            </div>
             <button id="toggle-done-btn" class="btn-ghost-sm" style="display:none;">Show All</button>
           </div>
-          <ul id="done-list"><li class="empty-msg">Nothing done yet.</li></ul>
+          <ul id="done-list"><li class="empty-msg" style="padding:12px 0;">Nothing completed yet.</li></ul>
         </section>
 
       </div>
@@ -130,6 +317,18 @@
           </div>
           <button class="kanban-slider-arrow" id="kanban-next">&#8594;</button>
         </div>
+        <!-- ── Get Going Picker ── -->
+        <div class="get-going-wrap">
+          <p class="get-going-heading">Not Sure Where to Start?</p>
+          <button class="get-going-btn" id="get-going-btn">Get Going</button>
+          <div class="get-going-result" id="get-going-result" style="display:none;">
+            <span class="get-going-col-tag" id="get-going-col"></span>
+            <div class="get-going-task-title" id="get-going-title"></div>
+            <div class="get-going-task-notes" id="get-going-notes" style="display:none;"></div>
+          </div>
+          <p class="get-going-empty" id="get-going-empty" style="display:none;">Nothing in Up Next or In Progress yet — add some cards first!</p>
+        </div>
+
         <div class="kanban-board">
 
           <div class="kanban-col" id="kanban-col-upnext" data-col="upnext">
@@ -346,16 +545,22 @@
       return (name||"?").split(" ").filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("") || "?";
     }
 
+    async function getNextSeqNum() {
+      const ref  = doc(db, "meta", "ticketCounter");
+      const snap = await getDoc(ref);
+      const seq  = snap.exists() ? (snap.data().next || 100) : 100;
+      await setDoc(ref, { next: seq + 1 });
+      return seq;
+    }
+
+    async function generateTicketCode() {
+      const seq  = await getNextSeqNum();
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      return `TT-${seq}-${rand}`;
+    }
+
     async function generateContactTaskCode() {
-      for (let i = 0; i < 10; i++) {
-        const code = "TT-" + Math.floor(1000 + Math.random() * 9000);
-        const [q, d] = await Promise.all([
-          getDocs(query(collection(db, "queue"), where("code","==",code))),
-          getDocs(query(collection(db, "done"),  where("code","==",code)))
-        ]);
-        if (q.empty && d.empty) return code;
-      }
-      return "TT-" + Date.now().toString().slice(-4);
+      return await generateTicketCode();
     }
 
     async function createContactFromTask({ name, email, phone }) {
@@ -499,6 +704,16 @@
       return date.toLocaleString("en-US", { month:"short", day:"numeric", hour:"numeric", minute:"2-digit", hour12:true });
     }
 
+    function getAge(date) {
+      const secs = Math.floor((new Date() - date) / 1000);
+      if (secs < 60)  return "just now";
+      const mins = Math.floor(secs / 60);
+      if (mins < 60)  return `${mins}m`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h`;
+      return `${Math.floor(hours / 24)}d`;
+    }
+
     const app  = initializeApp(firebaseConfig);
     const db   = getFirestore(app);
     const auth = getAuth(app);
@@ -583,72 +798,89 @@
     }
 
     function renderQueue() {
-      const list = document.getElementById("admin-queue-list");
-      const filtered = activeFilter === "all"
+      const list   = document.getElementById("admin-queue-list");
+      const search = (document.getElementById("tt-search")?.value || "").toLowerCase().trim();
+      const badge  = document.getElementById("open-count-badge");
+      if (badge) badge.textContent = allQueueDocs.length;
+
+      let filtered = activeFilter === "all"
         ? allQueueDocs
         : allQueueDocs.filter(d => (d.data().type || "task") === activeFilter);
 
+      if (search) {
+        filtered = filtered.filter(d => {
+          const data = d.data();
+          return (data.code        || "").toLowerCase().includes(search)
+              || (data.submittedBy || "").toLowerCase().includes(search)
+              || (data.title       || "").toLowerCase().includes(search);
+        });
+      }
+
       if (filtered.length === 0) {
-        const label = activeFilter === "all" ? "Queue is empty." : `No ${TYPE_META[activeFilter]?.label || activeFilter} requests in queue.`;
-        list.innerHTML = `<li class="empty-msg">${label}</li>`;
+        const label = search
+          ? "No tickets match your search."
+          : activeFilter === "all" ? "No open tickets." : `No ${TYPE_META[activeFilter]?.label || activeFilter} tickets open.`;
+        list.innerHTML = `<li class="empty-msg" style="padding:12px 0;">${label}</li>`;
         return;
       }
 
       list.innerHTML = "";
       filtered.forEach((d) => {
-        const data   = d.data();
-        const posAll = allQueueDocs.indexOf(d) + 1;
-        const li     = document.createElement("li");
-        li.className = "admin-queue-item";
-        li.dataset.type = data.type || "task";
-        li.style.position = "relative";
-        li.innerHTML = `
-          <div class="current-card-menu">
-            <button class="current-card-menu-btn" title="More options">•••</button>
-            <div class="current-card-dropdown">
-              <button class="current-card-dropdown-item qi-pickup-btn">Pick Up</button>
-              <button class="current-card-dropdown-item qi-contact-btn">Create Contact</button>
-              <button class="current-card-dropdown-item danger qi-delete-btn">Delete</button>
-            </div>
-          </div>
-          <div class="qi-top">
-            <div class="queue-pos-badge">${posAll}</div>
-            <div class="qi-header">
-              <div class="qi-meta-row">
-                ${typeBadge(data.type || "task")}
-                <span class="qi-code">${escHtml(data.code || "")}</span>
-                ${data.createdAt ? `<span class="qi-time">${formatTime(data.createdAt.toDate())}</span>` : ""}
-              </div>
-              <div class="qi-name">${escHtml(data.submittedBy || "Anonymous")}</div>
-            </div>
-          </div>
-          <div class="qi-request">${escHtml(data.title || "")}</div>
-          ${(data.email || data.phone) ? `
-          <div class="qi-contact">
-            ${data.email ? `<div class="qi-contact-item">Email: <strong>${escHtml(data.email)}</strong></div>` : ""}
-            ${data.phone ? `<div class="qi-contact-item">Phone: <strong>${escHtml(data.phone)}</strong></div>` : ""}
-          </div>` : ""}`;
+        const data = d.data();
+        const li   = document.createElement("li");
+        li.className = "tt-row";
+        const age  = data.createdAt ? getAge(data.createdAt.toDate()) : "";
 
-        const qiMenuBtn  = li.querySelector(".current-card-menu-btn");
-        const qiDropdown = li.querySelector(".current-card-dropdown");
-        qiMenuBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          document.querySelectorAll(".current-card-dropdown.open").forEach(d => d.classList.remove("open"));
-          qiDropdown.classList.toggle("open");
-        });
-        li.querySelector(".qi-pickup-btn").addEventListener("click", () => {
-          qiDropdown.classList.remove("open");
+        li.innerHTML = `
+          <span class="tt-row-code">${escHtml(data.code || "—")}</span>
+          ${typeBadge(data.type || "task")}
+          <span class="tt-row-name">${escHtml(data.submittedBy || "Anon")}</span>
+          <span class="tt-row-title">${escHtml(data.title || "")}</span>
+          <span class="tt-row-age">${age}</span>
+          <div class="tt-row-actions">
+            <button class="btn-pickup tt-pickup-btn" style="padding:6px 14px;font-size:0.78rem;white-space:nowrap;">Pick Up</button>
+            <div class="current-card-menu">
+              <button class="current-card-menu-btn" title="More">•••</button>
+              <div class="current-card-dropdown">
+                <button class="current-card-dropdown-item qi-contact-btn">Create Contact</button>
+                <div class="has-submenu">
+                  <button class="current-card-dropdown-item qi-board-item">Send to Board</button>
+                  <div class="submenu">
+                    <button class="submenu-item qi-board-upnext">Up Next</button>
+                    <button class="submenu-item qi-board-inprogress">In Progress</button>
+                  </div>
+                </div>
+                <button class="current-card-dropdown-item danger qi-delete-btn">Delete</button>
+              </div>
+            </div>
+          </div>`;
+
+        li.querySelector(".tt-pickup-btn").addEventListener("click", () =>
           startTask(d.id, data.title, data.submittedBy||"", data.code||"",
-                    data.email||"", data.phone||"", data.createdAt||null, data.type||"task");
+                    data.email||"", data.phone||"", data.createdAt||null, data.type||"task"));
+        li.querySelector(".qi-contact-btn").addEventListener("click", () =>
+          createContactFromTask({ name: data.submittedBy||"", email: data.email||"", phone: data.phone||"" }));
+        li.querySelector(".qi-delete-btn").addEventListener("click", () => deleteTask(d.id));
+
+        async function sendToBoard(col) {
+          await addDoc(collection(db, "personal_tasks"), {
+            title: data.title || "", notes: "", column: col,
+            createdAt: serverTimestamp(), order: Date.now()
+          });
+          await deleteDoc(doc(db, "queue", d.id));
+          showToast(`Added to ${COL_LABELS[col]} ✓`);
+        }
+        li.querySelector(".qi-board-upnext").addEventListener("click",    () => sendToBoard("upnext"));
+        li.querySelector(".qi-board-inprogress").addEventListener("click", () => sendToBoard("inprogress"));
+
+        const menuBtn  = li.querySelector(".current-card-menu-btn");
+        const dropdown = li.querySelector(".current-card-dropdown");
+        menuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.querySelectorAll(".current-card-dropdown.open").forEach(el => el.classList.remove("open"));
+          dropdown.classList.toggle("open");
         });
-        li.querySelector(".qi-contact-btn").addEventListener("click", () => {
-          qiDropdown.classList.remove("open");
-          createContactFromTask({ name: data.submittedBy||"", email: data.email||"", phone: data.phone||"" });
-        });
-        li.querySelector(".qi-delete-btn").addEventListener("click", () => {
-          qiDropdown.classList.remove("open");
-          deleteTask(d.id);
-        });
+
         list.appendChild(li);
       });
     }
@@ -678,23 +910,17 @@
                 ${typeBadge(data.type || "task")}
                 <span class="current-code">${escHtml(data.code || "")}</span>
               </div>
-              <div class="current-section-label">Request</div>
               <div class="current-request-text"></div>
-              <div>
-                <span class="current-section-label">From</span>
-                <span class="current-submitter"></span>
-              </div>
-              ${(data.email || data.phone) ? `
               <div class="current-contact-row">
-                ${data.email ? `<div>Email: <strong>${escHtml(data.email)}</strong></div>` : ""}
-                ${data.phone ? `<div>Phone: <strong>${escHtml(data.phone)}</strong></div>` : ""}
-              </div>` : ""}
+                <span class="current-submitter"></span>
+                ${data.email ? `<span>${escHtml(data.email)}</span>` : ""}
+                ${data.phone ? `<span>${escHtml(data.phone)}</span>` : ""}
+              </div>
               <div class="current-card-footer">
                 <span class="stage-badge">${STAGE_LABELS[stage]}</span>
                 <span class="elapsed-timer" id="elapsed-timer">—</span>
               </div>
               <div class="admin-note-wrap">
-                <div class="admin-note-label">Internal Notes</div>
                 <textarea id="admin-note-input" rows="2" placeholder="Optional note (saved with ticket when done)...">${escHtml(data.adminNote || "")}</textarea>
               </div>
               <div class="stage-buttons">
@@ -762,40 +988,58 @@
       function renderDone() {
         const list      = document.getElementById("done-list");
         const toggleBtn = document.getElementById("toggle-done-btn");
-        if (allDoneDocs.length === 0) {
-          list.innerHTML          = `<li class="empty-msg">Nothing done yet.</li>`;
+        const badge     = document.getElementById("done-count-badge");
+        if (badge) badge.textContent = allDoneDocs.length;
+
+        const search = (document.getElementById("tt-search")?.value || "").toLowerCase().trim();
+        let visible  = allDoneDocs;
+        if (search) {
+          visible = visible.filter(d => {
+            const data = d.data();
+            return (data.code        || "").toLowerCase().includes(search)
+                || (data.submittedBy || "").toLowerCase().includes(search)
+                || (data.title       || "").toLowerCase().includes(search);
+          });
+        }
+
+        if (visible.length === 0) {
+          list.innerHTML          = search
+            ? `<li class="empty-msg" style="padding:12px 0;">No completed tickets match your search.</li>`
+            : `<li class="empty-msg" style="padding:12px 0;">Nothing completed yet.</li>`;
           toggleBtn.style.display = "none";
           return;
         }
-        const docs = showingAll ? allDoneDocs : allDoneDocs.slice(0, DONE_PREVIEW);
+
+        const docs = showingAll ? visible : visible.slice(0, DONE_PREVIEW);
         list.innerHTML = "";
         docs.forEach((d) => {
           const data = d.data();
           const li   = document.createElement("li");
-          li.className = "done-item";
+          li.className = "tt-done-item";
+          const age  = data.completedAt ? getAge(data.completedAt.toDate()) : "";
+
           li.innerHTML = `
-            <div class="done-item-info">
-              <div class="done-item-top">
-                ${typeBadge(data.type || "task")}
-                <span class="done-title"></span>
+            <div class="tt-row">
+              <span class="tt-row-code">${escHtml(data.code || "—")}</span>
+              ${typeBadge(data.type || "task")}
+              <span class="tt-row-name">${escHtml(data.submittedBy || "Anon")}</span>
+              <span class="tt-row-title">${escHtml(data.title || "")}</span>
+              <span class="tt-row-age">${age ? `Done ${age}` : ""}</span>
+              <div class="tt-row-actions">
+                <button class="btn-ghost-sm restart-btn">Restart</button>
+                <button class="btn-ghost-sm remove-btn">Remove</button>
               </div>
-              <div class="done-meta">
-                ${data.submittedBy ? escHtml(data.submittedBy) + " &middot; " : ""}${data.code || ""}${data.completedAt ? " &middot; " + formatTime(data.completedAt.toDate()) : ""}${data.email ? " &middot; " + escHtml(data.email) : ""}${data.phone ? " &middot; " + escHtml(data.phone) : ""}
-              </div>
-              ${data.adminNote ? `<div class="done-note">Note: ${escHtml(data.adminNote)}</div>` : ""}
             </div>
-            <div class="done-actions">
-              <button class="btn-ghost-sm restart-btn">Restart</button>
-              <button class="btn-ghost-sm remove-btn">Remove</button>
-            </div>`;
-          li.querySelector(".done-title").textContent = data.title || "";
+            ${data.adminNote ? `<div class="tt-done-note">Note: ${escHtml(data.adminNote)}</div>` : ""}`;
+
           li.querySelector(".restart-btn").addEventListener("click", () => restartTask(d.id, data));
           li.querySelector(".remove-btn").addEventListener("click",  () => deleteTask(d.id, "done"));
           list.appendChild(li);
         });
-        if (allDoneDocs.length > DONE_PREVIEW) {
+
+        if (visible.length > DONE_PREVIEW) {
           toggleBtn.style.display = "inline-block";
-          toggleBtn.textContent   = showingAll ? "Show Less" : `Show All (${allDoneDocs.length})`;
+          toggleBtn.textContent   = showingAll ? "Show Less" : `Show All (${visible.length})`;
         } else {
           toggleBtn.style.display = "none";
         }
@@ -803,6 +1047,11 @@
 
       document.getElementById("toggle-done-btn").addEventListener("click", () => {
         showingAll = !showingAll; renderDone();
+      });
+
+      document.getElementById("tt-search").addEventListener("input", () => {
+        renderQueue();
+        renderDone();
       });
 
       startKanbanListener();
@@ -889,7 +1138,8 @@
     }
 
     // ── Kanban Board ──
-    let dragKanbanId = null;
+    let dragKanbanId    = null;
+    let latestKanbanDocs = [];
 
     const COL_LABELS = { upnext: "Up Next", inprogress: "In Progress", done: "Done" };
 
@@ -925,6 +1175,7 @@
         });
         card.appendChild(picker);
       });
+
       card.ondblclick = (e) => {
         if (e.target.classList.contains("kanban-delete-btn")) return;
         card.draggable = false;
@@ -1081,9 +1332,74 @@
 
       // Real-time listener
       onSnapshot(query(collection(db, "personal_tasks"), orderBy("order")), (snap) => {
+        latestKanbanDocs = snap.docs;
         COLS.forEach(col => renderKanbanCol(col, snap.docs));
       });
     }
+
+    // ── Get Going Picker ──
+    document.getElementById("get-going-btn").addEventListener("click", () => {
+      const btn     = document.getElementById("get-going-btn");
+      const result  = document.getElementById("get-going-result");
+      const empty   = document.getElementById("get-going-empty");
+      const colEl   = document.getElementById("get-going-col");
+      const titleEl = document.getElementById("get-going-title");
+      const notesEl = document.getElementById("get-going-notes");
+
+      const pool = latestKanbanDocs.filter(d => {
+        const col = d.data().column;
+        return col === "upnext" || col === "inprogress";
+      });
+
+      empty.style.display  = "none";
+      result.style.display = "none";
+
+      if (pool.length === 0) {
+        empty.style.display = "block";
+        return;
+      }
+
+      function showCard(doc, landing) {
+        const data = doc.data();
+        colEl.textContent  = data.column === "upnext" ? "Up Next" : "In Progress";
+        colEl.className    = `get-going-col-tag gg-col-${data.column}`;
+        titleEl.textContent = data.title || "";
+        notesEl.textContent = data.notes || "(no description)";
+        notesEl.style.display = "block";
+        result.style.display = "block";
+        if (landing) {
+          result.classList.remove("landing");
+          void result.offsetWidth;
+          result.classList.add("landing");
+        }
+      }
+
+      if (pool.length === 1) {
+        showCard(pool[0], true);
+        btn.textContent = "Pick Again";
+        return;
+      }
+
+      btn.disabled    = true;
+      btn.textContent = "Picking...";
+
+      // Slot machine: fast at first, then slow to a stop
+      const delays = [50, 60, 70, 85, 100, 120, 150, 190, 240, 310, 400];
+      let step = 0;
+
+      function spin() {
+        showCard(pool[Math.floor(Math.random() * pool.length)], false);
+        if (step < delays.length) {
+          setTimeout(spin, delays[step++]);
+        } else {
+          const winner = pool[Math.floor(Math.random() * pool.length)];
+          showCard(winner, true);
+          btn.disabled    = false;
+          btn.textContent = "Pick Again";
+        }
+      }
+      spin();
+    });
 
     // ── Finance Helpers ──
     function syncEmpty(listId, emptyId) {
