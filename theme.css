@@ -120,23 +120,18 @@ h1, h2.display, .display-heading {
   line-height: 1;
   color: var(--white);
   text-decoration: none;
+  display: flex;
+  align-items: center;
 }
 .wordmark-task    { color: var(--muted); }
 .wordmark-trevor  { color: var(--cyan);  }
-.wordmark-divider {
-  color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 300;
-  font-size: 0.9rem;
-  margin: 0 6px;
-  letter-spacing: 0;
-}
 .wordmark-portal {
   color: var(--muted);
   font-family: 'DM Sans', sans-serif;
   font-weight: 300;
   font-size: 0.85rem;
   letter-spacing: 0.01em;
+  margin-left: 10px;
 }
 
 /* ── Navigation ── */
@@ -607,8 +602,8 @@ button[type="submit"]:disabled, .submit-btn:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
