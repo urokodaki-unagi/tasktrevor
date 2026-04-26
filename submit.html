@@ -69,12 +69,6 @@
     }
     .pip.done   { background: rgba(0,245,160,0.5); }
     .pip.active { background: var(--green); }
-    .status-queue-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
-      color: var(--muted);
-      white-space: nowrap;
-    }
 
     /* ─── Main ─── */
     .main {
@@ -203,6 +197,24 @@
     /* ─── Lookup ─── */
     .lookup-result { margin-top: 14px; }
 
+    /* ─── Compact status + track card ─── */
+    .status-track-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    #status-card .stats-row  { margin-bottom: 0; gap: 16px; }
+    #status-card .stat-num   { font-size: 1.5rem; }
+    #status-card .stat-sep   { height: 16px; }
+    #status-card .track-toggle { width: auto; padding: 0; }
+    #status-card .track-body {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
     /* ─── Track a Request toggle ─── */
     .track-toggle {
       display: flex;
@@ -245,7 +257,7 @@
       <div class="wordmark">
         <a href="index.html" style="text-decoration:none;color:inherit;">
           <span class="wordmark-task">Task</span><span class="wordmark-trevor">Trevor</span>
-        </a><span class="wordmark-divider"> · </span><span class="wordmark-portal">Submit a Request</span>
+        </a><span class="wordmark-portal">Submit a Request</span>
       </div>
       <div class="nav-menu">
         <button class="nav-menu-btn" id="nav-toggle">☰</button>
@@ -270,14 +282,43 @@
         <div class="pip" id="pip-3"></div>
         <div class="pip" id="pip-4"></div>
       </div>
-      <span class="status-queue-label" id="status-queue-label"></span>
     </div>
   </div>
 
   <main class="main">
 
+    <!-- Queue Status + Track a Request -->
+    <div class="card card-amber anim-fadeup" id="status-card">
+      <div class="status-track-row">
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-num" id="queue-count">—</span>
+            <span class="stat-lbl">waiting</span>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat-item">
+            <span class="stat-num" id="avg-time">—</span>
+            <span class="stat-lbl">avg. completion</span>
+          </div>
+        </div>
+        <button class="track-toggle" id="track-toggle">
+          Track a Request <span class="track-toggle-arrow">▶</span>
+        </button>
+      </div>
+      <div class="track-body" id="track-body">
+        <form id="lookup-form">
+          <div class="lookup-form-row">
+            <span class="lookup-prefix">TT-</span>
+            <input type="text" id="lookup-input" placeholder="100-0000" maxlength="8" style="max-width:140px;" />
+            <button type="submit" class="submit-btn" style="width:auto;padding:12px 20px;">Look Up</button>
+          </div>
+        </form>
+        <div class="lookup-result" id="lookup-result"></div>
+      </div>
+    </div>
+
     <!-- Request Form -->
-    <div class="card card-cyan anim-fadeup" id="form-card">
+    <div class="card card-cyan anim-fadeup anim-delay-1" id="form-card">
       <div class="card-label">New Request</div>
 
       <div class="type-row">
@@ -309,46 +350,13 @@
         <div class="confirm-sub">Trevor will get to your request soon.<br>Save your ticket code to check back on the status.</div>
         <div class="code-block">
           <div class="code-label">Ticket Code</div>
-          <div class="code-value" id="confirm-code">TT-0000</div>
+          <div class="code-value" id="confirm-code">—</div>
         </div>
         <div class="btn-row">
           <button class="btn-ghost" id="copy-btn">Copy Code</button>
           <button class="btn-ghost" id="another-btn">New Request</button>
         </div>
         <div class="copy-feedback" id="copy-feedback"></div>
-      </div>
-    </div>
-
-    <!-- Queue Status -->
-    <div class="card card-amber anim-fadeup anim-delay-2">
-      <div class="card-label">Queue Status</div>
-      <div class="stats-row">
-        <div class="stat-item">
-          <span class="stat-num" id="queue-count">—</span>
-          <span class="stat-lbl">waiting</span>
-        </div>
-        <div class="stat-sep"></div>
-        <div class="stat-item">
-          <span class="stat-num" id="avg-time">—</span>
-          <span class="stat-lbl">avg. completion</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Track a Request -->
-    <div class="card anim-fadeup anim-delay-3" style="text-align:center;">
-      <button class="track-toggle" id="track-toggle">
-        Track a Request <span class="track-toggle-arrow">▶</span>
-      </button>
-      <div class="track-body" id="track-body">
-        <form id="lookup-form">
-          <div class="lookup-form-row">
-            <span class="lookup-prefix">TT-</span>
-            <input type="text" id="lookup-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}" inputmode="numeric" style="max-width:120px;" />
-            <button type="submit" class="submit-btn" style="width:auto;padding:12px 20px;">Look Up</button>
-          </div>
-        </form>
-        <div class="lookup-result" id="lookup-result"></div>
       </div>
     </div>
 
@@ -359,7 +367,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, onSnapshot,
-      query, orderBy, where, getDocs, getDoc, serverTimestamp, doc
+      query, orderBy, where, getDocs, getDoc, setDoc, serverTimestamp, doc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -439,8 +447,6 @@
     // ─── Queue count ───
     onSnapshot(query(collection(db, "queue"), orderBy("order"), orderBy("createdAt")), (snap) => {
       document.getElementById("queue-count").textContent = snap.docs.length;
-      document.getElementById("status-queue-label").textContent =
-        snap.docs.length === 1 ? "1 in queue" : `${snap.docs.length} in queue`;
     });
 
     // ─── Avg completion time ───
@@ -472,13 +478,15 @@
 
     // ─── Unique code ───
     async function generateUniqueCode() {
-      while (true) {
-        const code = "TT-" + Math.floor(1000 + Math.random() * 9000);
-        const [q, d] = await Promise.all([
-          getDocs(query(collection(db, "queue"), where("code", "==", code))),
-          getDocs(query(collection(db, "done"),  where("code", "==", code)))
-        ]);
-        if (q.empty && d.empty) return code;
+      const rand = Math.floor(1000 + Math.random() * 9000);
+      try {
+        const ref  = doc(db, "meta", "ticketCounter");
+        const snap = await getDoc(ref);
+        const seq  = snap.exists() ? (snap.data().next || 100) : 100;
+        await setDoc(ref, { next: seq + 1 });
+        return `TT-${seq}-${rand}`;
+      } catch {
+        return `TT-${rand}`;
       }
     }
 
@@ -500,9 +508,9 @@
       const phone = document.getElementById("phone-input").value.trim();
       const task  = document.getElementById("task-input").value.trim();
       const type  = selectedType;
-      const code  = await generateUniqueCode();
 
       try {
+        const code  = await generateUniqueCode();
         await addDoc(collection(db, "queue"), {
           title: task, submittedBy: name, email, phone, code, type,
           createdAt: serverTimestamp(), order: Date.now()
@@ -524,7 +532,7 @@
         badge.textContent       = meta.label;
         badge.style.background  = meta.bg;
         badge.style.color       = meta.color;
-        document.getElementById("confirm-code").textContent = code;
+        document.getElementById("confirm-code").textContent = code.replace("TT-", "");
         document.getElementById("form-card").style.display    = "none";
         document.getElementById("confirm-card").style.display = "block";
         document.getElementById("confirm-card").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -570,6 +578,12 @@
       const hrs = Math.floor(mins / 60);
       return hrs === 1 ? "1 hr ago" : `${hrs} hrs ago`;
     }
+
+    // ─── Lookup input auto-format (XXX-XXXX) ───
+    document.getElementById("lookup-input").addEventListener("input", (e) => {
+      const digits = e.target.value.replace(/\D/g, "").slice(0, 7);
+      e.target.value = digits.length > 3 ? digits.slice(0, 3) + "-" + digits.slice(3) : digits;
+    });
 
     // ─── Lookup ───
     document.getElementById("lookup-form").addEventListener("submit", async (e) => {
