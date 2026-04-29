@@ -240,6 +240,147 @@
     .admin-modal input:focus, .admin-modal textarea:focus {
       border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
     }
+
+    /* ── Board sub-nav ── */
+    .board-subnav {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+    }
+    .board-subnav-left { display: flex; gap: 6px; }
+    .board-view-btn {
+      padding: 7px 16px; border-radius: 8px; border: 1px solid var(--border);
+      background: transparent; font-family: 'DM Mono', monospace; font-size: 0.72rem;
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
+    .board-view-btn:hover:not(.active) { color: var(--text); background: var(--surface2); }
+    .board-view-btn.active { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
+    .kanban-view-toggle { display: flex; align-items: center; gap: 8px; }
+
+    /* ── Notes Module ── */
+    #notes-section::before { background: var(--green); box-shadow: 0 0 20px var(--green); }
+    .notes-layout {
+      display: grid; grid-template-columns: 210px 1fr; gap: 14px; min-height: 400px;
+    }
+    .notes-sidebar {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .notes-sidebar-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+    .notes-sidebar-label {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+    }
+    .notes-new-folder-btn {
+      background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.72rem; font-weight: 600; color: var(--muted); cursor: pointer;
+      padding: 3px 8px; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+    }
+    .notes-new-folder-btn:hover { border-color: var(--green); color: var(--green); }
+    .notes-folder-item { margin-bottom: 2px; }
+    .notes-folder-header {
+      display: flex; align-items: center; gap: 6px; padding: 6px 4px;
+      border-radius: 7px; cursor: pointer; transition: background 0.12s;
+    }
+    .notes-folder-header:hover { background: rgba(255,255,255,0.04); }
+    .notes-folder-arrow {
+      font-size: 0.55rem; color: var(--muted); transition: transform 0.15s; flex-shrink: 0; line-height: 1;
+    }
+    .notes-folder-arrow.open { transform: rotate(90deg); }
+    .notes-folder-name {
+      font-size: 0.82rem; font-weight: 600; color: var(--text);
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .notes-folder-count { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
+    .notes-folder-delete {
+      background: transparent; border: none; color: var(--muted); font-size: 0.7rem;
+      cursor: pointer; padding: 1px 4px; border-radius: 4px; transition: color 0.12s;
+      opacity: 0; flex-shrink: 0; font-family: 'DM Sans', sans-serif; line-height: 1;
+    }
+    .notes-folder-header:hover .notes-folder-delete { opacity: 1; }
+    .notes-folder-delete:hover { color: var(--pink); }
+    .notes-folder-notes { padding-left: 16px; margin-bottom: 2px; }
+    .notes-note-item {
+      display: flex; align-items: center; gap: 6px; padding: 5px 6px;
+      border-radius: 6px; cursor: pointer; transition: background 0.12s;
+    }
+    .notes-note-item:hover { background: rgba(255,255,255,0.04); }
+    .notes-note-item.active { background: rgba(0,245,160,0.1); }
+    .notes-note-title {
+      font-size: 0.78rem; color: var(--text);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+    }
+    .notes-note-new-btn {
+      padding: 4px 6px; font-size: 0.72rem; color: var(--muted); cursor: pointer;
+      border-radius: 6px; border: none; background: transparent;
+      font-family: 'DM Sans', sans-serif; transition: color 0.12s;
+      margin-top: 2px; width: 100%; text-align: left;
+    }
+    .notes-note-new-btn:hover { color: var(--green); }
+    .notes-sidebar-empty { font-size: 0.75rem; color: var(--muted); font-style: italic; padding: 8px 4px; }
+    .notes-editor-wrap {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .notes-placeholder {
+      display: flex; align-items: center; justify-content: center; flex: 1; padding: 40px 20px;
+    }
+    .notes-placeholder p { font-size: 0.85rem; color: var(--muted); text-align: center; font-style: italic; }
+    .notes-title-input {
+      background: transparent; border: none; border-bottom: 1px solid var(--border);
+      border-radius: 0; padding: 16px 18px; font-family: 'DM Sans', sans-serif;
+      font-size: 1.05rem; font-weight: 600; color: var(--white); outline: none; width: 100%;
+    }
+    .notes-title-input::placeholder { color: var(--muted); }
+    .notes-toolbar {
+      display: flex; align-items: center; gap: 2px; padding: 7px 12px;
+      border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap;
+    }
+    .notes-tool-btn {
+      background: transparent; border: 1px solid transparent; border-radius: 6px;
+      width: 30px; height: 28px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-family: 'DM Sans', sans-serif; color: var(--text);
+      cursor: pointer; transition: background 0.12s, border-color 0.12s;
+    }
+    .notes-tool-btn:hover { background: var(--surface2); border-color: var(--border); }
+    .notes-tool-italic { font-style: italic; }
+    .notes-tool-underline { text-decoration: underline; }
+    .notes-tool-strike { text-decoration: line-through; }
+    .notes-tool-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
+    .notes-body {
+      flex: 1; padding: 16px 18px; color: var(--text); font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; line-height: 1.65; outline: none; min-height: 220px; overflow-y: auto;
+    }
+    .notes-body ul, .notes-body ol { padding-left: 22px; margin: 4px 0; }
+    .notes-body li { margin-bottom: 2px; }
+    .notes-checklist { list-style: none !important; padding-left: 4px !important; }
+    .notes-checklist li { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+    .notes-cb {
+      flex-shrink: 0; cursor: pointer; color: var(--muted); font-size: 1rem;
+      line-height: 1.5; user-select: none; transition: color 0.12s;
+    }
+    .notes-cb:hover { color: var(--cyan); }
+    .notes-checklist li.checked .notes-cb { color: var(--green); }
+    .notes-checklist li.checked > span:last-child { text-decoration: line-through; color: var(--muted); }
+    .notes-editor-footer {
+      display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+      border-top: 1px solid var(--border); background: var(--surface);
+    }
+    .notes-saved-indicator {
+      font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--green);
+    }
+    .notes-delete-note-btn {
+      margin-left: auto; background: transparent; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 0.75rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; padding: 6px 12px; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+    }
+    .notes-delete-note-btn:hover { color: var(--pink); border-color: rgba(255,77,141,0.4); }
+    @media (max-width: 700px) {
+      .notes-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -344,12 +485,19 @@
 
       <!-- ── My Board Tab ── -->
       <div id="tab-board">
-        <div class="kanban-view-toggle">
-          <span class="kanban-view-label" id="kanban-view-label">Desktop</span>
-          <div class="kanban-toggle-track" id="kanban-toggle-track">
-            <div class="kanban-toggle-thumb"></div>
+        <div class="board-subnav">
+          <div class="board-subnav-left">
+            <button class="board-view-btn active" data-view="kanban">Kanban</button>
+            <button class="board-view-btn" data-view="notes">Notes</button>
+          </div>
+          <div id="kanban-view-toggle-wrap" class="kanban-view-toggle">
+            <span class="kanban-view-label" id="kanban-view-label">Desktop</span>
+            <div class="kanban-toggle-track" id="kanban-toggle-track">
+              <div class="kanban-toggle-thumb"></div>
+            </div>
           </div>
         </div>
+        <div id="board-kanban-view">
         <div class="kanban-slider-nav" id="kanban-slider-nav">
           <button class="kanban-slider-arrow" id="kanban-prev">&#8592;</button>
           <div class="kanban-slider-dots" id="kanban-dots">
@@ -425,6 +573,50 @@
           </div>
 
         </div>
+        </div><!-- /#board-kanban-view -->
+
+        <!-- ── Notes ── -->
+        <div id="board-notes-view" style="display:none;">
+        <section id="notes-section">
+          <div class="notes-layout">
+
+            <div class="notes-sidebar">
+              <div class="notes-sidebar-top">
+                <span class="notes-sidebar-label">Folders</span>
+                <button class="notes-new-folder-btn" onclick="notesAddFolder()">+ Folder</button>
+              </div>
+              <div id="notes-folder-tree"></div>
+            </div>
+
+            <div class="notes-editor-wrap">
+              <div id="notes-placeholder" class="notes-placeholder">
+                <p>Add a folder, then create your first note.</p>
+              </div>
+              <div id="notes-editor" style="display:none;flex-direction:column;flex:1;">
+                <input type="text" id="notes-title" class="notes-title-input" placeholder="Note title…" maxlength="120" />
+                <div class="notes-toolbar">
+                  <button class="notes-tool-btn" title="Bold" onmousedown="event.preventDefault();notesFmt('bold')"><b>B</b></button>
+                  <button class="notes-tool-btn notes-tool-italic" title="Italic" onmousedown="event.preventDefault();notesFmt('italic')">I</button>
+                  <button class="notes-tool-btn notes-tool-underline" title="Underline" onmousedown="event.preventDefault();notesFmt('underline')">U</button>
+                  <button class="notes-tool-btn notes-tool-strike" title="Strikethrough" onmousedown="event.preventDefault();notesFmt('strikeThrough')">S</button>
+                  <span class="notes-tool-sep"></span>
+                  <button class="notes-tool-btn" title="Bullet List" onmousedown="event.preventDefault();notesFmt('insertUnorderedList')">&#8226;</button>
+                  <button class="notes-tool-btn" title="Numbered List" onmousedown="event.preventDefault();notesFmt('insertOrderedList')">1.</button>
+                  <button class="notes-tool-btn" title="Checklist" onmousedown="event.preventDefault();notesInsertChecklist()">&#9744;</button>
+                </div>
+                <div id="notes-body" class="notes-body" contenteditable="true" spellcheck="true"></div>
+                <div class="notes-editor-footer">
+                  <button class="btn-primary" style="padding:9px 22px;" onclick="notesSaveNote()">Save</button>
+                  <span id="notes-saved-indicator" class="notes-saved-indicator" style="display:none;">Saved ✓</span>
+                  <button class="notes-delete-note-btn" onclick="notesDeleteNote()">Delete Note</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+        </div><!-- /#board-notes-view -->
+
       </div>
 
       <!-- ── Finances Tab ── -->
@@ -1969,6 +2161,225 @@
       navDropdownLogin.classList.remove("open");
       navToggleLogin.setAttribute("aria-expanded", false);
     });
+  </script>
+
+  <script>
+    // ── Board sub-nav (Kanban / Notes) ──
+    document.querySelectorAll('.board-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.board-view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const view = btn.dataset.view;
+        document.getElementById('board-kanban-view').style.display    = view === 'kanban' ? 'block' : 'none';
+        document.getElementById('board-notes-view').style.display     = view === 'notes'  ? 'block' : 'none';
+        document.getElementById('kanban-view-toggle-wrap').style.display = view === 'kanban' ? 'flex'  : 'none';
+      });
+    });
+
+    // ── Notes Module ──
+    const NOTES_KEY = 'tt_notes';
+    let notesCurrentNoteId = null;
+    let notesOpenFolderIds = new Set();
+
+    function notesGetData() {
+      try {
+        const raw = localStorage.getItem(NOTES_KEY);
+        if (!raw) return { folders: [], notes: [] };
+        return JSON.parse(raw);
+      } catch { return { folders: [], notes: [] }; }
+    }
+
+    function notesPersist(data) {
+      localStorage.setItem(NOTES_KEY, JSON.stringify(data));
+    }
+
+    function notesEsc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function notesRender() {
+      const data = notesGetData();
+      const tree = document.getElementById('notes-folder-tree');
+      tree.innerHTML = '';
+
+      if (data.folders.length === 0) {
+        tree.innerHTML = '<p class="notes-sidebar-empty">No folders yet.</p>';
+        return;
+      }
+
+      data.folders.forEach(folder => {
+        const folderNotes = data.notes.filter(n => n.folderId === folder.id);
+        const isOpen = notesOpenFolderIds.has(folder.id);
+
+        const item = document.createElement('div');
+        item.className = 'notes-folder-item';
+
+        item.innerHTML = `
+          <div class="notes-folder-header" onclick="notesToggleFolder('${folder.id}')">
+            <span class="notes-folder-arrow${isOpen ? ' open' : ''}">&#9658;</span>
+            <span class="notes-folder-name">${notesEsc(folder.name)}</span>
+            <span class="notes-folder-count">${folderNotes.length}</span>
+            <button class="notes-folder-delete" title="Delete folder" onclick="event.stopPropagation();notesDeleteFolder('${folder.id}')">&#x2715;</button>
+          </div>
+          <div class="notes-folder-notes" style="${isOpen ? '' : 'display:none;'}">
+            ${folderNotes.map(n => `
+              <div class="notes-note-item${n.id === notesCurrentNoteId ? ' active' : ''}" onclick="notesOpenNote('${n.id}')">
+                <span class="notes-note-title">${n.title ? notesEsc(n.title) : '<em style="color:var(--muted);">Untitled</em>'}</span>
+              </div>
+            `).join('')}
+            <button class="notes-note-new-btn" onclick="notesNewNote('${folder.id}')">+ New Note</button>
+          </div>
+        `;
+        tree.appendChild(item);
+      });
+    }
+
+    function notesToggleFolder(folderId) {
+      if (notesOpenFolderIds.has(folderId)) {
+        notesOpenFolderIds.delete(folderId);
+      } else {
+        notesOpenFolderIds.add(folderId);
+      }
+      notesRender();
+    }
+
+    function notesOpenNote(noteId) {
+      if (notesCurrentNoteId && notesCurrentNoteId !== noteId) notesAutoSave();
+      notesCurrentNoteId = noteId;
+      const data = notesGetData();
+      const note = data.notes.find(n => n.id === noteId);
+      if (!note) return;
+      notesOpenFolderIds.add(note.folderId);
+      document.getElementById('notes-placeholder').style.display = 'none';
+      const editor = document.getElementById('notes-editor');
+      editor.style.display = 'flex';
+      document.getElementById('notes-title').value = note.title || '';
+      document.getElementById('notes-body').innerHTML = note.body || '';
+      document.getElementById('notes-saved-indicator').style.display = 'none';
+      notesRender();
+    }
+
+    function notesNewNote(folderId) {
+      if (notesCurrentNoteId) notesAutoSave();
+      const data = notesGetData();
+      const id = 'n' + Date.now();
+      data.notes.push({ id, folderId, title: '', body: '', updatedAt: Date.now() });
+      notesPersist(data);
+      notesCurrentNoteId = id;
+      notesOpenFolderIds.add(folderId);
+      notesRender();
+      document.getElementById('notes-placeholder').style.display = 'none';
+      document.getElementById('notes-editor').style.display = 'flex';
+      document.getElementById('notes-title').value = '';
+      document.getElementById('notes-body').innerHTML = '';
+      document.getElementById('notes-saved-indicator').style.display = 'none';
+      document.getElementById('notes-title').focus();
+    }
+
+    function notesAutoSave() {
+      if (!notesCurrentNoteId) return;
+      const data = notesGetData();
+      const note = data.notes.find(n => n.id === notesCurrentNoteId);
+      if (!note) return;
+      note.title = document.getElementById('notes-title').value.trim();
+      note.body = document.getElementById('notes-body').innerHTML;
+      note.updatedAt = Date.now();
+      notesPersist(data);
+    }
+
+    function notesSaveNote() {
+      notesAutoSave();
+      notesRender();
+      const indicator = document.getElementById('notes-saved-indicator');
+      indicator.style.display = 'inline';
+      setTimeout(() => { indicator.style.display = 'none'; }, 2000);
+    }
+
+    function notesDeleteNote() {
+      if (!notesCurrentNoteId) return;
+      if (!confirm('Delete this note?')) return;
+      const data = notesGetData();
+      const note = data.notes.find(n => n.id === notesCurrentNoteId);
+      data.notes = data.notes.filter(n => n.id !== notesCurrentNoteId);
+      notesPersist(data);
+      notesCurrentNoteId = null;
+      document.getElementById('notes-editor').style.display = 'none';
+      document.getElementById('notes-placeholder').style.display = 'flex';
+      notesRender();
+    }
+
+    function notesAddFolder() {
+      const name = prompt('Folder name:');
+      if (!name || !name.trim()) return;
+      const data = notesGetData();
+      const id = 'f' + Date.now();
+      data.folders.push({ id, name: name.trim() });
+      notesPersist(data);
+      notesOpenFolderIds.add(id);
+      notesRender();
+    }
+
+    function notesDeleteFolder(folderId) {
+      const data = notesGetData();
+      const count = data.notes.filter(n => n.folderId === folderId).length;
+      const msg = count > 0
+        ? `Delete this folder and all ${count} note${count !== 1 ? 's' : ''} in it?`
+        : 'Delete this folder?';
+      if (!confirm(msg)) return;
+      data.folders = data.folders.filter(f => f.id !== folderId);
+      data.notes   = data.notes.filter(n => n.folderId !== folderId);
+      notesPersist(data);
+      notesOpenFolderIds.delete(folderId);
+      if (data.notes.every(n => n.id !== notesCurrentNoteId)) {
+        notesCurrentNoteId = null;
+        document.getElementById('notes-editor').style.display = 'none';
+        document.getElementById('notes-placeholder').style.display = 'flex';
+      }
+      notesRender();
+    }
+
+    function notesFmt(cmd) {
+      document.execCommand(cmd, false, null);
+      document.getElementById('notes-body').focus();
+    }
+
+    function notesInsertChecklist() {
+      document.getElementById('notes-body').focus();
+      document.execCommand('insertHTML', false,
+        '<ul class="notes-checklist"><li><span class="notes-cb" contenteditable="false">&#9744;</span>&nbsp;</li></ul>');
+    }
+
+    // Toggle checkboxes on click
+    document.getElementById('notes-body').addEventListener('click', e => {
+      if (!e.target.classList.contains('notes-cb')) return;
+      const li = e.target.closest('li');
+      if (!li) return;
+      const isChecked = e.target.textContent.trim() === '☑';
+      e.target.textContent = isChecked ? '☐' : '☑';
+      li.classList.toggle('checked', !isChecked);
+    });
+
+    // Auto-add checkbox when pressing Enter inside a checklist item
+    document.getElementById('notes-body').addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const node = sel.anchorNode;
+      const li = (node.closest || Function.prototype).call(node, '.notes-checklist li')
+              || node.parentElement?.closest('.notes-checklist li');
+      if (!li) return;
+      e.preventDefault();
+      const newLi = document.createElement('li');
+      newLi.innerHTML = '<span class="notes-cb" contenteditable="false">&#9744;</span> ';
+      li.parentNode.insertBefore(newLi, li.nextSibling);
+      const range = document.createRange();
+      range.setStart(newLi, newLi.childNodes.length);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+
+    notesRender();
   </script>
 </body>
 </html>
