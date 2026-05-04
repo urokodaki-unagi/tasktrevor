@@ -383,6 +383,64 @@
     @media (max-width: 700px) {
       .notes-layout { grid-template-columns: 1fr; }
     }
+
+    /* ── Notes: inline folder create ── */
+    .notes-folder-create-form { display: none; flex-direction: column; gap: 5px; margin: 6px 0 8px; }
+    .notes-folder-create-form.show { display: flex; }
+    .notes-folder-create-input {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px 10px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
+      color: var(--white); outline: none; width: 100%; box-sizing: border-box;
+    }
+    .notes-folder-create-input:focus { border-color: var(--green); box-shadow: 0 0 0 2px rgba(0,245,160,0.1); }
+    .notes-folder-create-actions { display: flex; gap: 4px; }
+    .notes-folder-create-ok {
+      flex: 1; padding: 5px 0; background: rgba(0,245,160,0.12); border: 1px solid rgba(0,245,160,0.3);
+      border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: var(--green); cursor: pointer;
+      font-family: 'DM Sans', sans-serif; transition: background 0.15s;
+    }
+    .notes-folder-create-ok:hover { background: rgba(0,245,160,0.22); }
+    .notes-folder-create-cancel {
+      padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.75rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
+    }
+    /* ── Notes: search ── */
+    .notes-search-wrap { position: relative; margin-bottom: 8px; }
+    .notes-search-input {
+      width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: 6px 10px 6px 28px; font-size: 0.78rem;
+      font-family: 'DM Sans', sans-serif; color: var(--text); outline: none;
+    }
+    .notes-search-input:focus { border-color: var(--green); }
+    .notes-search-input::placeholder { color: var(--muted); }
+    .notes-search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: var(--muted); pointer-events: none; }
+    /* ── Notes: auto-save indicator ── */
+    .notes-autosave-status {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted);
+      margin-right: auto; transition: color 0.3s;
+    }
+    .notes-autosave-status.saved { color: var(--green); }
+    /* ── Notes: note preview text in sidebar ── */
+    .notes-note-preview {
+      font-size: 0.68rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; margin-top: 1px;
+    }
+    .notes-note-item { flex-direction: column; align-items: flex-start; }
+    .notes-note-title { font-size: 0.8rem; font-weight: 600; }
+    /* ── Notes: active toolbar button state ── */
+    .notes-tool-btn.fmt-active { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.25); color: var(--cyan); }
+    /* ── Notes: folder two-step delete ── */
+    .notes-folder-delete.confirming { color: var(--pink) !important; opacity: 1 !important; }
+    /* ── Notes: heading styles ── */
+    .notes-body h1 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); letter-spacing: 1px; margin: 8px 0 4px; line-height: 1.1; }
+    .notes-body h2 { font-size: 1.05rem; font-weight: 700; color: var(--white); margin: 8px 0 3px; }
+    .notes-body h3 { font-size: 0.9rem; font-weight: 700; color: var(--cyan); margin: 6px 0 2px; }
+    /* ── Notes: folder rename in-place ── */
+    .notes-folder-rename-input {
+      background: transparent; border: none; border-bottom: 1px solid var(--green);
+      color: var(--text); font-size: 0.82rem; font-weight: 600; outline: none;
+      flex: 1; padding: 0 2px; font-family: 'DM Sans', sans-serif; min-width: 0;
+    }
   </style>
 </head>
 <body>
@@ -585,7 +643,18 @@
             <div class="notes-sidebar">
               <div class="notes-sidebar-top">
                 <span class="notes-sidebar-label">Folders</span>
-                <button class="notes-new-folder-btn" onclick="notesAddFolder()">+ Folder</button>
+                <button class="notes-new-folder-btn" id="notes-new-folder-btn">+ Folder</button>
+              </div>
+              <div class="notes-folder-create-form" id="notes-folder-create-form">
+                <input type="text" class="notes-folder-create-input" id="notes-folder-create-input" placeholder="Folder name…" maxlength="40" />
+                <div class="notes-folder-create-actions">
+                  <button class="notes-folder-create-ok" id="notes-folder-create-ok">Add</button>
+                  <button class="notes-folder-create-cancel" id="notes-folder-create-cancel">Cancel</button>
+                </div>
+              </div>
+              <div class="notes-search-wrap">
+                <span class="notes-search-icon">&#9906;</span>
+                <input type="text" class="notes-search-input" id="notes-search-input" placeholder="Search notes…" />
               </div>
               <div id="notes-folder-tree"></div>
             </div>
@@ -596,21 +665,23 @@
               </div>
               <div id="notes-editor" style="display:none;flex-direction:column;flex:1;">
                 <input type="text" id="notes-title" class="notes-title-input" placeholder="Note title…" maxlength="120" />
-                <div class="notes-toolbar">
-                  <button class="notes-tool-btn" title="Bold" onmousedown="event.preventDefault();notesFmt('bold')"><b>B</b></button>
-                  <button class="notes-tool-btn notes-tool-italic" title="Italic" onmousedown="event.preventDefault();notesFmt('italic')">I</button>
-                  <button class="notes-tool-btn notes-tool-underline" title="Underline" onmousedown="event.preventDefault();notesFmt('underline')">U</button>
-                  <button class="notes-tool-btn notes-tool-strike" title="Strikethrough" onmousedown="event.preventDefault();notesFmt('strikeThrough')">S</button>
+                <div class="notes-toolbar" id="notes-toolbar">
+                  <button class="notes-tool-btn" data-fmt="bold" title="Bold (⌘B)"><b>B</b></button>
+                  <button class="notes-tool-btn notes-tool-italic" data-fmt="italic" title="Italic (⌘I)">I</button>
+                  <button class="notes-tool-btn notes-tool-underline" data-fmt="underline" title="Underline (⌘U)">U</button>
+                  <button class="notes-tool-btn notes-tool-strike" data-fmt="strikeThrough" title="Strikethrough">S</button>
                   <span class="notes-tool-sep"></span>
-                  <button class="notes-tool-btn" title="Bullet List" onmousedown="event.preventDefault();notesFmt('insertUnorderedList')">&#8226;</button>
-                  <button class="notes-tool-btn" title="Numbered List" onmousedown="event.preventDefault();notesFmt('insertOrderedList')">1.</button>
-                  <button class="notes-tool-btn" title="Checklist" onmousedown="event.preventDefault();notesInsertChecklist()">&#9744;</button>
+                  <button class="notes-tool-btn" data-fmt="h1" title="Heading 1">H1</button>
+                  <button class="notes-tool-btn" data-fmt="h2" title="Heading 2">H2</button>
+                  <span class="notes-tool-sep"></span>
+                  <button class="notes-tool-btn" data-fmt="insertUnorderedList" title="Bullet List">&#8226;</button>
+                  <button class="notes-tool-btn" data-fmt="insertOrderedList" title="Numbered List">1.</button>
+                  <button class="notes-tool-btn" data-fmt="checklist" title="Checklist">&#9744;</button>
                 </div>
                 <div id="notes-body" class="notes-body" contenteditable="true" spellcheck="true"></div>
                 <div class="notes-editor-footer">
-                  <button class="btn-primary" style="padding:9px 22px;" onclick="notesSaveNote()">Save</button>
-                  <span id="notes-saved-indicator" class="notes-saved-indicator" style="display:none;">Saved ✓</span>
-                  <button class="notes-delete-note-btn" onclick="notesDeleteNote()">Delete Note</button>
+                  <span id="notes-autosave-status" class="notes-autosave-status"></span>
+                  <button id="notes-delete-note-btn" class="notes-delete-note-btn">Delete Note</button>
                 </div>
               </div>
             </div>
@@ -2178,34 +2249,67 @@
       });
     });
 
-    // ── Notes Module ──
-    const NOTES_KEY = 'tt_notes';
+    // ── Notes Module (saved to Firebase, not localStorage) ──
+    const NOTES_DOC = doc(db, 'personal_settings', 'notes');
+    let notesCache = { folders: [], notes: [] };
     let notesCurrentNoteId = null;
     let notesOpenFolderIds = new Set();
+    let notesAutoSaveTimer = null;
+    let notesSearchQuery = '';
 
     function notesGetData() {
+      return notesCache;
+    }
+
+    async function notesPersist(data) {
+      notesCache = data;
       try {
-        const raw = localStorage.getItem(NOTES_KEY);
-        if (!raw) return { folders: [], notes: [] };
-        return JSON.parse(raw);
-      } catch { return { folders: [], notes: [] }; }
+        await setDoc(NOTES_DOC, data);
+      } catch (err) {
+        console.error('Notes save failed:', err);
+      }
     }
 
-    function notesPersist(data) {
-      localStorage.setItem(NOTES_KEY, JSON.stringify(data));
+    function notesStripHtml(html) {
+      return html ? html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
     }
 
-    function notesEsc(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
+    // ── Render sidebar ──
     function notesRender() {
       const data = notesGetData();
       const tree = document.getElementById('notes-folder-tree');
       tree.innerHTML = '';
+      const q = notesSearchQuery.trim().toLowerCase();
+
+      // Search mode: flat results across all folders
+      if (q) {
+        const matches = data.notes.filter(n => {
+          const inTitle = (n.title || '').toLowerCase().includes(q);
+          const inBody  = notesStripHtml(n.body || '').toLowerCase().includes(q);
+          return inTitle || inBody;
+        });
+        if (matches.length === 0) {
+          tree.innerHTML = '<p class="notes-sidebar-empty">No results.</p>';
+          return;
+        }
+        matches.forEach(n => {
+          const item = document.createElement('div');
+          item.className = 'notes-note-item' + (n.id === notesCurrentNoteId ? ' active' : '');
+          item.addEventListener('click', () => notesOpenNote(n.id));
+          const title = document.createElement('span');
+          title.className = 'notes-note-title';
+          title.textContent = n.title || 'Untitled';
+          const preview = document.createElement('div');
+          preview.className = 'notes-note-preview';
+          preview.textContent = notesStripHtml(n.body || '').slice(0, 60) || '—';
+          item.append(title, preview);
+          tree.appendChild(item);
+        });
+        return;
+      }
 
       if (data.folders.length === 0) {
-        tree.innerHTML = '<p class="notes-sidebar-empty">No folders yet.</p>';
+        tree.innerHTML = '<p class="notes-sidebar-empty">No folders yet — hit + Folder to start.</p>';
         return;
       }
 
@@ -2216,53 +2320,137 @@
         const item = document.createElement('div');
         item.className = 'notes-folder-item';
 
-        item.innerHTML = `
-          <div class="notes-folder-header" onclick="notesToggleFolder('${folder.id}')">
-            <span class="notes-folder-arrow${isOpen ? ' open' : ''}">&#9658;</span>
-            <span class="notes-folder-name">${notesEsc(folder.name)}</span>
-            <span class="notes-folder-count">${folderNotes.length}</span>
-            <button class="notes-folder-delete" title="Delete folder" onclick="event.stopPropagation();notesDeleteFolder('${folder.id}')">&#x2715;</button>
-          </div>
-          <div class="notes-folder-notes" style="${isOpen ? '' : 'display:none;'}">
-            ${folderNotes.map(n => `
-              <div class="notes-note-item${n.id === notesCurrentNoteId ? ' active' : ''}" onclick="notesOpenNote('${n.id}')">
-                <span class="notes-note-title">${n.title ? notesEsc(n.title) : '<em style="color:var(--muted);">Untitled</em>'}</span>
-              </div>
-            `).join('')}
-            <button class="notes-note-new-btn" onclick="notesNewNote('${folder.id}')">+ New Note</button>
-          </div>
-        `;
+        // Folder header
+        const header = document.createElement('div');
+        header.className = 'notes-folder-header';
+
+        const arrow = document.createElement('span');
+        arrow.className = 'notes-folder-arrow' + (isOpen ? ' open' : '');
+        arrow.textContent = '▶';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'notes-folder-name';
+        nameSpan.textContent = folder.name;
+        // Double-click to rename
+        nameSpan.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          const inp = document.createElement('input');
+          inp.className = 'notes-folder-rename-input';
+          inp.value = folder.name;
+          inp.maxLength = 40;
+          nameSpan.replaceWith(inp);
+          inp.focus(); inp.select();
+          const commit = () => {
+            const val = inp.value.trim();
+            if (val && val !== folder.name) {
+              const d = notesGetData();
+              const f = d.folders.find(f => f.id === folder.id);
+              if (f) { f.name = val; notesPersist(d); }
+            }
+            notesRender();
+          };
+          inp.addEventListener('blur', commit);
+          inp.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter')  { ev.preventDefault(); inp.blur(); }
+            if (ev.key === 'Escape') { inp.value = folder.name; inp.blur(); }
+          });
+        });
+
+        const count = document.createElement('span');
+        count.className = 'notes-folder-count';
+        count.textContent = folderNotes.length;
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'notes-folder-delete';
+        delBtn.title = 'Delete folder';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          if (delBtn.dataset.confirm === '1') {
+            notesDeleteFolder(folder.id);
+            return;
+          }
+          delBtn.dataset.confirm = '1';
+          delBtn.classList.add('confirming');
+          delBtn.textContent = 'Sure?';
+          setTimeout(() => {
+            delBtn.dataset.confirm = '';
+            delBtn.classList.remove('confirming');
+            delBtn.textContent = '✕';
+          }, 3000);
+        });
+
+        header.append(arrow, nameSpan, count, delBtn);
+        header.addEventListener('click', () => {
+          if (notesOpenFolderIds.has(folder.id)) {
+            notesOpenFolderIds.delete(folder.id);
+          } else {
+            notesOpenFolderIds.add(folder.id);
+          }
+          notesRender();
+        });
+
+        // Notes list
+        const notesList = document.createElement('div');
+        notesList.className = 'notes-folder-notes';
+        notesList.style.display = isOpen ? '' : 'none';
+
+        folderNotes.forEach(n => {
+          const noteItem = document.createElement('div');
+          noteItem.className = 'notes-note-item' + (n.id === notesCurrentNoteId ? ' active' : '');
+          noteItem.addEventListener('click', () => notesOpenNote(n.id));
+
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'notes-note-title';
+          if (n.title) {
+            titleSpan.textContent = n.title;
+          } else {
+            const em = document.createElement('em');
+            em.style.color = 'var(--muted)';
+            em.textContent = 'Untitled';
+            titleSpan.appendChild(em);
+          }
+
+          const previewDiv = document.createElement('div');
+          previewDiv.className = 'notes-note-preview';
+          const plain = notesStripHtml(n.body || '');
+          previewDiv.textContent = plain ? plain.slice(0, 50) + (plain.length > 50 ? '…' : '') : '—';
+
+          noteItem.append(titleSpan, previewDiv);
+          notesList.appendChild(noteItem);
+        });
+
+        const newNoteBtn = document.createElement('button');
+        newNoteBtn.className = 'notes-note-new-btn';
+        newNoteBtn.textContent = '+ New Note';
+        newNoteBtn.addEventListener('click', () => notesNewNote(folder.id));
+        notesList.appendChild(newNoteBtn);
+
+        item.append(header, notesList);
         tree.appendChild(item);
       });
     }
 
-    function notesToggleFolder(folderId) {
-      if (notesOpenFolderIds.has(folderId)) {
-        notesOpenFolderIds.delete(folderId);
-      } else {
-        notesOpenFolderIds.add(folderId);
-      }
-      notesRender();
-    }
-
+    // ── Open a note ──
     function notesOpenNote(noteId) {
-      if (notesCurrentNoteId && notesCurrentNoteId !== noteId) notesAutoSave();
+      if (notesCurrentNoteId && notesCurrentNoteId !== noteId) notesFlushSave();
       notesCurrentNoteId = noteId;
       const data = notesGetData();
       const note = data.notes.find(n => n.id === noteId);
       if (!note) return;
       notesOpenFolderIds.add(note.folderId);
       document.getElementById('notes-placeholder').style.display = 'none';
-      const editor = document.getElementById('notes-editor');
-      editor.style.display = 'flex';
+      document.getElementById('notes-editor').style.display = 'flex';
       document.getElementById('notes-title').value = note.title || '';
       document.getElementById('notes-body').innerHTML = note.body || '';
-      document.getElementById('notes-saved-indicator').style.display = 'none';
+      document.getElementById('notes-autosave-status').textContent = '';
       notesRender();
+      document.getElementById('notes-body').focus();
     }
 
+    // ── New note ──
     function notesNewNote(folderId) {
-      if (notesCurrentNoteId) notesAutoSave();
+      if (notesCurrentNoteId) notesFlushSave();
       const data = notesGetData();
       const id = 'n' + Date.now();
       data.notes.push({ id, folderId, title: '', body: '', updatedAt: Date.now() });
@@ -2274,11 +2462,13 @@
       document.getElementById('notes-editor').style.display = 'flex';
       document.getElementById('notes-title').value = '';
       document.getElementById('notes-body').innerHTML = '';
-      document.getElementById('notes-saved-indicator').style.display = 'none';
+      document.getElementById('notes-autosave-status').textContent = '';
       document.getElementById('notes-title').focus();
     }
 
-    function notesAutoSave() {
+    // ── Auto-save (debounced, 600ms after last keystroke) ──
+    async function notesFlushSave() {
+      clearTimeout(notesAutoSaveTimer);
       if (!notesCurrentNoteId) return;
       const data = notesGetData();
       const note = data.notes.find(n => n.id === notesCurrentNoteId);
@@ -2286,53 +2476,108 @@
       note.title = document.getElementById('notes-title').value.trim();
       note.body = document.getElementById('notes-body').innerHTML;
       note.updatedAt = Date.now();
-      notesPersist(data);
+      await notesPersist(data);
     }
 
-    function notesSaveNote() {
-      notesAutoSave();
-      notesRender();
-      const indicator = document.getElementById('notes-saved-indicator');
-      indicator.style.display = 'inline';
-      setTimeout(() => { indicator.style.display = 'none'; }, 2000);
-    }
-
-    function notesDeleteNote() {
+    function notesScheduleSave() {
       if (!notesCurrentNoteId) return;
-      if (!confirm('Delete this note?')) return;
-      const data = notesGetData();
-      const note = data.notes.find(n => n.id === notesCurrentNoteId);
-      data.notes = data.notes.filter(n => n.id !== notesCurrentNoteId);
-      notesPersist(data);
-      notesCurrentNoteId = null;
-      document.getElementById('notes-editor').style.display = 'none';
-      document.getElementById('notes-placeholder').style.display = 'flex';
-      notesRender();
+      const status = document.getElementById('notes-autosave-status');
+      status.className = 'notes-autosave-status';
+      status.textContent = 'Saving…';
+      clearTimeout(notesAutoSaveTimer);
+      notesAutoSaveTimer = setTimeout(() => {
+        notesFlushSave();
+        notesRender();
+        status.className = 'notes-autosave-status saved';
+        status.textContent = 'Saved ✓';
+        setTimeout(() => { if (status.textContent === 'Saved ✓') status.textContent = ''; }, 3000);
+      }, 600);
     }
 
-    function notesAddFolder() {
-      const name = prompt('Folder name:');
-      if (!name || !name.trim()) return;
+    document.getElementById('notes-title').addEventListener('input', notesScheduleSave);
+    document.getElementById('notes-body').addEventListener('input', notesScheduleSave);
+
+    // ⌘S saves immediately
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 's' && notesCurrentNoteId) {
+        e.preventDefault();
+        clearTimeout(notesAutoSaveTimer);
+        notesFlushSave();
+        notesRender();
+        const status = document.getElementById('notes-autosave-status');
+        status.className = 'notes-autosave-status saved';
+        status.textContent = 'Saved ✓';
+        setTimeout(() => { if (status.textContent === 'Saved ✓') status.textContent = ''; }, 2000);
+      }
+    });
+
+    // ── Delete note (two-step) ──
+    document.getElementById('notes-delete-note-btn').addEventListener('click', function() {
+      if (this.dataset.confirm === '1') {
+        if (!notesCurrentNoteId) return;
+        const data = notesGetData();
+        data.notes = data.notes.filter(n => n.id !== notesCurrentNoteId);
+        notesPersist(data);
+        notesCurrentNoteId = null;
+        clearTimeout(notesAutoSaveTimer);
+        document.getElementById('notes-editor').style.display = 'none';
+        document.getElementById('notes-placeholder').style.display = 'flex';
+        document.getElementById('notes-autosave-status').textContent = '';
+        notesRender();
+        return;
+      }
+      this.dataset.confirm = '1';
+      this.textContent = 'Sure? Delete';
+      this.style.color = 'var(--pink)';
+      this.style.borderColor = 'rgba(255,77,141,0.4)';
+      setTimeout(() => {
+        this.dataset.confirm = '';
+        this.textContent = 'Delete Note';
+        this.style.color = '';
+        this.style.borderColor = '';
+      }, 3000);
+    });
+
+    // ── Inline folder create ──
+    document.getElementById('notes-new-folder-btn').addEventListener('click', () => {
+      const form = document.getElementById('notes-folder-create-form');
+      const inp  = document.getElementById('notes-folder-create-input');
+      const show = !form.classList.contains('show');
+      form.classList.toggle('show', show);
+      if (show) { inp.value = ''; inp.focus(); }
+    });
+
+    function notesCommitFolder() {
+      const inp  = document.getElementById('notes-folder-create-input');
+      const name = inp.value.trim();
+      if (!name) { inp.focus(); return; }
       const data = notesGetData();
       const id = 'f' + Date.now();
-      data.folders.push({ id, name: name.trim() });
+      data.folders.push({ id, name });
       notesPersist(data);
       notesOpenFolderIds.add(id);
+      document.getElementById('notes-folder-create-form').classList.remove('show');
+      inp.value = '';
       notesRender();
     }
 
+    document.getElementById('notes-folder-create-ok').addEventListener('click', notesCommitFolder);
+    document.getElementById('notes-folder-create-cancel').addEventListener('click', () => {
+      document.getElementById('notes-folder-create-form').classList.remove('show');
+    });
+    document.getElementById('notes-folder-create-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); notesCommitFolder(); }
+      if (e.key === 'Escape') { document.getElementById('notes-folder-create-form').classList.remove('show'); }
+    });
+
+    // ── Delete folder ──
     function notesDeleteFolder(folderId) {
       const data = notesGetData();
-      const count = data.notes.filter(n => n.folderId === folderId).length;
-      const msg = count > 0
-        ? `Delete this folder and all ${count} note${count !== 1 ? 's' : ''} in it?`
-        : 'Delete this folder?';
-      if (!confirm(msg)) return;
       data.folders = data.folders.filter(f => f.id !== folderId);
       data.notes   = data.notes.filter(n => n.folderId !== folderId);
       notesPersist(data);
       notesOpenFolderIds.delete(folderId);
-      if (data.notes.every(n => n.id !== notesCurrentNoteId)) {
+      if (!data.notes.find(n => n.id === notesCurrentNoteId)) {
         notesCurrentNoteId = null;
         document.getElementById('notes-editor').style.display = 'none';
         document.getElementById('notes-placeholder').style.display = 'flex';
@@ -2340,35 +2585,57 @@
       notesRender();
     }
 
-    function notesFmt(cmd) {
+    // ── Search ──
+    document.getElementById('notes-search-input').addEventListener('input', e => {
+      notesSearchQuery = e.target.value;
+      notesRender();
+    });
+
+    // ── Toolbar (delegated mousedown to preserve editor focus) ──
+    document.getElementById('notes-toolbar').addEventListener('mousedown', e => {
+      const btn = e.target.closest('[data-fmt]');
+      if (!btn) return;
+      e.preventDefault();
       const body = document.getElementById('notes-body');
-      if (cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
-        const cls = cmd === 'insertUnorderedList' ? 'notes-ul' : 'notes-ol';
-        const tag = cmd === 'insertUnorderedList' ? 'ul' : 'ol';
-        document.execCommand('insertHTML', false, `<${tag} class="${cls}"><li></li></${tag}>`);
-        const li = body.querySelector(`.${cls}:last-of-type li:last-child`);
-        if (li) {
-          const range = document.createRange();
-          range.setStart(li, 0);
-          range.collapse(true);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
+      const cmd  = btn.dataset.fmt;
+
+      if (cmd === 'checklist') {
+        body.focus();
+        document.execCommand('insertHTML', false,
+          '<ul class="notes-checklist"><li><span class="notes-cb" contenteditable="false">☐</span> </li></ul>');
+        return;
+      }
+
+      if (cmd === 'h1' || cmd === 'h2' || cmd === 'h3') {
+        document.execCommand('formatBlock', false, cmd);
         body.focus();
         return;
       }
+
+      if (cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
+        document.execCommand(cmd, false, null);
+        const tag = cmd === 'insertUnorderedList' ? 'ul' : 'ol';
+        const cls = cmd === 'insertUnorderedList' ? 'notes-ul' : 'notes-ol';
+        body.querySelectorAll(tag + ':not(.' + cls + '):not(.notes-checklist)').forEach(l => l.classList.add(cls));
+        body.focus();
+        return;
+      }
+
       document.execCommand(cmd, false, null);
       body.focus();
-    }
+    });
 
-    function notesInsertChecklist() {
-      document.getElementById('notes-body').focus();
-      document.execCommand('insertHTML', false,
-        '<ul class="notes-checklist"><li><span class="notes-cb" contenteditable="false">&#9744;</span>&nbsp;</li></ul>');
-    }
+    // ── Toolbar active-state on selection change ──
+    document.addEventListener('selectionchange', () => {
+      const body = document.getElementById('notes-body');
+      if (!body || !body.contains(window.getSelection().anchorNode)) return;
+      ['bold', 'italic', 'underline', 'strikeThrough'].forEach(cmd => {
+        const btn = document.querySelector('#notes-toolbar [data-fmt="' + (cmd === 'strikeThrough' ? 'strikeThrough' : cmd) + '"]');
+        if (btn) btn.classList.toggle('fmt-active', document.queryCommandState(cmd));
+      });
+    });
 
-    // Toggle checkboxes on click
+    // ── Checklist checkbox toggle ──
     document.getElementById('notes-body').addEventListener('click', e => {
       if (!e.target.classList.contains('notes-cb')) return;
       const li = e.target.closest('li');
@@ -2376,9 +2643,10 @@
       const isChecked = e.target.textContent.trim() === '☑';
       e.target.textContent = isChecked ? '☐' : '☑';
       li.classList.toggle('checked', !isChecked);
+      notesScheduleSave();
     });
 
-    // Auto-add checkbox when pressing Enter inside a checklist item
+    // ── Keyboard handling inside editor body ──
     document.getElementById('notes-body').addEventListener('keydown', e => {
       if (e.key === 'Tab') {
         e.preventDefault();
@@ -2389,16 +2657,12 @@
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
       const node = sel.anchorNode;
-      const li = (node.closest || Function.prototype).call(node, '.notes-checklist li')
-              || node.parentElement?.closest('.notes-checklist li');
-      if (!li) {
-        const inList = node.closest?.('ul, ol') || node.parentElement?.closest('ul, ol');
-        if (!inList) { e.preventDefault(); document.execCommand('insertLineBreak'); }
-        return;
-      }
+      const li = node.closest ? node.closest('.notes-checklist li') : null
+              || (node.parentElement ? node.parentElement.closest('.notes-checklist li') : null);
+      if (!li) return;
       e.preventDefault();
       const newLi = document.createElement('li');
-      newLi.innerHTML = '<span class="notes-cb" contenteditable="false">&#9744;</span> ';
+      newLi.innerHTML = '<span class="notes-cb" contenteditable="false">☐</span> ';
       li.parentNode.insertBefore(newLi, li.nextSibling);
       const range = document.createRange();
       range.setStart(newLi, newLi.childNodes.length);
@@ -2407,7 +2671,34 @@
       sel.addRange(range);
     });
 
-    notesRender();
+    // ── Bootstrap: load from Firebase, migrate localStorage if needed ──
+    async function notesInit() {
+      const snap = await getDoc(NOTES_DOC);
+      if (snap.exists()) {
+        notesCache = snap.data();
+      } else {
+        // One-time migration from localStorage
+        try {
+          const raw = localStorage.getItem('tt_notes');
+          if (raw) {
+            notesCache = JSON.parse(raw);
+            await setDoc(NOTES_DOC, notesCache);
+            localStorage.removeItem('tt_notes');
+          }
+        } catch {}
+      }
+      notesRender();
+
+      // Real-time listener so notes stay in sync across tabs/devices
+      onSnapshot(NOTES_DOC, (s) => {
+        if (s.exists()) {
+          notesCache = s.data();
+          notesRender();
+        }
+      });
+    }
+
+    notesInit();
   </script>
 </body>
 </html>
