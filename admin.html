@@ -355,6 +355,8 @@
       font-size: 0.9rem; line-height: 1.65; outline: none; min-height: 220px; overflow-y: auto;
     }
     .notes-body ul, .notes-body ol { padding-left: 22px; margin: 4px 0; }
+    .notes-body .notes-ul { list-style: disc; }
+    .notes-body .notes-ol { list-style: decimal; }
     .notes-body li { margin-bottom: 2px; }
     .notes-checklist { list-style: none !important; padding-left: 4px !important; }
     .notes-checklist li { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
@@ -2339,8 +2341,25 @@
     }
 
     function notesFmt(cmd) {
+      const body = document.getElementById('notes-body');
+      if (cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
+        const cls = cmd === 'insertUnorderedList' ? 'notes-ul' : 'notes-ol';
+        const tag = cmd === 'insertUnorderedList' ? 'ul' : 'ol';
+        document.execCommand('insertHTML', false, `<${tag} class="${cls}"><li></li></${tag}>`);
+        const li = body.querySelector(`.${cls}:last-of-type li:last-child`);
+        if (li) {
+          const range = document.createRange();
+          range.setStart(li, 0);
+          range.collapse(true);
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        body.focus();
+        return;
+      }
       document.execCommand(cmd, false, null);
-      document.getElementById('notes-body').focus();
+      body.focus();
     }
 
     function notesInsertChecklist() {
@@ -2361,13 +2380,22 @@
 
     // Auto-add checkbox when pressing Enter inside a checklist item
     document.getElementById('notes-body').addEventListener('keydown', e => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        document.execCommand('insertText', false, '    ');
+        return;
+      }
       if (e.key !== 'Enter') return;
       const sel = window.getSelection();
       if (!sel.rangeCount) return;
       const node = sel.anchorNode;
       const li = (node.closest || Function.prototype).call(node, '.notes-checklist li')
               || node.parentElement?.closest('.notes-checklist li');
-      if (!li) return;
+      if (!li) {
+        const inList = node.closest?.('ul, ol') || node.parentElement?.closest('ul, ol');
+        if (!inList) { e.preventDefault(); document.execCommand('insertLineBreak'); }
+        return;
+      }
       e.preventDefault();
       const newLi = document.createElement('li');
       newLi.innerHTML = '<span class="notes-cb" contenteditable="false">&#9744;</span> ';
