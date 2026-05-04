@@ -401,7 +401,7 @@ details[open] .lookup-summary::before { transform: rotate(90deg); }
 
 /* ── Kanban board ── */
 #tab-board { display: none; }
-.kanban-view-toggle { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; justify-content: flex-end; }
+.kanban-view-toggle { display: flex; align-items: center; gap: 8px; }
 .kanban-view-label { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .kanban-toggle-track {
   width: 44px; height: 24px; border-radius: 99px;
