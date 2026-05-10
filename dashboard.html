@@ -648,7 +648,7 @@
                 <span class="dash-fund-name">${escHtml(f.name)}</span>
                 <span class="dash-fund-type-badge" style="background:${colors.bg};color:${colors.text};border:1px solid ${colors.border}33;">${colors.label}</span>
               </div>
-              ${goal > 0 ? `<span class="dash-fund-progress-label">${fmt(balance)} / ${fmt(goal)}</span>` : `<span class="dash-fund-progress-label">${fmt(balance)}</span>`}
+              ${goal > 0 ? `<span class="dash-fund-progress-label" ${funded ? 'style="color:var(--green)"' : ''}>${fmt(balance)} / ${fmt(goal)}</span>` : `<span class="dash-fund-progress-label">${fmt(balance)}</span>`}
             </div>
             <div class="dash-fund-meta">
               <div>
