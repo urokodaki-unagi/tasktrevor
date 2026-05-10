@@ -256,63 +256,88 @@
     .board-view-btn.active { background: var(--cyan); border-color: var(--cyan); color: var(--bg); }
     .kanban-view-toggle { display: flex; align-items: center; gap: 8px; }
 
-    /* ── Notes Module ── */
+    /* ── Notes ── */
+    #notes-section { padding: 0; }
     #notes-section::before { background: var(--green); box-shadow: 0 0 20px var(--green); }
     .notes-layout {
-      display: grid; grid-template-columns: 210px 1fr; gap: 14px; min-height: 400px;
+      display: grid; grid-template-columns: 200px 1fr;
+      height: calc(100vh - 220px); min-height: 500px;
     }
     .notes-sidebar {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 12px;
+      border-right: 1px solid var(--border);
       display: flex; flex-direction: column; overflow: hidden;
     }
     .notes-sidebar-top {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+      padding: 16px 12px 11px; border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
     .notes-sidebar-label {
-      font-family: 'DM Mono', monospace; font-size: 0.68rem; font-weight: 500;
-      text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+      font-family: 'DM Mono', monospace; font-size: 0.63rem;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
     }
     .notes-new-folder-btn {
       background: transparent; border: 1px solid var(--border); border-radius: 6px;
-      font-size: 0.72rem; font-weight: 600; color: var(--muted); cursor: pointer;
+      font-size: 0.7rem; font-weight: 600; color: var(--muted); cursor: pointer;
       padding: 3px 8px; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
     }
     .notes-new-folder-btn:hover { border-color: var(--green); color: var(--green); }
-    .notes-folder-item { margin-bottom: 2px; }
+    .notes-sidebar-scroll { flex: 1; overflow-y: auto; padding: 8px 10px 12px; }
+    .notes-folder-create-form { display: none; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+    .notes-folder-create-form.show { display: flex; }
+    .notes-folder-create-input {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+      padding: 6px 10px; font-size: 0.8rem; font-family: 'DM Sans', sans-serif;
+      color: var(--white); outline: none; width: 100%; box-sizing: border-box;
+    }
+    .notes-folder-create-input:focus { border-color: var(--green); }
+    .notes-folder-create-actions { display: flex; gap: 4px; }
+    .notes-folder-create-ok {
+      flex: 1; padding: 4px 0; background: rgba(0,245,160,0.1); border: 1px solid rgba(0,245,160,0.25);
+      border-radius: 6px; font-size: 0.72rem; font-weight: 700; color: var(--green); cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .notes-folder-create-cancel {
+      padding: 4px 10px; background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 0.72rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
+    }
+    .notes-search-wrap { margin-bottom: 6px; }
+    .notes-search-input {
+      width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: 6px 10px; font-size: 0.77rem;
+      font-family: 'DM Sans', sans-serif; color: var(--text); outline: none;
+    }
+    .notes-search-input:focus { border-color: var(--green); }
+    .notes-search-input::placeholder { color: var(--muted); }
+    .notes-folder-item { margin-bottom: 1px; }
     .notes-folder-header {
-      display: flex; align-items: center; gap: 6px; padding: 6px 4px;
-      border-radius: 7px; cursor: pointer; transition: background 0.12s;
+      display: flex; align-items: center; gap: 5px; padding: 5px 4px;
+      border-radius: 6px; cursor: pointer; transition: background 0.12s;
     }
     .notes-folder-header:hover { background: rgba(255,255,255,0.04); }
-    .notes-folder-arrow {
-      font-size: 0.55rem; color: var(--muted); transition: transform 0.15s; flex-shrink: 0; line-height: 1;
-    }
+    .notes-folder-arrow { font-size: 0.5rem; color: var(--muted); transition: transform 0.15s; flex-shrink: 0; }
     .notes-folder-arrow.open { transform: rotate(90deg); }
     .notes-folder-name {
-      font-size: 0.82rem; font-weight: 600; color: var(--text);
+      font-size: 0.8rem; font-weight: 600; color: var(--text);
       flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .notes-folder-count { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); flex-shrink: 0; }
+    .notes-folder-count { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); flex-shrink: 0; }
     .notes-folder-delete {
-      background: transparent; border: none; color: var(--muted); font-size: 0.7rem;
-      cursor: pointer; padding: 1px 4px; border-radius: 4px; transition: color 0.12s;
-      opacity: 0; flex-shrink: 0; font-family: 'DM Sans', sans-serif; line-height: 1;
+      background: transparent; border: none; color: var(--muted); font-size: 0.65rem;
+      cursor: pointer; padding: 1px 3px; border-radius: 4px; opacity: 0; flex-shrink: 0;
+      font-family: 'DM Sans', sans-serif; transition: color 0.12s;
     }
     .notes-folder-header:hover .notes-folder-delete { opacity: 1; }
     .notes-folder-delete:hover { color: var(--pink); }
-    .notes-folder-notes { padding-left: 16px; margin-bottom: 2px; }
+    .notes-folder-delete.confirming { color: var(--pink) !important; opacity: 1 !important; }
+    .notes-folder-notes { padding-left: 10px; }
     .notes-note-item {
-      display: flex; align-items: center; gap: 6px; padding: 5px 6px;
-      border-radius: 6px; cursor: pointer; transition: background 0.12s;
+      display: flex; flex-direction: column; padding: 5px 6px;
+      border-radius: 6px; cursor: pointer; transition: background 0.12s; margin-bottom: 1px;
     }
     .notes-note-item:hover { background: rgba(255,255,255,0.04); }
-    .notes-note-item.active { background: rgba(0,245,160,0.1); }
-    .notes-note-title {
-      font-size: 0.78rem; color: var(--text);
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
-    }
+    .notes-note-item.active { background: rgba(0,245,160,0.07); border-left: 2px solid var(--green); padding-left: 4px; }
+    .notes-note-title { font-size: 0.78rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .notes-note-preview { font-size: 0.67rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
     .notes-note-new-btn {
       padding: 4px 6px; font-size: 0.72rem; color: var(--muted); cursor: pointer;
       border-radius: 6px; border: none; background: transparent;
@@ -320,127 +345,58 @@
       margin-top: 2px; width: 100%; text-align: left;
     }
     .notes-note-new-btn:hover { color: var(--green); }
-    .notes-sidebar-empty { font-size: 0.75rem; color: var(--muted); font-style: italic; padding: 8px 4px; }
-    .notes-editor-wrap {
-      background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 10px; display: flex; flex-direction: column; overflow: hidden;
+    .notes-sidebar-empty { font-size: 0.74rem; color: var(--muted); font-style: italic; padding: 6px 2px; }
+    .notes-folder-rename-input {
+      background: transparent; border: none; border-bottom: 1px solid var(--green);
+      color: var(--text); font-size: 0.8rem; font-weight: 600; outline: none;
+      flex: 1; padding: 0 2px; font-family: 'DM Sans', sans-serif; min-width: 0;
     }
-    .notes-placeholder {
-      display: flex; align-items: center; justify-content: center; flex: 1; padding: 40px 20px;
-    }
-    .notes-placeholder p { font-size: 0.85rem; color: var(--muted); text-align: center; font-style: italic; }
+    .notes-editor-wrap { display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+    #notes-editor { flex: 1; min-height: 0; flex-direction: column; }
+    .notes-placeholder { display: flex; align-items: center; justify-content: center; flex: 1; }
+    .notes-placeholder p { font-size: 0.85rem; color: var(--muted); text-align: center; }
     .notes-title-input {
       background: transparent; border: none; border-bottom: 1px solid var(--border);
-      border-radius: 0; padding: 16px 18px; font-family: 'DM Sans', sans-serif;
-      font-size: 1.05rem; font-weight: 600; color: var(--white); outline: none; width: 100%;
+      padding: 18px 20px 14px; font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem; font-weight: 700; color: var(--white); outline: none;
+      width: 100%; box-sizing: border-box; flex-shrink: 0;
     }
     .notes-title-input::placeholder { color: var(--muted); }
     .notes-toolbar {
-      display: flex; align-items: center; gap: 2px; padding: 7px 12px;
-      border-bottom: 1px solid var(--border); background: var(--surface); flex-wrap: wrap;
+      display: flex; align-items: center; gap: 2px; padding: 7px 16px;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
     .notes-tool-btn {
-      background: transparent; border: 1px solid transparent; border-radius: 6px;
-      width: 30px; height: 28px; display: flex; align-items: center; justify-content: center;
-      font-size: 0.82rem; font-family: 'DM Sans', sans-serif; color: var(--text);
-      cursor: pointer; transition: background 0.12s, border-color 0.12s;
+      background: transparent; border: 1px solid transparent; border-radius: 5px;
+      width: 28px; height: 26px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-family: 'DM Sans', sans-serif; color: var(--muted);
+      cursor: pointer; transition: all 0.12s;
     }
-    .notes-tool-btn:hover { background: var(--surface2); border-color: var(--border); }
+    .notes-tool-btn:hover { background: rgba(255,255,255,0.05); border-color: var(--border); color: var(--text); }
+    .notes-tool-btn.fmt-active { background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.2); color: var(--cyan); }
     .notes-tool-italic { font-style: italic; }
     .notes-tool-underline { text-decoration: underline; }
-    .notes-tool-strike { text-decoration: line-through; }
-    .notes-tool-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; flex-shrink: 0; }
     .notes-body {
-      flex: 1; padding: 16px 18px; color: var(--text); font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem; line-height: 1.65; outline: none; min-height: 220px; overflow-y: auto;
+      flex: 1; min-height: 0; padding: 18px 20px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.92rem; line-height: 1.7;
+      outline: none; overflow-y: auto; word-break: break-word;
     }
-    .notes-body ul, .notes-body ol { padding-left: 22px; margin: 4px 0; }
-    .notes-body .notes-ul { list-style: disc; }
-    .notes-body .notes-ol { list-style: decimal; }
-    .notes-body li { margin-bottom: 2px; }
-    .notes-checklist { list-style: none !important; padding-left: 4px !important; }
-    .notes-checklist li { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
-    .notes-cb {
-      flex-shrink: 0; cursor: pointer; color: var(--muted); font-size: 1rem;
-      line-height: 1.5; user-select: none; transition: color 0.12s;
-    }
-    .notes-cb:hover { color: var(--cyan); }
-    .notes-checklist li.checked .notes-cb { color: var(--green); }
-    .notes-checklist li.checked > span:last-child { text-decoration: line-through; color: var(--muted); }
     .notes-editor-footer {
-      display: flex; align-items: center; gap: 10px; padding: 12px 18px;
-      border-top: 1px solid var(--border); background: var(--surface);
+      display: flex; align-items: center; padding: 9px 16px;
+      border-top: 1px solid var(--border); flex-shrink: 0;
     }
-    .notes-saved-indicator {
-      font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--green);
-    }
-    .notes-delete-note-btn {
-      margin-left: auto; background: transparent; border: 1px solid var(--border);
-      border-radius: 8px; font-size: 0.75rem; font-weight: 600; color: var(--muted);
-      cursor: pointer; padding: 6px 12px; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
-    }
-    .notes-delete-note-btn:hover { color: var(--pink); border-color: rgba(255,77,141,0.4); }
-    @media (max-width: 700px) {
-      .notes-layout { grid-template-columns: 1fr; }
-    }
-
-    /* ── Notes: inline folder create ── */
-    .notes-folder-create-form { display: none; flex-direction: column; gap: 5px; margin: 6px 0 8px; }
-    .notes-folder-create-form.show { display: flex; }
-    .notes-folder-create-input {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
-      padding: 6px 10px; font-size: 0.82rem; font-family: 'DM Sans', sans-serif;
-      color: var(--white); outline: none; width: 100%; box-sizing: border-box;
-    }
-    .notes-folder-create-input:focus { border-color: var(--green); box-shadow: 0 0 0 2px rgba(0,245,160,0.1); }
-    .notes-folder-create-actions { display: flex; gap: 4px; }
-    .notes-folder-create-ok {
-      flex: 1; padding: 5px 0; background: rgba(0,245,160,0.12); border: 1px solid rgba(0,245,160,0.3);
-      border-radius: 6px; font-size: 0.75rem; font-weight: 700; color: var(--green); cursor: pointer;
-      font-family: 'DM Sans', sans-serif; transition: background 0.15s;
-    }
-    .notes-folder-create-ok:hover { background: rgba(0,245,160,0.22); }
-    .notes-folder-create-cancel {
-      padding: 5px 10px; background: transparent; border: 1px solid var(--border); border-radius: 6px;
-      font-size: 0.75rem; color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
-    }
-    /* ── Notes: search ── */
-    .notes-search-wrap { position: relative; margin-bottom: 8px; }
-    .notes-search-input {
-      width: 100%; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 7px; padding: 6px 10px 6px 28px; font-size: 0.78rem;
-      font-family: 'DM Sans', sans-serif; color: var(--text); outline: none;
-    }
-    .notes-search-input:focus { border-color: var(--green); }
-    .notes-search-input::placeholder { color: var(--muted); }
-    .notes-search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: var(--muted); pointer-events: none; }
-    /* ── Notes: auto-save indicator ── */
     .notes-autosave-status {
-      font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted);
+      font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted);
       margin-right: auto; transition: color 0.3s;
     }
     .notes-autosave-status.saved { color: var(--green); }
-    /* ── Notes: note preview text in sidebar ── */
-    .notes-note-preview {
-      font-size: 0.68rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis;
-      white-space: nowrap; margin-top: 1px;
+    .notes-delete-note-btn {
+      background: transparent; border: 1px solid transparent; border-radius: 6px;
+      font-size: 0.72rem; color: var(--muted); cursor: pointer;
+      padding: 4px 10px; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
     }
-    .notes-note-item { flex-direction: column; align-items: flex-start; }
-    .notes-note-title { font-size: 0.8rem; font-weight: 600; }
-    /* ── Notes: active toolbar button state ── */
-    .notes-tool-btn.fmt-active { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.25); color: var(--cyan); }
-    /* ── Notes: folder two-step delete ── */
-    .notes-folder-delete.confirming { color: var(--pink) !important; opacity: 1 !important; }
-    /* ── Notes: heading styles ── */
-    .notes-body h1 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); letter-spacing: 1px; margin: 8px 0 4px; line-height: 1.1; }
-    .notes-body h2 { font-size: 1.05rem; font-weight: 700; color: var(--white); margin: 8px 0 3px; }
-    .notes-body h3 { font-size: 0.9rem; font-weight: 700; color: var(--cyan); margin: 6px 0 2px; }
-    /* ── Notes: folder rename in-place ── */
-    .notes-folder-rename-input {
-      background: transparent; border: none; border-bottom: 1px solid var(--green);
-      color: var(--text); font-size: 0.82rem; font-weight: 600; outline: none;
-      flex: 1; padding: 0 2px; font-family: 'DM Sans', sans-serif; min-width: 0;
-    }
+    .notes-delete-note-btn:hover { color: var(--pink); border-color: rgba(255,77,141,0.3); }
+    @media (max-width: 700px) { .notes-layout { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -643,40 +599,33 @@
             <div class="notes-sidebar">
               <div class="notes-sidebar-top">
                 <span class="notes-sidebar-label">Folders</span>
-                <button class="notes-new-folder-btn" id="notes-new-folder-btn">+ Folder</button>
+                <button class="notes-new-folder-btn" id="notes-new-folder-btn" onclick="notesToggleFolderForm()">+ Folder</button>
               </div>
-              <div class="notes-folder-create-form" id="notes-folder-create-form">
-                <input type="text" class="notes-folder-create-input" id="notes-folder-create-input" placeholder="Folder name…" maxlength="40" />
-                <div class="notes-folder-create-actions">
-                  <button class="notes-folder-create-ok" id="notes-folder-create-ok">Add</button>
-                  <button class="notes-folder-create-cancel" id="notes-folder-create-cancel">Cancel</button>
+              <div class="notes-sidebar-scroll">
+                <div class="notes-folder-create-form" id="notes-folder-create-form">
+                  <input type="text" class="notes-folder-create-input" id="notes-folder-create-input" placeholder="Folder name…" maxlength="40" onkeydown="if(event.key==='Enter'){event.preventDefault();notesSubmitFolder()}else if(event.key==='Escape'){notesCancelFolder()}" />
+                  <div class="notes-folder-create-actions">
+                    <button class="notes-folder-create-ok" onclick="notesSubmitFolder()">Add</button>
+                    <button class="notes-folder-create-cancel" onclick="notesCancelFolder()">Cancel</button>
+                  </div>
                 </div>
+                <div class="notes-search-wrap">
+                  <input type="text" class="notes-search-input" id="notes-search-input" placeholder="Search notes…" />
+                </div>
+                <div id="notes-folder-tree"></div>
               </div>
-              <div class="notes-search-wrap">
-                <span class="notes-search-icon">&#9906;</span>
-                <input type="text" class="notes-search-input" id="notes-search-input" placeholder="Search notes…" />
-              </div>
-              <div id="notes-folder-tree"></div>
             </div>
 
             <div class="notes-editor-wrap">
               <div id="notes-placeholder" class="notes-placeholder">
                 <p>Add a folder, then create your first note.</p>
               </div>
-              <div id="notes-editor" style="display:none;flex-direction:column;flex:1;">
-                <input type="text" id="notes-title" class="notes-title-input" placeholder="Note title…" maxlength="120" />
+              <div id="notes-editor" style="display:none;">
+                <input type="text" id="notes-title" class="notes-title-input" placeholder="Title…" maxlength="120" />
                 <div class="notes-toolbar" id="notes-toolbar">
-                  <button class="notes-tool-btn" data-fmt="bold" title="Bold (⌘B)"><b>B</b></button>
-                  <button class="notes-tool-btn notes-tool-italic" data-fmt="italic" title="Italic (⌘I)">I</button>
-                  <button class="notes-tool-btn notes-tool-underline" data-fmt="underline" title="Underline (⌘U)">U</button>
-                  <button class="notes-tool-btn notes-tool-strike" data-fmt="strikeThrough" title="Strikethrough">S</button>
-                  <span class="notes-tool-sep"></span>
-                  <button class="notes-tool-btn" data-fmt="h1" title="Heading 1">H1</button>
-                  <button class="notes-tool-btn" data-fmt="h2" title="Heading 2">H2</button>
-                  <span class="notes-tool-sep"></span>
-                  <button class="notes-tool-btn" data-fmt="insertUnorderedList" title="Bullet List">&#8226;</button>
-                  <button class="notes-tool-btn" data-fmt="insertOrderedList" title="Numbered List">1.</button>
-                  <button class="notes-tool-btn" data-fmt="checklist" title="Checklist">&#9744;</button>
+                  <button class="notes-tool-btn" data-fmt="bold" title="Bold"><b>B</b></button>
+                  <button class="notes-tool-btn notes-tool-italic" data-fmt="italic" title="Italic">I</button>
+                  <button class="notes-tool-btn notes-tool-underline" data-fmt="underline" title="Underline">U</button>
                 </div>
                 <div id="notes-body" class="notes-body" contenteditable="true" spellcheck="true"></div>
                 <div class="notes-editor-footer">
@@ -1418,6 +1367,7 @@
 
       startKanbanListener();
       startContactsListener();
+      notesInit();
     }
 
     // ── Task Actions ──
@@ -2220,34 +2170,6 @@
       closeAddContactModal();
       showToast("Contact added ✓");
     });
-  </script>
-
-  <script>
-    const navToggleLogin   = document.getElementById("nav-toggle-login");
-    const navDropdownLogin = document.getElementById("nav-dropdown-login");
-    navToggleLogin.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const open = navDropdownLogin.classList.toggle("open");
-      navToggleLogin.setAttribute("aria-expanded", open);
-    });
-    document.addEventListener("click", () => {
-      navDropdownLogin.classList.remove("open");
-      navToggleLogin.setAttribute("aria-expanded", false);
-    });
-  </script>
-
-  <script>
-    // ── Board sub-nav (Kanban / Notes) ──
-    document.querySelectorAll('.board-view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.board-view-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const view = btn.dataset.view;
-        document.getElementById('board-kanban-view').style.display    = view === 'kanban' ? 'block' : 'none';
-        document.getElementById('board-notes-view').style.display     = view === 'notes'  ? 'block' : 'none';
-        document.getElementById('kanban-view-toggle-wrap').style.display = view === 'kanban' ? 'flex'  : 'none';
-      });
-    });
 
     // ── Notes Module (saved to Firebase, not localStorage) ──
     const NOTES_DOC = doc(db, 'personal_settings', 'notes');
@@ -2494,82 +2416,6 @@
       }, 600);
     }
 
-    document.getElementById('notes-title').addEventListener('input', notesScheduleSave);
-    document.getElementById('notes-body').addEventListener('input', notesScheduleSave);
-
-    // ⌘S saves immediately
-    document.addEventListener('keydown', e => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's' && notesCurrentNoteId) {
-        e.preventDefault();
-        clearTimeout(notesAutoSaveTimer);
-        notesFlushSave();
-        notesRender();
-        const status = document.getElementById('notes-autosave-status');
-        status.className = 'notes-autosave-status saved';
-        status.textContent = 'Saved ✓';
-        setTimeout(() => { if (status.textContent === 'Saved ✓') status.textContent = ''; }, 2000);
-      }
-    });
-
-    // ── Delete note (two-step) ──
-    document.getElementById('notes-delete-note-btn').addEventListener('click', function() {
-      if (this.dataset.confirm === '1') {
-        if (!notesCurrentNoteId) return;
-        const data = notesGetData();
-        data.notes = data.notes.filter(n => n.id !== notesCurrentNoteId);
-        notesPersist(data);
-        notesCurrentNoteId = null;
-        clearTimeout(notesAutoSaveTimer);
-        document.getElementById('notes-editor').style.display = 'none';
-        document.getElementById('notes-placeholder').style.display = 'flex';
-        document.getElementById('notes-autosave-status').textContent = '';
-        notesRender();
-        return;
-      }
-      this.dataset.confirm = '1';
-      this.textContent = 'Sure? Delete';
-      this.style.color = 'var(--pink)';
-      this.style.borderColor = 'rgba(255,77,141,0.4)';
-      setTimeout(() => {
-        this.dataset.confirm = '';
-        this.textContent = 'Delete Note';
-        this.style.color = '';
-        this.style.borderColor = '';
-      }, 3000);
-    });
-
-    // ── Inline folder create ──
-    document.getElementById('notes-new-folder-btn').addEventListener('click', () => {
-      const form = document.getElementById('notes-folder-create-form');
-      const inp  = document.getElementById('notes-folder-create-input');
-      const show = !form.classList.contains('show');
-      form.classList.toggle('show', show);
-      if (show) { inp.value = ''; inp.focus(); }
-    });
-
-    function notesCommitFolder() {
-      const inp  = document.getElementById('notes-folder-create-input');
-      const name = inp.value.trim();
-      if (!name) { inp.focus(); return; }
-      const data = notesGetData();
-      const id = 'f' + Date.now();
-      data.folders.push({ id, name });
-      notesPersist(data);
-      notesOpenFolderIds.add(id);
-      document.getElementById('notes-folder-create-form').classList.remove('show');
-      inp.value = '';
-      notesRender();
-    }
-
-    document.getElementById('notes-folder-create-ok').addEventListener('click', notesCommitFolder);
-    document.getElementById('notes-folder-create-cancel').addEventListener('click', () => {
-      document.getElementById('notes-folder-create-form').classList.remove('show');
-    });
-    document.getElementById('notes-folder-create-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter')  { e.preventDefault(); notesCommitFolder(); }
-      if (e.key === 'Escape') { document.getElementById('notes-folder-create-form').classList.remove('show'); }
-    });
-
     // ── Delete folder ──
     function notesDeleteFolder(folderId) {
       const data = notesGetData();
@@ -2585,94 +2431,92 @@
       notesRender();
     }
 
-    // ── Search ──
-    document.getElementById('notes-search-input').addEventListener('input', e => {
-      notesSearchQuery = e.target.value;
+    function notesCommitFolder() {
+      const inp  = document.getElementById('notes-folder-create-input');
+      const name = inp.value.trim();
+      if (!name) { inp.focus(); return; }
+      const data = notesGetData();
+      const id = 'f' + Date.now();
+      data.folders.push({ id, name });
+      notesPersist(data);
+      notesOpenFolderIds.add(id);
+      document.getElementById('notes-folder-create-form').classList.remove('show');
+      inp.value = '';
       notesRender();
-    });
+    }
 
-    // ── Toolbar (delegated mousedown to preserve editor focus) ──
-    document.getElementById('notes-toolbar').addEventListener('mousedown', e => {
-      const btn = e.target.closest('[data-fmt]');
-      if (!btn) return;
-      e.preventDefault();
-      const body = document.getElementById('notes-body');
-      const cmd  = btn.dataset.fmt;
+    // Expose folder-form functions globally so onclick attributes can reach them
+    window.notesToggleFolderForm = () => {
+      const form = document.getElementById('notes-folder-create-form');
+      const inp  = document.getElementById('notes-folder-create-input');
+      const show = !form.classList.contains('show');
+      form.classList.toggle('show', show);
+      if (show) { inp.value = ''; inp.focus(); }
+    };
+    window.notesSubmitFolder  = () => notesCommitFolder();
+    window.notesCancelFolder  = () => {
+      document.getElementById('notes-folder-create-form').classList.remove('show');
+    };
 
-      if (cmd === 'checklist') {
-        body.focus();
-        document.execCommand('insertHTML', false,
-          '<ul class="notes-checklist"><li><span class="notes-cb" contenteditable="false">☐</span> </li></ul>');
-        return;
-      }
-
-      if (cmd === 'h1' || cmd === 'h2' || cmd === 'h3') {
-        document.execCommand('formatBlock', false, cmd);
-        body.focus();
-        return;
-      }
-
-      if (cmd === 'insertUnorderedList' || cmd === 'insertOrderedList') {
-        document.execCommand(cmd, false, null);
-        const tag = cmd === 'insertUnorderedList' ? 'ul' : 'ol';
-        const cls = cmd === 'insertUnorderedList' ? 'notes-ul' : 'notes-ol';
-        body.querySelectorAll(tag + ':not(.' + cls + '):not(.notes-checklist)').forEach(l => l.classList.add(cls));
-        body.focus();
-        return;
-      }
-
-      document.execCommand(cmd, false, null);
-      body.focus();
-    });
-
-    // ── Toolbar active-state on selection change ──
-    document.addEventListener('selectionchange', () => {
-      const body = document.getElementById('notes-body');
-      if (!body || !body.contains(window.getSelection().anchorNode)) return;
-      ['bold', 'italic', 'underline', 'strikeThrough'].forEach(cmd => {
-        const btn = document.querySelector('#notes-toolbar [data-fmt="' + (cmd === 'strikeThrough' ? 'strikeThrough' : cmd) + '"]');
-        if (btn) btn.classList.toggle('fmt-active', document.queryCommandState(cmd));
-      });
-    });
-
-    // ── Checklist checkbox toggle ──
-    document.getElementById('notes-body').addEventListener('click', e => {
-      if (!e.target.classList.contains('notes-cb')) return;
-      const li = e.target.closest('li');
-      if (!li) return;
-      const isChecked = e.target.textContent.trim() === '☑';
-      e.target.textContent = isChecked ? '☐' : '☑';
-      li.classList.toggle('checked', !isChecked);
-      notesScheduleSave();
-    });
-
-    // ── Keyboard handling inside editor body ──
-    document.getElementById('notes-body').addEventListener('keydown', e => {
-      if (e.key === 'Tab') {
-        e.preventDefault();
-        document.execCommand('insertText', false, '    ');
-        return;
-      }
-      if (e.key !== 'Enter') return;
-      const sel = window.getSelection();
-      if (!sel.rangeCount) return;
-      const node = sel.anchorNode;
-      const li = node.closest ? node.closest('.notes-checklist li') : null
-              || (node.parentElement ? node.parentElement.closest('.notes-checklist li') : null);
-      if (!li) return;
-      e.preventDefault();
-      const newLi = document.createElement('li');
-      newLi.innerHTML = '<span class="notes-cb" contenteditable="false">☐</span> ';
-      li.parentNode.insertBefore(newLi, li.nextSibling);
-      const range = document.createRange();
-      range.setStart(newLi, newLi.childNodes.length);
-      range.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(range);
-    });
-
-    // ── Bootstrap: load from Firebase, migrate localStorage if needed ──
+    // ── Bootstrap: load from Firebase, wire all event listeners ──
+    let notesInitialized = false;
     async function notesInit() {
+      if (notesInitialized) return;
+      notesInitialized = true;
+
+      // Wire up all notes UI listeners here — safe because we're guaranteed to be logged in
+      document.getElementById('notes-title').addEventListener('input', notesScheduleSave);
+      document.getElementById('notes-body').addEventListener('input', notesScheduleSave);
+
+      document.getElementById('notes-search-input').addEventListener('input', e => {
+        notesSearchQuery = e.target.value;
+        notesRender();
+      });
+
+      document.getElementById('notes-delete-note-btn').addEventListener('click', function() {
+        if (this.dataset.confirm === '1') {
+          if (!notesCurrentNoteId) return;
+          const data = notesGetData();
+          data.notes = data.notes.filter(n => n.id !== notesCurrentNoteId);
+          notesPersist(data);
+          notesCurrentNoteId = null;
+          clearTimeout(notesAutoSaveTimer);
+          document.getElementById('notes-editor').style.display = 'none';
+          document.getElementById('notes-placeholder').style.display = 'flex';
+          document.getElementById('notes-autosave-status').textContent = '';
+          notesRender();
+          return;
+        }
+        this.dataset.confirm = '1';
+        this.textContent = 'Delete?';
+        this.style.color = 'var(--pink)';
+        this.style.borderColor = 'rgba(255,77,141,0.4)';
+        setTimeout(() => {
+          this.dataset.confirm = '';
+          this.textContent = 'Delete Note';
+          this.style.color = '';
+          this.style.borderColor = '';
+        }, 3000);
+      });
+
+      document.getElementById('notes-toolbar').addEventListener('mousedown', e => {
+        const btn = e.target.closest('[data-fmt]');
+        if (!btn) return;
+        e.preventDefault();
+        document.getElementById('notes-body').focus();
+        document.execCommand(btn.dataset.fmt, false, null);
+      });
+
+      document.addEventListener('selectionchange', () => {
+        const body = document.getElementById('notes-body');
+        if (!body || !body.contains(window.getSelection().anchorNode)) return;
+        ['bold', 'italic', 'underline'].forEach(cmd => {
+          const btn = document.querySelector('#notes-toolbar [data-fmt="' + cmd + '"]');
+          if (btn) btn.classList.toggle('fmt-active', document.queryCommandState(cmd));
+        });
+      });
+
+      // Load data from Firebase
       const snap = await getDoc(NOTES_DOC);
       if (snap.exists()) {
         notesCache = snap.data();
@@ -2698,7 +2542,36 @@
       });
     }
 
-    notesInit();
+    // notesInit() is called from startListeners() after the user is authenticated
+  </script>
+
+  <script>
+    const navToggleLogin   = document.getElementById("nav-toggle-login");
+    const navDropdownLogin = document.getElementById("nav-dropdown-login");
+    navToggleLogin.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = navDropdownLogin.classList.toggle("open");
+      navToggleLogin.setAttribute("aria-expanded", open);
+    });
+    document.addEventListener("click", () => {
+      navDropdownLogin.classList.remove("open");
+      navToggleLogin.setAttribute("aria-expanded", false);
+    });
+  </script>
+
+  <script>
+    // ── Board sub-nav (Kanban / Notes) ──
+    document.querySelectorAll('.board-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.board-view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const view = btn.dataset.view;
+        document.getElementById('board-kanban-view').style.display    = view === 'kanban' ? 'block' : 'none';
+        document.getElementById('board-notes-view').style.display     = view === 'notes'  ? 'block' : 'none';
+        document.getElementById('kanban-view-toggle-wrap').style.display = view === 'kanban' ? 'flex'  : 'none';
+      });
+    });
+
   </script>
 </body>
 </html>
