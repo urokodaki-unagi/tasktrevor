@@ -405,6 +405,102 @@
     }
     .notes-delete-note-btn:hover { color: var(--pink); border-color: rgba(255,77,141,0.3); }
     @media (max-width: 700px) { .notes-layout { grid-template-columns: 1fr; } }
+
+    /* ── Finance summary bar ── */
+    .fin-summary-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .fin-stat-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .fin-stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .fin-stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.35rem;
+      letter-spacing: 1px;
+      color: var(--white);
+      line-height: 1.1;
+    }
+    .fin-stat-value.positive { color: var(--green); }
+    .fin-stat-value.negative { color: var(--pink); }
+    .fin-stat-value.accent   { color: var(--cyan); }
+    .fin-stat-rate {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ── Upcoming bills banner ── */
+    .fin-upcoming-banner {
+      background: rgba(255,184,0,0.05);
+      border: 1px solid rgba(255,184,0,0.2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+    }
+    .fin-upcoming-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--amber);
+      margin-bottom: 7px;
+    }
+    .fin-upcoming-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.82rem;
+      color: var(--text);
+      padding: 3px 0;
+      gap: 12px;
+    }
+    .fin-upcoming-due {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--amber);
+      white-space: nowrap;
+    }
+    .fin-upcoming-due.overdue { color: var(--pink); }
+
+    /* ── Bill tag totals ── */
+    .fin-tag-totals {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .fin-tag-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .fin-tag-chip strong {
+      color: var(--white);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+    }
   </style>
 </head>
 <body>
@@ -448,15 +544,15 @@
     <main class="container">
 
       <div class="admin-tab-nav">
-        <button class="admin-tab-btn active" data-tab="tasks">Tasks</button>
+        <button class="admin-tab-btn" data-tab="tasks">Tasks</button>
         <button class="admin-tab-btn" data-tab="board">My Board</button>
-        <button class="admin-tab-btn" data-tab="finances">Finances</button>
+        <button class="admin-tab-btn active" data-tab="finances">Finances</button>
         <button class="admin-tab-btn" data-tab="contacts">Contacts</button>
         <button class="admin-tab-btn" data-tab="invoice">Invoice</button>
       </div>
 
       <!-- ── Tasks Tab ── -->
-      <div id="tab-tasks">
+      <div id="tab-tasks" style="display:none;">
 
         <div class="tab-top-action">
           <button id="add-task-btn" class="btn-ghost-sm">+ Add Task</button>
@@ -657,9 +753,11 @@
       </div>
 
       <!-- ── Finances Tab ── -->
-      <div id="tab-finances" style="display:none;">
+      <div id="tab-finances">
         <section>
-          <h2 class="section-title">Her Dashboard</h2>
+          <h2 class="section-title">Monthly Finances</h2>
+
+          <div id="fin-summary-bar" class="fin-summary-bar"></div>
 
           <div style="margin-bottom:28px;">
             <label class="fin-section-title" for="fin-greeting" style="display:block;">Greeting</label>
@@ -683,7 +781,7 @@
 
           <div class="fin-subsection">
             <div class="fin-subsection-header">
-              <span class="fin-section-title" style="margin-bottom:0;">Her Spending Money</span>
+              <span class="fin-section-title" style="margin-bottom:0;">Spending Money</span>
               <button type="button" id="add-spending-btn" class="btn-ghost-sm">+ Add</button>
             </div>
             <div class="fin-col-labels fin-col-labels-spending">
@@ -700,6 +798,7 @@
               <span class="fin-section-title" style="margin-bottom:0;">Bills This Month</span>
               <button type="button" id="add-bill-btn" class="btn-ghost-sm">+ Add</button>
             </div>
+            <div id="upcoming-bills-banner" class="fin-upcoming-banner" style="display:none;"></div>
             <div class="fin-col-labels fin-col-labels-bill">
               <span></span>
               <span class="fin-col-label">Bill Name</span>
@@ -711,6 +810,7 @@
             </div>
             <div id="bills-list"></div>
             <p class="fin-empty-note" id="bills-empty">No bills added yet.</p>
+            <div id="bills-tag-summary" class="fin-tag-totals" style="display:none;"></div>
           </div>
 
           <div class="fin-subsection">
@@ -1383,6 +1483,9 @@
       startKanbanListener();
       startContactsListener();
       notesInit();
+      loadFinances();
+      document.getElementById("tab-finances").addEventListener("input",  updateFinanceSummary);
+      document.getElementById("tab-finances").addEventListener("change", updateFinanceSummary);
     }
 
     // ── Task Actions ──
@@ -1747,12 +1850,13 @@
         </select>
         <input type="number" class="pc-amount" placeholder="0" min="0" step="1" value="${p.amount||''}" />
         <button type="button" class="fin-delete-btn">✕</button>`;
-      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("paychecks-list","paychecks-empty"); });
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("paychecks-list","paychecks-empty"); updateFinanceSummary(); });
       return row;
     }
     document.getElementById("add-paycheck-btn").addEventListener("click", () => {
       document.getElementById("paychecks-list").appendChild(createPaycheckRow());
       syncEmpty("paychecks-list","paychecks-empty");
+      updateFinanceSummary();
     });
 
     function createSpendingRow(s = {}) {
@@ -1763,12 +1867,13 @@
         <input type="text"   class="spending-label"  placeholder="e.g. Week of Apr 7" value="${escHtml(s.label||'')}" />
         <input type="number" class="spending-amount" placeholder="0" min="0" step="1" value="${s.amount||''}" />
         <button type="button" class="fin-delete-btn">✕</button>`;
-      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("spending-list","spending-empty"); });
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("spending-list","spending-empty"); updateFinanceSummary(); });
       return row;
     }
     document.getElementById("add-spending-btn").addEventListener("click", () => {
       document.getElementById("spending-list").appendChild(createSpendingRow());
       syncEmpty("spending-list","spending-empty");
+      updateFinanceSummary();
     });
 
     const BILL_TAGS = ["Subscription", "Loan / Credit", "Utilities", "Cost of Living", "Insurance", "Rent / Mortgage", "Other"];
@@ -1790,8 +1895,8 @@
         <button type="button" class="fin-paid-btn ${paid?'paid':'unpaid'}">${paid?'Paid':'Unpaid'}</button>
         <button type="button" class="fin-delete-btn">✕</button>`;
       const toggle = row.querySelector(".fin-paid-btn");
-      toggle.addEventListener("click", () => { paid = !paid; toggle.textContent = paid?"Paid":"Unpaid"; toggle.className = `fin-paid-btn ${paid?'paid':'unpaid'}`; });
-      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("bills-list","bills-empty"); });
+      toggle.addEventListener("click", () => { paid = !paid; toggle.textContent = paid?"Paid":"Unpaid"; toggle.className = `fin-paid-btn ${paid?'paid':'unpaid'}`; updateFinanceSummary(); });
+      row.querySelector(".fin-delete-btn").addEventListener("click", () => { row.remove(); syncEmpty("bills-list","bills-empty"); updateFinanceSummary(); });
       row.addEventListener("dragstart", (e) => { dragBillEl = row; row.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; });
       row.addEventListener("dragend", () => { row.classList.remove("dragging"); dragBillEl = null; });
       row.addEventListener("dragover", (e) => {
@@ -1810,6 +1915,7 @@
     document.getElementById("add-bill-btn").addEventListener("click", () => {
       document.getElementById("bills-list").appendChild(createBillRow());
       syncEmpty("bills-list","bills-empty");
+      updateFinanceSummary();
     });
 
     const FUND_TYPE_OPTIONS = [
@@ -1840,7 +1946,7 @@
           <div class="fin-fund-field"><label>This Month</label><input type="number" class="fund-contributed" placeholder="0" min="0" step="1" value="${f.contributed||''}" /></div>
           <div class="fin-fund-field"><label>Balance</label><input type="number" class="fund-balance" placeholder="0" min="0" step="1" value="${f.balance||''}" /></div>
         </div>`;
-      card.querySelector(".fin-delete-btn").addEventListener("click", () => { card.remove(); syncEmpty("funds-list","funds-empty"); });
+      card.querySelector(".fin-delete-btn").addEventListener("click", () => { card.remove(); syncEmpty("funds-list","funds-empty"); updateFinanceSummary(); });
       addFundDrag(card);
       return card;
     }
@@ -1865,7 +1971,114 @@
     document.getElementById("add-fund-btn").addEventListener("click", () => {
       document.getElementById("funds-list").appendChild(createFundRow());
       syncEmpty("funds-list","funds-empty");
+      updateFinanceSummary();
     });
+
+    function updateFinanceSummary() {
+      let totalIncome = 0;
+      document.querySelectorAll("#paychecks-list [data-fin-row]").forEach(r => {
+        totalIncome += parseFloat(r.querySelector(".pc-amount")?.value) || 0;
+      });
+      let totalBills = 0;
+      document.querySelectorAll("#bills-list [data-fin-row]").forEach(r => {
+        totalBills += parseFloat(r.querySelector(".bill-amount")?.value) || 0;
+      });
+      let totalSpending = 0;
+      document.querySelectorAll("#spending-list [data-fin-row]").forEach(r => {
+        totalSpending += parseFloat(r.querySelector(".spending-amount")?.value) || 0;
+      });
+      let totalSavings = 0;
+      document.querySelectorAll("#funds-list [data-fin-row='fund']").forEach(c => {
+        totalSavings += parseFloat(c.querySelector(".fund-contributed")?.value) || 0;
+      });
+      const leftover    = totalIncome - totalBills - totalSpending - totalSavings;
+      const savingsRate = totalIncome > 0 ? Math.round((totalSavings / totalIncome) * 100) : 0;
+      const fmt = n => '$' + Math.abs(Math.round(n)).toLocaleString();
+
+      const bar = document.getElementById("fin-summary-bar");
+      if (bar) {
+        bar.innerHTML = `
+          <div class="fin-stat-card">
+            <div class="fin-stat-label">Income</div>
+            <div class="fin-stat-value ${totalIncome > 0 ? 'positive' : ''}">${fmt(totalIncome)}</div>
+          </div>
+          <div class="fin-stat-card">
+            <div class="fin-stat-label">Bills</div>
+            <div class="fin-stat-value">${fmt(totalBills)}</div>
+          </div>
+          <div class="fin-stat-card">
+            <div class="fin-stat-label">Spending</div>
+            <div class="fin-stat-value">${fmt(totalSpending)}</div>
+          </div>
+          <div class="fin-stat-card">
+            <div class="fin-stat-label">Savings</div>
+            <div class="fin-stat-value ${totalSavings > 0 ? 'accent' : ''}">${fmt(totalSavings)}</div>
+            ${totalIncome > 0 ? `<div class="fin-stat-rate">${savingsRate}% of income</div>` : ''}
+          </div>
+          <div class="fin-stat-card">
+            <div class="fin-stat-label">Left Over</div>
+            <div class="fin-stat-value ${leftover >= 0 ? 'positive' : 'negative'}">${leftover < 0 ? '-' : ''}${fmt(leftover)}</div>
+          </div>`;
+      }
+
+      // Bill tag totals
+      const tagMap = {};
+      document.querySelectorAll("#bills-list [data-fin-row]").forEach(r => {
+        const tag    = r.querySelector(".bill-tag")?.value || "";
+        const amount = parseFloat(r.querySelector(".bill-amount")?.value) || 0;
+        if (tag && amount > 0) tagMap[tag] = (tagMap[tag] || 0) + amount;
+      });
+      const tagEl = document.getElementById("bills-tag-summary");
+      if (tagEl) {
+        const entries = Object.entries(tagMap);
+        if (entries.length === 0) {
+          tagEl.style.display = "none";
+        } else {
+          tagEl.style.display = "block";
+          tagEl.innerHTML = entries
+            .sort((a, b) => b[1] - a[1])
+            .map(([tag, tot]) => `<span class="fin-tag-chip">${escHtml(tag)} <strong>$${Math.round(tot).toLocaleString()}</strong></span>`)
+            .join("");
+        }
+      }
+
+      // Upcoming & overdue unpaid bills
+      const todayDay = new Date().getDate();
+      const flagged = [];
+      document.querySelectorAll("#bills-list [data-fin-row]").forEach(r => {
+        if (r.getPaid?.()) return;
+        const name   = r.querySelector(".bill-name")?.value.trim() || "";
+        const due    = r.querySelector(".bill-due")?.value.trim()  || "";
+        const amount = parseFloat(r.querySelector(".bill-amount")?.value) || 0;
+        if (!name) return;
+        const m = due.match(/\d+/);
+        if (!m) return;
+        const dueDay    = parseInt(m[0]);
+        const daysUntil = dueDay - todayDay;
+        if (daysUntil >= -5 && daysUntil <= 7) flagged.push({ name, dueDay, daysUntil, amount });
+      });
+      flagged.sort((a, b) => a.daysUntil - b.daysUntil);
+      const upEl = document.getElementById("upcoming-bills-banner");
+      if (upEl) {
+        if (flagged.length === 0) {
+          upEl.style.display = "none";
+        } else {
+          const ord = n => { const s=["th","st","nd","rd"],v=n%100; return s[(v-20)%10]||s[v]||s[0]; };
+          upEl.style.display = "block";
+          upEl.innerHTML = `<div class="fin-upcoming-title">Upcoming &amp; Overdue Bills</div>` +
+            flagged.map(b => {
+              const overdue = b.daysUntil < 0;
+              const label   = overdue          ? `Overdue — was ${b.dueDay}${ord(b.dueDay)}`
+                            : b.daysUntil === 0 ? `Due today`
+                            : `Due in ${b.daysUntil}d`;
+              return `<div class="fin-upcoming-item">
+                <span>${escHtml(b.name)}</span>
+                <span class="fin-upcoming-due${overdue ? ' overdue' : ''}">${label} — $${Math.round(b.amount).toLocaleString()}</span>
+              </div>`;
+            }).join("");
+        }
+      }
+    }
 
     async function loadFinances() {
       const snap = await getDoc(doc(db, "finances", "overview"));
@@ -1887,6 +2100,7 @@
         syncEmpty("funds-list","funds-empty");
       }
       await loadArchives();
+      updateFinanceSummary();
     }
 
     function collectFinanceData() {
@@ -2071,7 +2285,7 @@
       }
 
       if ((data.personalSpending||[]).length > 0) {
-        html += `<div class="fin-archive-detail-section"><div class="fin-archive-detail-label">Her Spending Money</div>`;
+        html += `<div class="fin-archive-detail-section"><div class="fin-archive-detail-label">Spending Money</div>`;
         data.personalSpending.forEach(s => {
           html += `<div class="fin-archive-row"><span>${escHtml(s.label||"")}</span><span>$${(s.amount||0).toLocaleString()}</span></div>`;
         });
