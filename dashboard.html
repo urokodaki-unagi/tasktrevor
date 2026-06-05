@@ -369,7 +369,10 @@
           </div>
           <div class="dash-updated-header" id="dash-updated-header"></div>
         </div>
-        <button id="logout-btn" class="btn-ghost">Sign Out</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button id="export-btn" class="btn-ghost">Export Report</button>
+          <button id="logout-btn" class="btn-ghost">Sign Out</button>
+        </div>
       </div>
     </header>
     <main class="container" id="dash-content">
@@ -400,6 +403,7 @@
     const auth = getAuth(app);
 
     let unsub = null;
+    let currentData = null;
 
     // ── Auth ──
     onAuthStateChanged(auth, (user) => {
@@ -430,6 +434,7 @@
     });
 
     document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+    document.getElementById("export-btn").addEventListener("click", () => { if (currentData) generateReport(currentData); });
 
     // ── Listener ──
     function startListener() {
@@ -443,8 +448,259 @@
       });
     }
 
+    // ── Report Export ──
+    function generateReport(data) {
+      const paychecks        = data.paychecks        || [];
+      const bills            = data.bills            || [];
+      const funds            = data.funds            || [];
+      const personalSpending = data.personalSpending || [];
+
+      const hisTotal      = paychecks.filter(p => p.whose === "his").reduce((s,p)  => s + (p.amount||0), 0);
+      const hersTotal     = paychecks.filter(p => p.whose === "hers").reduce((s,p) => s + (p.amount||0), 0);
+      const combined      = hisTotal + hersTotal;
+      const totalBills    = bills.reduce((s,b) => s + (b.amount||0), 0);
+      const paidBills     = bills.filter(b => b.paid).reduce((s,b) => s + (b.amount||0), 0);
+      const unpaid        = totalBills - paidBills;
+      const totalSaved    = funds.reduce((s,f) => s + (f.contributed||0), 0);
+      const totalSpending = personalSpending.reduce((s,p) => s + (p.amount||0), 0);
+      const totalOut      = totalBills + totalSaved + totalSpending;
+      const remaining     = combined - totalOut;
+      // Professional palette: dark green for positive, dark red for negative
+      const remColor = remaining >= 0 ? "#15803d" : "#b91c1c";
+
+      const monthYear = new Date().toLocaleDateString("en-US", { month:"long", year:"numeric" });
+      const genDate   = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
+      const remSign   = remaining < 0 ? "− " : "";
+      const heroSign  = remaining < 0 ? "−" : "";
+      const remAmt    = fmt(Math.abs(remaining));
+
+      // ── Pre-build HTML fragments ──
+
+      let incomeHtml = "";
+      paychecks.forEach(p => {
+        const wl = p.whose === "his" ? "His" : "Hers";
+        incomeHtml += '<div class="lrow"><span class="lrow-lbl">' + escHtml(p.label||"Paycheck") + ' <span class="tag">' + wl + '</span></span><span class="lrow-amt">' + fmt(p.amount||0) + '</span></div>';
+      });
+      incomeHtml += '<div class="sub-row"><span>Combined Income</span><span class="sub-amt">' + fmt(combined) + '</span></div>';
+
+      let herHtml = "";
+      personalSpending.forEach(s => {
+        herHtml += '<div class="lrow"><span class="lrow-lbl">' + escHtml(s.label||"") + '</span><span class="lrow-amt neg">− ' + fmt(s.amount||0) + '</span></div>';
+      });
+      if (personalSpending.length > 1) {
+        herHtml += '<div class="sub-row neg-sub"><span>Total Spending</span><span class="sub-amt neg">− ' + fmt(totalSpending) + '</span></div>';
+      }
+
+      let billRows = "";
+      bills.forEach(b => {
+        const ck = b.paid ? "✓" : "○";
+        const ckC = b.paid ? "#15803d" : "#b45309";
+        const st = b.paid ? "Paid" : (b.dueDate ? "Due " + escHtml(b.dueDate) : "Unpaid");
+        billRows += '<div class="brow"><span class="bck" style="color:' + ckC + '">' + ck + '</span><span class="bname">' + escHtml(b.name) + '</span><span class="bstat" style="color:' + ckC + '">' + st + '</span><span class="bamt">' + fmt(b.amount||0) + '</span></div>';
+      });
+
+      let billsFootHtml = '<div class="bfoot"><div class="bfoot-row"><span>Paid This Month</span><span class="bfoot-amt paid">' + fmt(paidBills) + '</span></div>';
+      if (unpaid > 0) {
+        billsFootHtml += '<div class="bfoot-row"><span>Still Due</span><span class="bfoot-amt due">' + fmt(unpaid) + '</span></div>';
+      } else if (bills.length > 0) {
+        billsFootHtml += '<div class="all-paid">All Bills Paid This Month</div>';
+      }
+      billsFootHtml += '</div>';
+
+      let fundsHtml = "";
+      funds.forEach(f => {
+        const goal = f.goal||0, balance = f.balance||0, monthly = f.monthly||0, contributed = f.contributed||0;
+        const pct  = goal > 0 ? Math.min(Math.round((balance/goal)*100), 100) : 0;
+        const balStr = goal > 0 ? fmt(balance) + " of " + fmt(goal) : fmt(balance);
+        const barHtml = goal > 0 ? '<div class="fbar-bg"><div class="fbar-fill" style="width:' + pct + '%"></div></div>' : "";
+        fundsHtml += '<div class="fitem"><div class="fitem-top"><span class="fname">' + escHtml(f.name) + '</span><span class="fpct">' + (goal > 0 ? pct + "%" : "") + '</span></div><div class="fmeta">' + balStr + ' · ' + fmt(monthly) + '/mo</div>' + barHtml + '</div>';
+      });
+
+      let sumRows = "";
+      [
+        { l: "Total Income",       v: combined,       neg: false },
+        { l: "Bills",              v: totalBills,     neg: true  },
+        ...(totalSaved    > 0 ? [{ l: "Savings",      v: totalSaved,    neg: true }] : []),
+        ...(totalSpending > 0 ? [{ l: "Spending",      v: totalSpending, neg: true }] : []),
+      ].forEach(s => {
+        sumRows += '<div class="srow"><span class="slbl">' + s.l + '</span><span class="samt">' + (s.neg ? "− " : "") + fmt(s.v) + '</span></div>';
+      });
+
+      const greetingBlock = data.greeting ? '<div class="greeting">' + escHtml(data.greeting) + '</div>' : '';
+      const fundsBlock    = fundsHtml ? '<div class="card" style="border-top:5px solid #7c3aed"><div class="sec-lbl">🏦 Savings &amp; Funds</div>' + fundsHtml + '</div>' : '';
+      const summaryFlex   = fundsHtml ? '' : 'flex:1;';
+      const noteBlock     = data.note ? '<div class="note-bar"><span class="note-lbl">Note from Trevor</span><span class="note-txt">' + escHtml(data.note) + '</span></div>' : '';
+
+      let leftCardHtml = '<div class="sec-lbl">💰 Money Coming In</div>' + incomeHtml;
+      if (herHtml) {
+        leftCardHtml += '<div class="sec-divider"><span>💳 Spending Money</span></div>' + herHtml;
+      }
+      leftCardHtml += '<div style="flex:1"></div>';
+
+      const h = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Monthly Report</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#e5e7eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif}
+.ctrl{background:#fff;border-bottom:1px solid #e5e7eb;padding:12px 20px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+.ctrl-btn{background:#1e293b;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s}
+.ctrl-btn:hover{background:#334155}
+.ctrl-btn:disabled{background:#94a3b8;cursor:default}
+.ctrl-tip{font-size:12px;color:#94a3b8}
+.scroll{overflow-x:auto;padding:20px}
+/* ── Report canvas ── */
+#report{
+  width:1920px;height:1080px;
+  background:#fdf6e3;
+  display:flex;flex-direction:column;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+}
+/* Strip */
+.rpt-strip{background:#1e293b;border-bottom:none;padding:11px 56px;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.strip-month{font-size:16px;font-weight:700;color:#ffffff;letter-spacing:-0.3px}
+.strip-sep{color:#475569}
+.strip-date{font-size:13px;color:#94a3b8}
+.greeting{font-size:12px;color:#64748b;font-style:italic;margin-left:8px}
+/* Grid */
+.rpt-grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1.45fr 1fr;gap:18px;padding:18px 56px 18px}
+/* Card */
+.card{background:#ffffff;border:1px solid #e9e4d8;border-radius:20px;padding:20px 24px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.06)}
+/* Section label */
+.sec-lbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#64748b;margin-bottom:12px;padding-bottom:10px;border-bottom:2px dashed #e9e4d8;flex-shrink:0}
+/* Rows */
+.lrow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f8fafc;gap:10px}
+.lrow-lbl{font-size:16px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font-size:11px;font-weight:600;color:#94a3b8;margin-left:5px;text-transform:uppercase;letter-spacing:0.5px}
+.lrow-amt{font-size:16px;font-weight:600;color:#1e293b;white-space:nowrap;font-family:ui-monospace,'SF Mono',monospace}
+.lrow-amt.neg{color:#b45309}
+/* Subtotal row */
+.sub-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0 0;margin-top:6px;border-top:2px solid #e2e8f0;flex-shrink:0}
+.sub-row span:first-child{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#64748b}
+.sub-amt{font-size:23px;font-weight:700;color:#0f172a;font-family:ui-monospace,'SF Mono',monospace}
+.neg-sub{border-top-color:#fde68a}
+.sub-amt.neg{color:#b45309}
+/* Section divider inside card */
+.sec-divider{display:flex;align-items:center;gap:10px;margin:14px 0 10px;flex-shrink:0}
+.sec-divider span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#64748b;white-space:nowrap}
+.sec-divider:after{content:'';flex:1;height:1px;background:#e2e8f0}
+/* Card pinned footer */
+.card-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:auto;border-top:3px solid #0f172a;flex-shrink:0}
+.card-foot-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#64748b}
+.card-foot-amt{font-size:22px;font-weight:700;font-family:ui-monospace,'SF Mono',monospace}
+/* Bills */
+.brow{display:grid;grid-template-columns:20px 1fr auto auto;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f8fafc}
+.bck{font-size:14px;font-weight:700;flex-shrink:0;text-align:center}
+.bname{font-size:16px;color:#334155;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bstat{font-size:13px;font-weight:600;white-space:nowrap;flex-shrink:0;text-transform:uppercase;letter-spacing:0.5px}
+.bamt{font-size:16px;font-weight:600;color:#1e293b;white-space:nowrap;font-family:ui-monospace,'SF Mono',monospace}
+/* Bills footer */
+.bfoot{padding-top:10px;margin-top:auto;border-top:2px solid #e2e8f0;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.bfoot-row{display:flex;justify-content:space-between;align-items:center}
+.bfoot-row span:first-child{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b}
+.bfoot-amt{font-size:23px;font-weight:700;font-family:ui-monospace,'SF Mono',monospace;color:#0f172a}
+.bfoot-amt.paid{color:#15803d}
+.bfoot-amt.due{color:#b45309}
+.all-paid{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:7px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#15803d;text-align:center}
+/* Funds */
+.fitem{padding:10px 0;border-bottom:1px solid #f1f5f9}
+.fitem:last-child{border-bottom:none}
+.fitem-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:2px}
+.fname{font-size:16px;font-weight:600;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fpct{font-size:15px;font-weight:700;color:#64748b;flex-shrink:0}
+.fmeta{font-size:13px;color:#94a3b8;margin-bottom:6px}
+.fbar-bg{background:#e2e8f0;border-radius:999px;height:6px}
+.fbar-fill{height:6px;border-radius:999px;background:#1e293b}
+/* Summary */
+.srow{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f1f5f9}
+.srow:last-of-type{border-bottom:none}
+.slbl{font-size:16px;color:#475569}
+.samt{font-size:16px;font-weight:600;color:#1e293b;font-family:ui-monospace,'SF Mono',monospace}
+.sum-total{display:flex;justify-content:space-between;align-items:center;padding:12px 0 0;margin-top:8px;border-top:3px solid #0f172a}
+.sum-total-lbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#0f172a}
+.sum-total-amt{font-size:24px;font-weight:700;font-family:ui-monospace,'SF Mono',monospace}
+/* Note */
+.note-bar{background:#fff;border-top:1px solid #e2e8f0;padding:12px 56px;display:flex;gap:20px;align-items:flex-start;flex-shrink:0}
+.note-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;white-space:nowrap;padding-top:2px;flex-shrink:0}
+.note-txt{font-size:13px;color:#475569;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* Right column wrapper */
+.rcol{display:flex;flex-direction:column;gap:18px;min-height:0;overflow:hidden}
+</style></head>
+<body>
+<div class="ctrl">
+  <button class="ctrl-btn" id="cbtn" onclick="copyImg()">Copy as Image</button>
+  <span class="ctrl-tip">Copies a 1920 × 1080 PNG — paste directly into iMessage · scroll right to preview the full image</span>
+</div>
+<div class="scroll">
+<div id="report">
+  <div class="rpt-strip">
+    <span class="strip-month">${monthYear}</span>
+    <span class="strip-sep">·</span>
+    <span class="strip-date">${genDate}</span>
+    ${greetingBlock}
+  </div>
+  <div class="rpt-grid">
+    <div class="card" style="flex:1;border-top:5px solid #0d9488">${leftCardHtml}</div>
+    <div class="card" style="display:flex;flex-direction:column;border-top:5px solid #f59e0b">
+      <div class="sec-lbl">📋 Bills This Month</div>
+      <div style="flex:1;overflow:hidden">${billRows}</div>
+      ${billsFootHtml}
+    </div>
+    <div class="rcol">
+      ${fundsBlock}
+      <div class="card" style="${summaryFlex}border-top:5px solid #db2777">
+        <div class="sec-lbl">📊 Where It Went</div>
+        ${sumRows}
+      </div>
+    </div>
+  </div>
+  ${noteBlock}
+</div>
+</div>
+</div>
+<script>
+async function copyImg() {
+  const btn = document.getElementById('cbtn');
+  btn.textContent = 'Working…';
+  btn.disabled = true;
+  try {
+    const canvas = await html2canvas(document.getElementById('report'), {
+      scale: 1, useCORS: true, allowTaint: true,
+      backgroundColor: '#050c1a', width: 1920, height: 1080,
+      scrollX: 0, scrollY: 0
+    });
+    canvas.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+        btn.textContent = 'Copied! Paste into iMessage';
+        btn.style.background = '#00f5a0';
+      } catch {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'monthly-report.png';
+        a.click();
+        btn.textContent = 'Saved — drag the image into iMessage';
+        btn.style.background = '#ffb800';
+        btn.style.color = '#000';
+      }
+      btn.disabled = false;
+      setTimeout(() => { btn.textContent = 'Copy as Image'; btn.style.cssText = ''; }, 5000);
+    });
+  } catch(e) {
+    btn.textContent = 'Error — try again';
+    btn.disabled = false;
+  }
+}
+<\/script>
+</body></html>`;
+
+      const w = window.open("", "_blank");
+      w.document.write(h);
+      w.document.close();
+    }
+
     // ── Render ──
     function renderDashboard(data) {
+      currentData = data;
       const paychecks       = data.paychecks        || [];
       const bills           = data.bills            || [];
       const funds           = data.funds            || [];
@@ -525,7 +781,7 @@
       if (personalSpending.length > 0) {
         const spCard = document.createElement("div");
         spCard.className = "dash-card anim-fadeup";
-        spCard.innerHTML = `<div class="dash-card-title">Her Money</div>`;
+        spCard.innerHTML = `<div class="dash-card-title">Spending Money</div>`;
 
         personalSpending.forEach(s => {
           const row = document.createElement("div");
@@ -609,6 +865,34 @@
           paidEl.className = "dash-all-paid";
           paidEl.textContent = "All bills paid!";
           billsCard.appendChild(paidEl);
+        }
+
+        // Tag category breakdown
+        const tagMap = {};
+        bills.forEach(b => {
+          if (!b.tag || !(b.amount > 0)) return;
+          tagMap[b.tag] = (tagMap[b.tag] || 0) + b.amount;
+        });
+        const tagEntries = Object.entries(tagMap).sort((a, b) => b[1] - a[1]);
+        if (tagEntries.length > 0) {
+          const catDiv = document.createElement("div");
+          catDiv.style.cssText = "margin-top:16px;padding-top:16px;border-top:1px solid var(--border);";
+          const catLabel = document.createElement("div");
+          catLabel.className = "dash-card-title";
+          catLabel.style.marginBottom = "10px";
+          catLabel.textContent = "By Category";
+          catDiv.appendChild(catLabel);
+          const chipWrap = document.createElement("div");
+          chipWrap.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;";
+          tagEntries.forEach(([tag, total]) => {
+            const tc = BILL_TAG_COLORS[tag] || { bg: "rgba(74,96,128,0.12)", text: "#4a6080" };
+            const chip = document.createElement("div");
+            chip.style.cssText = `background:${tc.bg};color:${tc.text};border:1px solid ${tc.text}40;border-radius:8px;padding:8px 12px;min-width:100px;`;
+            chip.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;opacity:0.75;">${escHtml(tag)}</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:1px;">${fmt(total)}</div>`;
+            chipWrap.appendChild(chip);
+          });
+          catDiv.appendChild(chipWrap);
+          billsCard.appendChild(catDiv);
         }
 
         content.appendChild(billsCard);
@@ -834,7 +1118,7 @@
       const mid = [];
       if (income > 0)        mid.push({ label: "Brought In", val: income,        color: "#00f5a0" });
       if (totalBills > 0)    mid.push({ label: "Bills",       val: totalBills,    color: "#ff4d8d" });
-      if (totalSpending > 0) mid.push({ label: "Her Money",   val: totalSpending, color: "#ffb800" });
+      if (totalSpending > 0) mid.push({ label: "Spending",     val: totalSpending, color: "#ffb800" });
       mid.sort((a, b) => b.val - a.val);
       mid.push({ label: "Left Over", val: leftover, color: leftover < 0 ? "#ff4d8d" : "#0f1e38" });
       const segments = mid.map(s => ({ label: s.label, val: s.val }));
