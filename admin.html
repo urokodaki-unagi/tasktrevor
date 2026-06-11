@@ -2942,6 +2942,7 @@
                         return `
                         <div class="meal-item-row" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Double-click to edit">
                           <span class="meal-item-name">${escHtml(item.name)}</span>
+                          <span class="meal-item-serving">${item.serving ?? 1} ${escHtml(item.unit || SERVING_UNITS[0])}</span>
                           <span class="meal-item-cal">${itemCalories(item)} cal</span>
                           <button type="button" class="meal-item-delete" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Remove">✕</button>
                         </div>`;
