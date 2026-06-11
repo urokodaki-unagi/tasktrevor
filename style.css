@@ -670,6 +670,7 @@ details[open] .lookup-summary::before { transform: rotate(90deg); }
 }
 .meal-item-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meal-item-serving, .meal-item-cal { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+.meal-item-serving { flex: 0 0 auto; white-space: nowrap; }
 .meal-item-cal { flex: 0 0 auto; color: var(--green); }
 .meal-empty { padding: 4px 0; }
 .meal-item-delete {
