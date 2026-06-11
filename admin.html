@@ -2858,10 +2858,12 @@
       { key: "dinner",    label: "Dinner" },
       { key: "snack",     label: "Snack" },
     ];
+    const SERVING_UNITS = ["serving(s)", "g", "oz", "cup(s)", "tbsp", "tsp", "ml", "piece(s)"];
     const MEAL_PLAN_DOC = doc(db, "personal_settings", "meal_plan");
     let mealPlan = {};
     let mealsExpanded = {};
     let mealsInitialized = false;
+    let mealEditing = null;
 
     function emptyDayMeals() {
       const d = {};
@@ -2873,9 +2875,14 @@
       DAYS.forEach(d => { if (!plan[d.key]) plan[d.key] = emptyDayMeals(); });
       return plan;
     }
+    function itemCalories(item) {
+      const servings = Number(item.serving);
+      const multiplier = (item.serving === "" || item.serving == null || isNaN(servings)) ? 1 : servings;
+      return Math.round((Number(item.calories) || 0) * multiplier);
+    }
     function dayCalories(dayKey) {
       const day = mealPlan[dayKey] || emptyDayMeals();
-      return MEAL_TAGS.reduce((sum, t) => sum + (day[t.key] || []).reduce((s, i) => s + (Number(i.calories) || 0), 0), 0);
+      return MEAL_TAGS.reduce((sum, t) => sum + (day[t.key] || []).reduce((s, i) => s + itemCalories(i), 0), 0);
     }
     async function saveMealPlan() {
       await setDoc(MEAL_PLAN_DOC, mealPlan);
@@ -2903,7 +2910,7 @@
             <div class="day-card-body">
               ${MEAL_TAGS.map(t => {
                 const items = day[t.key] || [];
-                const subtotal = items.reduce((s, i) => s + (Number(i.calories) || 0), 0);
+                const subtotal = items.reduce((s, i) => s + itemCalories(i), 0);
                 return `
                   <div class="meal-tag-section">
                     <div class="meal-tag-header">
@@ -2911,18 +2918,37 @@
                       <span class="meal-tag-subtotal">${subtotal} cal</span>
                     </div>
                     <div class="meal-item-list">
-                      ${items.map((item, idx) => `
-                        <div class="meal-item-row">
+                      ${items.map((item, idx) => {
+                        const isEditing = mealEditing && mealEditing.day === d.key && mealEditing.tag === t.key && mealEditing.idx === idx;
+                        if (isEditing) {
+                          return `
+                            <form class="meal-edit-form" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}">
+                              <input type="text" class="meal-input-name" placeholder="Item name" maxlength="60" required value="${escHtml(item.name)}" />
+                              <input type="number" class="meal-input-serving" placeholder="Amount" step="0.1" min="0" value="${escHtml(item.serving ?? "1")}" />
+                              <select class="meal-input-unit">
+                                ${SERVING_UNITS.map(u => `<option value="${u}" ${(item.unit || SERVING_UNITS[0]) === u ? "selected" : ""}>${u}</option>`).join("")}
+                              </select>
+                              <input type="number" class="meal-input-cal" placeholder="Calories per serving" min="0" required value="${item.calories}" />
+                              <button type="submit" class="btn-ghost-sm">Save</button>
+                              <button type="button" class="btn-ghost-sm meal-edit-cancel">Cancel</button>
+                            </form>`;
+                        }
+                        return `
+                        <div class="meal-item-row" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Double-click to edit">
                           <span class="meal-item-name">${escHtml(item.name)}</span>
-                          <span class="meal-item-serving">${escHtml(item.serving || "")}</span>
-                          <span class="meal-item-cal">${item.calories} cal</span>
+                          <span class="meal-item-serving">${item.serving ?? 1} ${escHtml(item.unit || SERVING_UNITS[0])} × ${item.calories} cal</span>
+                          <span class="meal-item-cal">${itemCalories(item)} cal total</span>
                           <button type="button" class="meal-item-delete" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Remove">✕</button>
-                        </div>`).join("") || '<p class="empty-msg meal-empty">Nothing added.</p>'}
+                        </div>`;
+                      }).join("") || '<p class="empty-msg meal-empty">Nothing added.</p>'}
                     </div>
                     <form class="meal-add-form" data-day="${d.key}" data-tag="${t.key}">
                       <input type="text" class="meal-input-name" placeholder="Item name" maxlength="60" required />
-                      <input type="text" class="meal-input-serving" placeholder="Serving size" maxlength="30" />
-                      <input type="number" class="meal-input-cal" placeholder="Calories" min="0" required />
+                      <input type="number" class="meal-input-serving" placeholder="Amount" step="0.1" min="0" value="1" />
+                      <select class="meal-input-unit">
+                        ${SERVING_UNITS.map(u => `<option value="${u}">${u}</option>`).join("")}
+                      </select>
+                      <input type="number" class="meal-input-cal" placeholder="Calories per serving" min="0" required />
                       <button type="submit" class="btn-ghost-sm">+ Add</button>
                     </form>
                   </div>`;
@@ -2953,15 +2979,43 @@
         await saveMealPlan();
       }));
 
+      wrap.querySelectorAll(".meal-item-row").forEach(row => row.addEventListener("dblclick", (e) => {
+        e.stopPropagation();
+        const { day, tag, idx } = row.dataset;
+        mealEditing = { day, tag, idx: Number(idx) };
+        renderMeals();
+      }));
+
+      wrap.querySelectorAll(".meal-edit-cancel").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        mealEditing = null;
+        renderMeals();
+      }));
+
+      wrap.querySelectorAll(".meal-edit-form").forEach(f => f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const { day, tag, idx } = f.dataset;
+        const name     = f.querySelector(".meal-input-name").value.trim();
+        const serving  = f.querySelector(".meal-input-serving").value.trim() || "1";
+        const unit     = f.querySelector(".meal-input-unit").value;
+        const calories = Number(f.querySelector(".meal-input-cal").value) || 0;
+        if (!name) return;
+        mealPlan[day][tag][Number(idx)] = { name, serving, unit, calories };
+        mealEditing = null;
+        await saveMealPlan();
+      }));
+
       wrap.querySelectorAll(".meal-add-form").forEach(f => f.addEventListener("submit", async (e) => {
         e.preventDefault();
         e.stopPropagation();
         const day = f.dataset.day, tag = f.dataset.tag;
         const name     = f.querySelector(".meal-input-name").value.trim();
-        const serving  = f.querySelector(".meal-input-serving").value.trim();
+        const serving  = f.querySelector(".meal-input-serving").value.trim() || "1";
+        const unit     = f.querySelector(".meal-input-unit").value;
         const calories = Number(f.querySelector(".meal-input-cal").value) || 0;
         if (!name) return;
-        mealPlan[day][tag].push({ name, serving, calories });
+        mealPlan[day][tag].push({ name, serving, unit, calories });
         await saveMealPlan();
       }));
     }
