@@ -939,6 +939,14 @@
     </div>
   </div>
 
+  <script>
+    // Stop scroll-wheel from changing focused number inputs
+    document.addEventListener("wheel", () => {
+      if (document.activeElement && document.activeElement.type === "number") {
+        document.activeElement.blur();
+      }
+    }, { passive: true });
+  </script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
@@ -2928,16 +2936,13 @@
                               <select class="meal-input-unit">
                                 ${SERVING_UNITS.map(u => `<option value="${u}" ${(item.unit || SERVING_UNITS[0]) === u ? "selected" : ""}>${u}</option>`).join("")}
                               </select>
-                              <input type="number" class="meal-input-cal" placeholder="Calories per serving" min="0" required value="${item.calories}" />
-                              <button type="submit" class="btn-ghost-sm">Save</button>
-                              <button type="button" class="btn-ghost-sm meal-edit-cancel">Cancel</button>
+                              <input type="number" class="meal-input-cal" placeholder="Calories" min="0" required value="${item.calories}" />
                             </form>`;
                         }
                         return `
                         <div class="meal-item-row" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Double-click to edit">
                           <span class="meal-item-name">${escHtml(item.name)}</span>
-                          <span class="meal-item-serving">${item.serving ?? 1} ${escHtml(item.unit || SERVING_UNITS[0])} × ${item.calories} cal</span>
-                          <span class="meal-item-cal">${itemCalories(item)} cal total</span>
+                          <span class="meal-item-cal">${itemCalories(item)} cal</span>
                           <button type="button" class="meal-item-delete" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Remove">✕</button>
                         </div>`;
                       }).join("") || '<p class="empty-msg meal-empty">Nothing added.</p>'}
@@ -2948,7 +2953,7 @@
                       <select class="meal-input-unit">
                         ${SERVING_UNITS.map(u => `<option value="${u}">${u}</option>`).join("")}
                       </select>
-                      <input type="number" class="meal-input-cal" placeholder="Calories per serving" min="0" required />
+                      <input type="number" class="meal-input-cal" placeholder="Calories" min="0" required />
                       <button type="submit" class="btn-ghost-sm">+ Add</button>
                     </form>
                   </div>`;
@@ -2986,25 +2991,29 @@
         renderMeals();
       }));
 
-      wrap.querySelectorAll(".meal-edit-cancel").forEach(b => b.addEventListener("click", (e) => {
-        e.stopPropagation();
-        mealEditing = null;
-        renderMeals();
-      }));
-
-      wrap.querySelectorAll(".meal-edit-form").forEach(f => f.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      async function commitMealEdit(f) {
+        if (!mealEditing) return;
         const { day, tag, idx } = f.dataset;
         const name     = f.querySelector(".meal-input-name").value.trim();
         const serving  = f.querySelector(".meal-input-serving").value.trim() || "1";
         const unit     = f.querySelector(".meal-input-unit").value;
         const calories = Number(f.querySelector(".meal-input-cal").value) || 0;
-        if (!name) return;
-        mealPlan[day][tag][Number(idx)] = { name, serving, unit, calories };
         mealEditing = null;
+        if (!name) { renderMeals(); return; }
+        mealPlan[day][tag][Number(idx)] = { name, serving, unit, calories };
         await saveMealPlan();
-      }));
+      }
+
+      wrap.querySelectorAll(".meal-edit-form").forEach(f => {
+        f.addEventListener("submit", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          commitMealEdit(f);
+        });
+        f.addEventListener("focusout", (e) => {
+          if (!f.contains(e.relatedTarget)) commitMealEdit(f);
+        });
+      });
 
       wrap.querySelectorAll(".meal-add-form").forEach(f => f.addEventListener("submit", async (e) => {
         e.preventDefault();
