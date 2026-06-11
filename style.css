@@ -665,17 +665,23 @@ details[open] .lookup-summary::before { transform: rotate(90deg); }
 .meal-tag-name { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
 .meal-tag-subtotal { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--green); }
 .meal-item-row {
-  display: grid; grid-template-columns: 1fr 110px 80px 28px; gap: 8px; align-items: center;
-  padding: 6px 0; font-size: 0.85rem; color: var(--text);
+  display: grid; grid-template-columns: 1fr 150px 80px 28px; gap: 8px; align-items: center;
+  padding: 6px 0; font-size: 0.85rem; color: var(--text); cursor: pointer;
 }
 .meal-item-serving, .meal-item-cal { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.78rem; }
 .meal-empty { padding: 4px 0; }
-.meal-add-form, .exercise-add-form, .set-add-form {
-  display: grid; grid-template-columns: 1fr 110px 80px auto; gap: 8px; margin-top: 8px;
+.meal-add-form, .exercise-add-form, .set-add-form, .meal-edit-form {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center;
 }
-.meal-add-form input, .exercise-add-form input, .set-add-form input { font-size: 0.85rem; padding: 8px 10px; }
-.exercise-add-form { grid-template-columns: 1fr auto; }
-.meal-add-form button, .exercise-add-form button, .set-add-form button { white-space: nowrap; }
+.meal-add-form input, .meal-add-form select, .meal-edit-form input, .meal-edit-form select,
+.exercise-add-form input, .set-add-form input { font-size: 0.85rem; padding: 8px 10px; }
+.meal-add-form .meal-input-name, .meal-edit-form .meal-input-name { flex: 1 1 160px; width: auto; }
+.meal-add-form .meal-input-serving, .meal-edit-form .meal-input-serving { flex: 0 0 70px; width: 70px; }
+.meal-add-form .meal-input-unit, .meal-edit-form .meal-input-unit { flex: 0 0 110px; width: 110px; }
+.meal-add-form .meal-input-cal, .meal-edit-form .meal-input-cal { flex: 0 0 120px; width: 120px; }
+.exercise-add-form input { flex: 1 1 auto; }
+.set-add-form input { flex: 1 1 80px; }
+.meal-add-form button, .exercise-add-form button, .set-add-form button, .meal-edit-form button { white-space: nowrap; }
 
 /* ── Workouts ── */
 .exercise-card {
@@ -710,7 +716,7 @@ details[open] .lookup-summary::before { transform: rotate(90deg); }
 .weight-delete:hover { color: var(--pink); }
 
 @media (max-width: 600px) {
-  .meal-add-form, .exercise-add-form, .set-add-form, .weight-add-form { grid-template-columns: 1fr; }
-  .meal-item-row { grid-template-columns: 1fr auto 24px; }
+  .weight-add-form { grid-template-columns: 1fr; }
+  .meal-item-row { grid-template-columns: 1fr auto 28px; }
   .meal-item-serving { display: none; }
 }
