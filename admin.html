@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="theme.css" />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     /* ── Admin section cards ── */
     section {
@@ -545,7 +546,7 @@
 
       <div class="admin-tab-nav">
         <button class="admin-tab-btn" data-tab="tasks">Tasks</button>
-        <button class="admin-tab-btn" data-tab="board">My Board</button>
+        <button class="admin-tab-btn" data-tab="board">Planning</button>
         <button class="admin-tab-btn active" data-tab="finances">Finances</button>
         <button class="admin-tab-btn" data-tab="contacts">Contacts</button>
         <button class="admin-tab-btn" data-tab="invoice">Invoice</button>
@@ -609,6 +610,9 @@
           <div class="board-subnav-left">
             <button class="board-view-btn active" data-view="kanban">Kanban</button>
             <button class="board-view-btn" data-view="notes">Notes</button>
+            <button class="board-view-btn" data-view="meals">Meals</button>
+            <button class="board-view-btn" data-view="workouts">Workouts</button>
+            <button class="board-view-btn" data-view="health">Health</button>
           </div>
           <div id="kanban-view-toggle-wrap" class="kanban-view-toggle">
             <span class="kanban-view-label" id="kanban-view-label">Desktop</span>
@@ -749,6 +753,33 @@
           </div>
         </section>
         </div><!-- /#board-notes-view -->
+
+        <!-- ── Meals View ── -->
+        <div id="board-meals-view" style="display:none;">
+          <div class="planner-summary" id="meals-week-summary"></div>
+          <div id="meals-days"></div>
+        </div><!-- /#board-meals-view -->
+
+        <!-- ── Workouts View ── -->
+        <div id="board-workouts-view" style="display:none;">
+          <div id="workouts-days"></div>
+        </div><!-- /#board-workouts-view -->
+
+        <!-- ── Health View ── -->
+        <div id="board-health-view" style="display:none;">
+          <section class="card card-cyan">
+            <h2 class="section-title">Weight Tracker</h2>
+            <form id="weight-add-form" class="weight-add-form">
+              <input type="date" id="weight-date-input" required />
+              <input type="number" id="weight-value-input" placeholder="Weight (lbs)" step="0.1" min="0" required />
+              <button type="submit" class="btn-pickup">Add</button>
+            </form>
+            <div class="weight-chart-wrap">
+              <canvas id="weight-chart"></canvas>
+            </div>
+            <div id="weight-list"></div>
+          </section>
+        </div><!-- /#board-health-view -->
 
       </div>
 
@@ -2796,6 +2827,389 @@
     }
 
     // notesInit() is called from startListeners() after the user is authenticated
+
+    // ── Planning shared helpers ──
+    const DAYS = [
+      { key: "monday",    label: "Monday" },
+      { key: "tuesday",   label: "Tuesday" },
+      { key: "wednesday", label: "Wednesday" },
+      { key: "thursday",  label: "Thursday" },
+      { key: "friday",    label: "Friday" },
+      { key: "saturday",  label: "Saturday" },
+      { key: "sunday",    label: "Sunday" },
+    ];
+    function todayDayKey() {
+      return DAYS[(new Date().getDay() + 6) % 7].key; // JS getDay: 0=Sunday
+    }
+    function dayCopyPicker(module, dayKey) {
+      return `
+        <div class="day-copy-picker" id="copy-picker-${module}-${dayKey}" style="display:none;">
+          ${DAYS.filter(o => o.key !== dayKey).map(o =>
+            `<label class="day-copy-option"><input type="checkbox" value="${o.key}"> ${o.label}</label>`
+          ).join("")}
+          <button type="button" class="btn-pickup day-copy-confirm" data-module="${module}" data-source="${dayKey}">Copy</button>
+        </div>`;
+    }
+
+    // ── Meals (weekly planner) ──
+    const MEAL_TAGS = [
+      { key: "breakfast", label: "Breakfast" },
+      { key: "lunch",     label: "Lunch" },
+      { key: "dinner",    label: "Dinner" },
+      { key: "snack",     label: "Snack" },
+    ];
+    const MEAL_PLAN_DOC = doc(db, "personal_settings", "meal_plan");
+    let mealPlan = {};
+    let mealsExpanded = {};
+    let mealsInitialized = false;
+
+    function emptyDayMeals() {
+      const d = {};
+      MEAL_TAGS.forEach(t => d[t.key] = []);
+      return d;
+    }
+    function fillMealPlanDefaults(data) {
+      const plan = data || {};
+      DAYS.forEach(d => { if (!plan[d.key]) plan[d.key] = emptyDayMeals(); });
+      return plan;
+    }
+    function dayCalories(dayKey) {
+      const day = mealPlan[dayKey] || emptyDayMeals();
+      return MEAL_TAGS.reduce((sum, t) => sum + (day[t.key] || []).reduce((s, i) => s + (Number(i.calories) || 0), 0), 0);
+    }
+    async function saveMealPlan() {
+      await setDoc(MEAL_PLAN_DOC, mealPlan);
+    }
+
+    function renderMeals() {
+      const wrap = document.getElementById("meals-days");
+      let weekTotal = 0;
+
+      wrap.innerHTML = DAYS.map(d => {
+        const total = dayCalories(d.key);
+        weekTotal += total;
+        const expanded = !!mealsExpanded[d.key];
+        const day = mealPlan[d.key] || emptyDayMeals();
+        return `
+          <div class="day-card ${expanded ? "expanded" : ""}">
+            <div class="day-card-header" data-toggle-day="${d.key}">
+              <span class="day-card-name">${d.label}</span>
+              <span class="day-card-total">${total} cal</span>
+              <div class="day-card-actions">
+                <button type="button" class="btn-ghost-sm day-copy-btn" data-day="${d.key}">Copy to…</button>
+              </div>
+            </div>
+            ${dayCopyPicker("meals", d.key)}
+            <div class="day-card-body">
+              ${MEAL_TAGS.map(t => {
+                const items = day[t.key] || [];
+                const subtotal = items.reduce((s, i) => s + (Number(i.calories) || 0), 0);
+                return `
+                  <div class="meal-tag-section">
+                    <div class="meal-tag-header">
+                      <span class="meal-tag-name">${t.label}</span>
+                      <span class="meal-tag-subtotal">${subtotal} cal</span>
+                    </div>
+                    <div class="meal-item-list">
+                      ${items.map((item, idx) => `
+                        <div class="meal-item-row">
+                          <span class="meal-item-name">${escHtml(item.name)}</span>
+                          <span class="meal-item-serving">${escHtml(item.serving || "")}</span>
+                          <span class="meal-item-cal">${item.calories} cal</span>
+                          <button type="button" class="meal-item-delete" data-day="${d.key}" data-tag="${t.key}" data-idx="${idx}" title="Remove">✕</button>
+                        </div>`).join("") || '<p class="empty-msg meal-empty">Nothing added.</p>'}
+                    </div>
+                    <form class="meal-add-form" data-day="${d.key}" data-tag="${t.key}">
+                      <input type="text" class="meal-input-name" placeholder="Item name" maxlength="60" required />
+                      <input type="text" class="meal-input-serving" placeholder="Serving size" maxlength="30" />
+                      <input type="number" class="meal-input-cal" placeholder="Calories" min="0" required />
+                      <button type="submit" class="btn-ghost-sm">+ Add</button>
+                    </form>
+                  </div>`;
+              }).join("")}
+            </div>
+          </div>`;
+      }).join("");
+
+      document.getElementById("meals-week-summary").innerHTML =
+        `<span>Week Total: <strong>${weekTotal} cal</strong></span><span>Daily Avg: <strong>${Math.round(weekTotal / 7)} cal</strong></span>`;
+
+      wrap.querySelectorAll("[data-toggle-day]").forEach(h => h.addEventListener("click", () => {
+        const day = h.dataset.toggleDay;
+        mealsExpanded[day] = !mealsExpanded[day];
+        renderMeals();
+      }));
+
+      wrap.querySelectorAll(".day-copy-btn").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const picker = document.getElementById(`copy-picker-meals-${b.dataset.day}`);
+        picker.style.display = picker.style.display === "none" ? "flex" : "none";
+      }));
+
+      wrap.querySelectorAll(".meal-item-delete").forEach(b => b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const { day, tag, idx } = b.dataset;
+        mealPlan[day][tag].splice(Number(idx), 1);
+        await saveMealPlan();
+      }));
+
+      wrap.querySelectorAll(".meal-add-form").forEach(f => f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const day = f.dataset.day, tag = f.dataset.tag;
+        const name     = f.querySelector(".meal-input-name").value.trim();
+        const serving  = f.querySelector(".meal-input-serving").value.trim();
+        const calories = Number(f.querySelector(".meal-input-cal").value) || 0;
+        if (!name) return;
+        mealPlan[day][tag].push({ name, serving, calories });
+        await saveMealPlan();
+      }));
+    }
+
+    async function mealsInit() {
+      if (mealsInitialized) return;
+      mealsInitialized = true;
+      mealsExpanded[todayDayKey()] = true;
+      const snap = await getDoc(MEAL_PLAN_DOC);
+      mealPlan = fillMealPlanDefaults(snap.exists() ? snap.data() : null);
+      renderMeals();
+      onSnapshot(MEAL_PLAN_DOC, (s) => {
+        mealPlan = fillMealPlanDefaults(s.exists() ? s.data() : null);
+        renderMeals();
+      });
+    }
+
+    // ── Workouts (weekly planner) ──
+    const WORKOUT_PLAN_DOC = doc(db, "personal_settings", "workout_plan");
+    let workoutPlan = {};
+    let workoutsExpanded = {};
+    let workoutsInitialized = false;
+
+    function emptyDayWorkout() { return { rest: false, exercises: [] }; }
+    function fillWorkoutPlanDefaults(data) {
+      const plan = data || {};
+      DAYS.forEach(d => { if (!plan[d.key]) plan[d.key] = emptyDayWorkout(); });
+      return plan;
+    }
+    async function saveWorkoutPlan() {
+      await setDoc(WORKOUT_PLAN_DOC, workoutPlan);
+    }
+
+    function renderWorkouts() {
+      const wrap = document.getElementById("workouts-days");
+
+      wrap.innerHTML = DAYS.map(d => {
+        const day = workoutPlan[d.key] || emptyDayWorkout();
+        const expanded = !!workoutsExpanded[d.key];
+        const summary = day.rest ? "Rest Day" : `${day.exercises.length} exercise${day.exercises.length === 1 ? "" : "s"}`;
+        return `
+          <div class="day-card ${expanded ? "expanded" : ""}">
+            <div class="day-card-header" data-toggle-day="${d.key}">
+              <span class="day-card-name">${d.label}</span>
+              <span class="day-card-total">${summary}</span>
+              <div class="day-card-actions">
+                <label class="rest-toggle">
+                  <input type="checkbox" class="rest-checkbox" data-day="${d.key}" ${day.rest ? "checked" : ""}> Rest Day
+                </label>
+                <button type="button" class="btn-ghost-sm day-copy-btn" data-day="${d.key}">Copy to…</button>
+              </div>
+            </div>
+            ${dayCopyPicker("workouts", d.key)}
+            <div class="day-card-body">
+              ${day.rest ? '<p class="empty-msg">Rest day — no workout planned.</p>' : `
+                ${day.exercises.map((ex, exIdx) => `
+                  <div class="exercise-card">
+                    <div class="exercise-header">
+                      <span class="exercise-name">${escHtml(ex.name)}</span>
+                      <button type="button" class="exercise-delete" data-day="${d.key}" data-ex="${exIdx}" title="Remove exercise">✕</button>
+                    </div>
+                    <div class="set-list">
+                      ${ex.sets.map((s, setIdx) => `
+                        <div class="set-row">
+                          <span class="set-label">Set ${setIdx + 1}</span>
+                          <span class="set-value">${s.reps} reps × ${s.weight} lbs</span>
+                          <button type="button" class="set-delete" data-day="${d.key}" data-ex="${exIdx}" data-set="${setIdx}" title="Remove set">✕</button>
+                        </div>`).join("") || '<p class="empty-msg meal-empty">No sets yet.</p>'}
+                    </div>
+                    <form class="set-add-form" data-day="${d.key}" data-ex="${exIdx}">
+                      <input type="number" class="set-input-reps" placeholder="Reps" min="0" required />
+                      <input type="number" class="set-input-weight" placeholder="Weight (lbs)" min="0" step="0.5" required />
+                      <button type="submit" class="btn-ghost-sm">+ Add Set</button>
+                    </form>
+                  </div>`).join("")}
+                <form class="exercise-add-form" data-day="${d.key}">
+                  <input type="text" class="exercise-input-name" placeholder="Exercise name" maxlength="60" required />
+                  <button type="submit" class="btn-ghost-sm">+ Add Exercise</button>
+                </form>`}
+            </div>
+          </div>`;
+      }).join("");
+
+      wrap.querySelectorAll("[data-toggle-day]").forEach(h => h.addEventListener("click", () => {
+        const day = h.dataset.toggleDay;
+        workoutsExpanded[day] = !workoutsExpanded[day];
+        renderWorkouts();
+      }));
+
+      wrap.querySelectorAll(".day-copy-btn").forEach(b => b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const picker = document.getElementById(`copy-picker-workouts-${b.dataset.day}`);
+        picker.style.display = picker.style.display === "none" ? "flex" : "none";
+      }));
+
+      wrap.querySelectorAll(".rest-checkbox").forEach(c => {
+        c.addEventListener("click", (e) => e.stopPropagation());
+        c.addEventListener("change", async () => {
+          workoutPlan[c.dataset.day].rest = c.checked;
+          await saveWorkoutPlan();
+        });
+      });
+
+      wrap.querySelectorAll(".exercise-delete").forEach(b => b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const { day, ex } = b.dataset;
+        workoutPlan[day].exercises.splice(Number(ex), 1);
+        await saveWorkoutPlan();
+      }));
+
+      wrap.querySelectorAll(".set-delete").forEach(b => b.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const { day, ex, set } = b.dataset;
+        workoutPlan[day].exercises[Number(ex)].sets.splice(Number(set), 1);
+        await saveWorkoutPlan();
+      }));
+
+      wrap.querySelectorAll(".exercise-add-form").forEach(f => f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const day = f.dataset.day;
+        const name = f.querySelector(".exercise-input-name").value.trim();
+        if (!name) return;
+        workoutPlan[day].exercises.push({ name, sets: [] });
+        await saveWorkoutPlan();
+      }));
+
+      wrap.querySelectorAll(".set-add-form").forEach(f => f.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const { day, ex } = f.dataset;
+        const reps   = Number(f.querySelector(".set-input-reps").value) || 0;
+        const weight = Number(f.querySelector(".set-input-weight").value) || 0;
+        workoutPlan[day].exercises[Number(ex)].sets.push({ reps, weight });
+        await saveWorkoutPlan();
+      }));
+    }
+
+    async function workoutsInit() {
+      if (workoutsInitialized) return;
+      workoutsInitialized = true;
+      workoutsExpanded[todayDayKey()] = true;
+      const snap = await getDoc(WORKOUT_PLAN_DOC);
+      workoutPlan = fillWorkoutPlanDefaults(snap.exists() ? snap.data() : null);
+      renderWorkouts();
+      onSnapshot(WORKOUT_PLAN_DOC, (s) => {
+        workoutPlan = fillWorkoutPlanDefaults(s.exists() ? s.data() : null);
+        renderWorkouts();
+      });
+    }
+
+    // ── Shared "Copy to…" handler for Meals & Workouts ──
+    document.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".day-copy-confirm");
+      if (!btn) return;
+      const { module, source } = btn.dataset;
+      const picker = btn.closest(".day-copy-picker");
+      const targets = [...picker.querySelectorAll("input:checked")].map(c => c.value);
+      if (!targets.length) return;
+      const plan = module === "meals" ? mealPlan : workoutPlan;
+      if (!confirm(`Copy ${source}'s ${module === "meals" ? "meals" : "workout"} to ${targets.join(", ")}? This will overwrite what's there.`)) return;
+      targets.forEach(t => { plan[t] = JSON.parse(JSON.stringify(plan[source])); });
+      if (module === "meals") await saveMealPlan(); else await saveWorkoutPlan();
+    });
+
+    // ── Health: Weight Tracker ──
+    let weightChart = null;
+    let weightInitialized = false;
+
+    function renderWeightChart(entries) {
+      const ctx = document.getElementById("weight-chart");
+      const sorted = [...entries].sort((a, b) => a.date.localeCompare(b.date));
+      const labels = sorted.map(en => en.date);
+      const data   = sorted.map(en => en.weight);
+      if (weightChart) weightChart.destroy();
+      weightChart = new Chart(ctx, {
+        type: "line",
+        data: { labels, datasets: [{ label: "Weight", data, borderColor: "#00d4ff", backgroundColor: "rgba(0,212,255,0.1)", tension: 0.3, fill: true, pointRadius: 3 }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#4a6080" }, grid: { color: "rgba(255,255,255,0.05)" } },
+            y: { ticks: { color: "#4a6080" }, grid: { color: "rgba(255,255,255,0.05)" } }
+          }
+        }
+      });
+    }
+
+    function renderWeight(entries) {
+      const list = document.getElementById("weight-list");
+      list.innerHTML = entries.length ? entries.map(en => `
+        <div class="weight-row">
+          <span class="weight-date">${en.date}</span>
+          <span class="weight-value">${en.weight} lbs</span>
+          <button type="button" class="weight-delete" data-id="${en.id}" title="Delete">✕</button>
+        </div>`).join("") : '<p class="empty-msg">No entries yet.</p>';
+
+      list.querySelectorAll(".weight-delete").forEach(b => b.addEventListener("click", async () => {
+        await deleteDoc(doc(db, "weight_log", b.dataset.id));
+      }));
+
+      renderWeightChart(entries);
+    }
+
+    function weightInit() {
+      if (weightInitialized) return;
+      weightInitialized = true;
+
+      const dateInput = document.getElementById("weight-date-input");
+      dateInput.valueAsDate = new Date();
+
+      onSnapshot(query(collection(db, "weight_log"), orderBy("date", "desc")), (snap) => {
+        const entries = [];
+        snap.forEach(d => entries.push({ id: d.id, ...d.data() }));
+        renderWeight(entries);
+      }, (err) => {
+        document.getElementById("weight-list").innerHTML = `<p class="empty-msg">Error loading: ${escHtml(err.message)}</p>`;
+      });
+
+      document.getElementById("weight-add-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const date   = dateInput.value;
+        const weight = Number(document.getElementById("weight-value-input").value);
+        if (!date || !weight) return;
+        await addDoc(collection(db, "weight_log"), { date, weight, createdAt: serverTimestamp() });
+        document.getElementById("weight-value-input").value = "";
+        dateInput.valueAsDate = new Date();
+      });
+    }
+
+    // ── Board sub-nav (Kanban / Notes / Meals / Workouts / Health) ──
+    document.querySelectorAll('.board-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.board-view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const view = btn.dataset.view;
+        document.getElementById('board-kanban-view').style.display    = view === 'kanban'   ? 'block' : 'none';
+        document.getElementById('board-notes-view').style.display     = view === 'notes'    ? 'block' : 'none';
+        document.getElementById('board-meals-view').style.display     = view === 'meals'    ? 'block' : 'none';
+        document.getElementById('board-workouts-view').style.display  = view === 'workouts' ? 'block' : 'none';
+        document.getElementById('board-health-view').style.display    = view === 'health'   ? 'block' : 'none';
+        document.getElementById('kanban-view-toggle-wrap').style.display = view === 'kanban' ? 'flex'  : 'none';
+        if (view === 'meals')    mealsInit();
+        if (view === 'workouts') workoutsInit();
+        if (view === 'health')   weightInit();
+      });
+    });
   </script>
 
   <script>
@@ -2810,21 +3224,6 @@
       navDropdownLogin.classList.remove("open");
       navToggleLogin.setAttribute("aria-expanded", false);
     });
-  </script>
-
-  <script>
-    // ── Board sub-nav (Kanban / Notes) ──
-    document.querySelectorAll('.board-view-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.board-view-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const view = btn.dataset.view;
-        document.getElementById('board-kanban-view').style.display    = view === 'kanban' ? 'block' : 'none';
-        document.getElementById('board-notes-view').style.display     = view === 'notes'  ? 'block' : 'none';
-        document.getElementById('kanban-view-toggle-wrap').style.display = view === 'kanban' ? 'flex'  : 'none';
-      });
-    });
-
   </script>
 </body>
 </html>
