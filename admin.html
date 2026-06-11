@@ -2896,6 +2896,19 @@
       await setDoc(MEAL_PLAN_DOC, mealPlan);
     }
 
+    async function commitMealEdit(f) {
+      if (!mealEditing) return;
+      const { day, tag, idx } = f.dataset;
+      const name     = f.querySelector(".meal-input-name").value.trim();
+      const serving  = f.querySelector(".meal-input-serving").value.trim() || "1";
+      const unit     = f.querySelector(".meal-input-unit").value;
+      const calories = Number(f.querySelector(".meal-input-cal").value) || 0;
+      mealEditing = null;
+      if (!name) { renderMeals(); return; }
+      mealPlan[day][tag][Number(idx)] = { name, serving, unit, calories };
+      await saveMealPlan();
+    }
+
     function renderMeals() {
       const wrap = document.getElementById("meals-days");
       let weekTotal = 0;
@@ -2992,19 +3005,6 @@
         renderMeals();
       }));
 
-      async function commitMealEdit(f) {
-        if (!mealEditing) return;
-        const { day, tag, idx } = f.dataset;
-        const name     = f.querySelector(".meal-input-name").value.trim();
-        const serving  = f.querySelector(".meal-input-serving").value.trim() || "1";
-        const unit     = f.querySelector(".meal-input-unit").value;
-        const calories = Number(f.querySelector(".meal-input-cal").value) || 0;
-        mealEditing = null;
-        if (!name) { renderMeals(); return; }
-        mealPlan[day][tag][Number(idx)] = { name, serving, unit, calories };
-        await saveMealPlan();
-      }
-
       wrap.querySelectorAll(".meal-edit-form").forEach(f => {
         f.addEventListener("submit", (e) => {
           e.preventDefault();
@@ -3040,6 +3040,13 @@
       onSnapshot(MEAL_PLAN_DOC, (s) => {
         mealPlan = fillMealPlanDefaults(s.exists() ? s.data() : null);
         renderMeals();
+      });
+      // Tapping/clicking outside the open edit form saves it (focusout's
+      // relatedTarget is unreliable on touch devices, so this is the backup).
+      document.addEventListener("click", (e) => {
+        if (!mealEditing) return;
+        const form = document.querySelector(".meal-edit-form");
+        if (form && !form.contains(e.target)) commitMealEdit(form);
       });
     }
 
