@@ -8,6 +8,14 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script>
+    // Stop scroll-wheel from changing focused number inputs
+    document.addEventListener("wheel", () => {
+      if (document.activeElement && document.activeElement.type === "number") {
+        document.activeElement.blur();
+      }
+    }, { passive: true });
+  </script>
   <style>
     html { font-size: 17px; }
     input[type="number"] {
